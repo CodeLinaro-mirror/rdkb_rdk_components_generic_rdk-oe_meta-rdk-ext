@@ -52,6 +52,7 @@ EXTRA_OECONF += " \
     --disable-shout2 \
     --disable-examples \
     --disable-dv1394 \
+    --enable-udp \
     ${GSTREAMER_1_0_ORC} \
 "
 
