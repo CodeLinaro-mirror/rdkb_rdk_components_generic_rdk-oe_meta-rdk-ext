@@ -1,7 +1,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += " \
-           file://fix_pollfd_dispatch.patch \
+            ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', '', 'file://fix_pollfd_dispatch.patch', d)} \
            "
 
 #           file://log_conntion_failures.patch \
