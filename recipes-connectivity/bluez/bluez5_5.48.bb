@@ -1,4 +1,4 @@
-require bluez5_5.45.inc
+require bluez5_5.48.inc
 
 REQUIRED_DISTRO_FEATURES = "bluez5"
 
@@ -54,6 +54,7 @@ NOINST_TOOLS_BT ?= " \
     tools/mcaptest \
     tools/cltest \
     tools/oobtest \
+    tools/advtest \
     tools/seq2bseq \
     tools/nokfw \
     tools/create-image \
@@ -66,4 +67,3 @@ NOINST_TOOLS_BT ?= " \
     tools/gatt-service \
     profiles/iap/iapd \
 "
-
