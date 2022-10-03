@@ -94,13 +94,15 @@ PACKAGECONFIG[serviceworker]     = "-DENABLE_SERVICE_WORKER=ON,-DENABLE_SERVICE_
 PACKAGECONFIG[experimental]      = "-DENABLE_EXPERIMENTAL_FEATURES=ON,-DENABLE_EXPERIMENTAL_FEATURES=OFF,"
 PACKAGECONFIG[wpeframework_opencdm] = "-DENABLE_THUNDER=ON,-DENABLE_THUNDER=OFF,wpeframework-clientlibraries,rdkservices"
 PACKAGECONFIG[releaselog]        = "-DENABLE_RELEASE_LOG=ON,"
-PACKAGECONFIG[usesoup2]          = "-DUSE_SOUP2=ON, -DUSE_SOUP2=OFF,libsoup-2.4"
+PACKAGECONFIG[usesoup2]          = "-DUSE_SOUP2=ON,-DUSE_SOUP2=OFF,libsoup-2.4"
+PACKAGECONFIG[usesoup3]          = "-DUSE_SOUP2=OFF,,libsoup"
 PACKAGECONFIG[native_audio]      = "-DUSE_GSTREAMER_NATIVE_AUDIO=ON, -DUSE_GSTREAMER_NATIVE_AUDIO=OFF,"
 PACKAGECONFIG[native_video]      = "-DUSE_GSTREAMER_NATIVE_VIDEO=ON, -DUSE_GSTREAMER_NATIVE_VIDEO=OFF,"
 PACKAGECONFIG[subtlecrypto]      = ""
 PACKAGECONFIG[instantratechange] = "-DENABLE_INSTANT_RATE_CHANGE=ON,-DENABLE_INSTANT_RATE_CHANGE=OFF,"
 
 PACKAGECONFIG_append = " webcrypto webdriver intl remoteinspector experimental releaselog accessibility speechsynthesis native_video"
+PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'usesoup3', 'usesoup2', d)}"
 
 FILES_${PN} += " ${libdir}/wpe-webkit-1.0/injected-bundle/libWPEInjectedBundle.so"
 FILES_${PN}-web-inspector-plugin += " ${libdir}/wpe-webkit-1.0/libWPEWebInspectorResources.so"

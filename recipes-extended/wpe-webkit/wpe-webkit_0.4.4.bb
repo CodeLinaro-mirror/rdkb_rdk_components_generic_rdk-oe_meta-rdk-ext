@@ -2,7 +2,7 @@ require wpe-webkit.inc
 
 PV = "0.4.4+git${SRCPV}"
 
-DEPENDS_append = " atk tts rdkat libgcrypt rsync-native"
+DEPENDS_append = " atk tts rdkat libgcrypt rsync-native libsoup-2.4"
 RDEPENDS_${PN} += "wpe-backend-rdk-platform-plugin tts rdkat"
 DEPENDS_remove_daisy = " rsync-native"
 

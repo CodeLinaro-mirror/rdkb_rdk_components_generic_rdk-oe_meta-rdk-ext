@@ -32,6 +32,7 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-go
 	   file://0037-qtdemux-aamp-avoid-unwanted-header-logging-gst1.18.patch \
            file://0038-fix-for-switching-from-clear-to-encrypted-and-vice-v.patch \
            file://0039-LLAMA-8596-Fix-for-demux-end-of-segment-detection.patch \
+           file://0040-Migrate-soup3-capable-souphttpsrc-from-gstreamer-1.21.2.patch \
            file://0041-qtdemux-Parsing-sgpd-sbgp-box-to-support-per-sample.patch \
            file://0042-qtdemux-Handle-protection-information-in-Sample-Grou.patch \
            file://0043-qtdemux-Identify-total-samples-in-sbgp-node-and-hand.patch \
@@ -49,12 +50,14 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=a6f89e2100d9b6cdffcea4f398e37343 \
 DEPENDS += "gstreamer1.0-plugins-base libcap zlib"
 RPROVIDES_${PN}-pulseaudio += "${PN}-pulse"
 RPROVIDES_${PN}-soup += "${PN}-souphttpsrc"
+RPROVIDES_${PN}-soup3 += "${PN}-souphttpsrc"
 
 PACKAGECONFIG ??= " \
     ${GSTREAMER_ORC} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'pulseaudio x11', 'pulseaudio x11', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'soup3', 'soup', d)} \
     ${@bb.utils.contains('TUNE_FEATURES', 'm64', 'asm', '', d)} \
-    bz2 cairo flac gdk-pixbuf gudev jpeg libpng mpg123 soup speex taglib v4l2 \
+    bz2 cairo flac gdk-pixbuf gudev jpeg libpng mpg123 speex taglib v4l2 \
 "
 
 X11DEPENDS = "virtual/libx11 libsm libxrender libxfixes libxdamage"
@@ -80,6 +83,7 @@ PACKAGECONFIG[mpg123]     = "-Dmpg123=enabled,-Dmpg123=disabled,mpg123"
 PACKAGECONFIG[pulseaudio] = "-Dpulse=enabled,-Dpulse=disabled,pulseaudio"
 PACKAGECONFIG[qt5]        = "-Dqt5=enabled,-Dqt5=disabled,qtbase qtdeclarative qtbase-native ${QT5WAYLANDDEPENDS}"
 PACKAGECONFIG[soup]       = "-Dsoup=enabled,-Dsoup=disabled,libsoup-2.4"
+PACKAGECONFIG[soup3]      = "-Dsoup3=enabled,-Dsoup3=disabled,libsoup"
 PACKAGECONFIG[speex]      = "-Dspeex=enabled,-Dspeex=disabled,speex"
 PACKAGECONFIG[rpi]        = "-Drpicamsrc=enabled,-Drpicamsrc=disabled,userland"
 PACKAGECONFIG[taglib]     = "-Dtaglib=enabled,-Dtaglib=disabled,taglib"
