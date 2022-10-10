@@ -21,3 +21,4 @@ PACKAGECONFIG ??= "tcp-wrappers"
 PACKAGECONFIG[tcp-wrappers] = "--enable-libwrap,--disable-libwrap,tcp-wrappers"
 
 COMPATIBLE_HOST_dunfell = "null"
+COMPATIBLE_HOST_kirkstone = "null"

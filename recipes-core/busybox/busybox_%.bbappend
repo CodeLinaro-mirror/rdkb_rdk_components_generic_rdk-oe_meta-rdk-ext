@@ -13,28 +13,21 @@ SRC_URI += " \
    file://archival.cfg \
    file://traceroute.cfg \
    file://blkid.cfg \
-   file://udhcp.patch \
-   file://0001-networking-add-ip-neigh-command.patch \
-   file://ip6_neigh_show_crash.patch \
+   ${@bb.utils.contains('DISTRO_FEATURES', 'morty', ' file://udhcp.patch file://0001-networking-add-ip-neigh-command.patch file://ip6_neigh_show_crash.patch ' , '' ,d)} \
    ${VERSION_PATCHES} \
    "
 
-SRC_URI_remove_dunfell += " \
-   file://udhcp.patch \
-   file://0001-networking-add-ip-neigh-command.patch \
-   file://ip6_neigh_show_crash.patch \
-   "
 SRC_URI_append_rpi = " \
    file://nice.cfg \
    "
 SRC_URI_remove_broadband += " \
    file://blkid.cfg \
    "
-SRC_URI_append_daisy = " file://devmem.cfg "
-SRC_URI_append_dunfell = " file://devmem.cfg "
+SRC_URI_append = " file://devmem.cfg "
 SRC_URI_append_morty = " file://enable_ps_wide.cfg "
-SRC_URI_append_broadband = " ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', ' file://enable_ps_wide.cfg ','',d)}"
-SRC_URI_append_dunfell = " file://enable_ar.cfg"
+SRC_URI_append_broadband = " ${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', ' file://enable_ps_wide.cfg ','',d)}"
+SRC_URI_append = " file://enable_ar.cfg"
+SRC_URI_remove_morty = " file://devmem.cfg file://enable_ar.cfg "
 VERSION_PATCHES ?= ""
 
 SRC_URI_append_hybrid += " \

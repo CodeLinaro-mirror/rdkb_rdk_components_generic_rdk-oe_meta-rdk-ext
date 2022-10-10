@@ -37,4 +37,4 @@ do_install_append() {
 #	cp ${STAGING_DATADIR_NATIVE}/aclocal/wayland-scanner.m4 ${SYSROOT_DESTDIR}/${datadir}/aclocal/
 #}
 
-COMPATIBLE_HOST_dunfell = "null"
+COMPATIBLE_HOST = "null"

@@ -12,8 +12,11 @@ EXTRA_OECONF += " \
 DEPENDS_append = " openssl curl"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-SRC_URI += "file://md4-remove.patch"
+SRC_URI_append = " file://md4-remove.patch"
+SRC_URI_remove_kirkstone = "file://md4-remove.patch"
+SRC_URI_append_kirkstone = " file://md4-remove_kirkstone.patch"
 
-CACHED_CONFIGUREVARS_remove_dunfell = "ac_cv_func_dlopen=no"
-CFLAGS_append_dunfell = " -DHAVE_LIBDL "
-LDFLAGS_append_dunfell = " -ldl "
+
+CACHED_CONFIGUREVARS_remove = "${@bb.utils.contains_any('DISTRO_FEATURES','dunfell kirkstone',' ac_cv_func_dlopen=no','',d)}"
+CFLAGS_append = "${@bb.utils.contains_any('DISTRO_FEATURES','dunfell kirkstone',' -DHAVE_LIBDL','',d)} "
+LDFLAGS_append = "${@bb.utils.contains_any('DISTRO_FEATURES','dunfell kirkstone','  -ldl','',d)} "

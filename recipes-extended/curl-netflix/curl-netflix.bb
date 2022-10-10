@@ -13,6 +13,8 @@ SRC_URI = "http://curl.haxx.se/download/curl-${PV}.tar.bz2 \
 "
 SRC_URI_append_dunfell = "${@bb.utils.contains('PREFERRED_VERSION_netflix', '5.3%','', bb.utils.contains('DISTRO_FEATURES', 'ssl-1.1.1', '', ' file://0001-Use-openssl1.0.2o-for-curl-netflix.patch',d),d)}"
 
+SRC_URI_append_kirkstone += " file://fix_size_t_max_undeclared_kirkstone.patch"
+
 SRC_URI[md5sum] = "a2192804f7c2636a09320416afcf888e"
 SRC_URI[sha256sum] = "b5920ffd6a8c95585fb95070e0ced38322790cb335c39d0dab852d12e157b5a0"
 

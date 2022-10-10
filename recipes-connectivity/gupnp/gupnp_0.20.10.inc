@@ -15,7 +15,7 @@ do_configure_prepend() {
 FILES_${PN} = "${libdir}/*.so.*"
 FILES_${PN}-dev += "${bindir}/gupnp-binding-tool"
 
-RDEPENDS_${PN}-dev = "python-textutils python-xml"
+RDEPENDS_${PN}-dev = "${@bb.utils.contains_any('DISTRO_FEATURES', 'kirkstone', '', 'python-textutils python-xml', d)}"
 
 SYSROOT_PREPROCESS_FUNCS += "gupnp_sysroot_preprocess"
 

@@ -33,4 +33,4 @@ do_install_append_morty() {
 
 FILES_${PN}-dev =+ "${libdir}/${BPN}/libwebsockets.so"
 
-SSTATE_DUPWHITELIST += "${STAGING_DIR}/${MACHINE}/pkgdata/runtime-reverse/libwebsockets-dev ${STAGING_DIR}/${MACHINE}/pkgdata/runtime-reverse/libwebsockets-dbg ${STAGING_LIBDIR}/libwebsockets.so ${STAGING_LIBDIR}/pkgconfig/libwebsockets.pc"
+require ${@bb.utils.contains_any('DISTRO_FEATURES','morty daisy','include/sstate_dupwhitelist.inc','include/sstate_allow_overlap_files.inc',d)}

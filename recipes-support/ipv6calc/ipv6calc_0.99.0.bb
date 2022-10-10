@@ -10,13 +10,14 @@ SRC_URI[md5sum] = "8d645f83492b739e8def05dccee53897"
 SRC_URI[sha256sum] = "fc7535b900339d75d9862b1c3d359304330f72e94a4cade539dfb714e533fdb5"
 
 SRC_URI += "file://configure.patch"
+SRC_URI_append_kirkstone = " file://fix_multiple_definition_error_gcc_10.patch"
 
 inherit autotools pkgconfig
 
 B = "${S}"
-PACKAGECONFIG_dunfell ??= "nowarn"
+PACKAGECONFIG ??= "nowarn"
+PACKAGECONFIG_remove_morty = "nowarn"
 PACKAGECONFIG[nowarn] = "--disable-compiler-warning-to-error"
-
 RDEPENDS_ipv6calc = " bash perl"
 do_install_append() {
 	install -d ${D}${libdir}

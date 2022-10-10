@@ -1,0 +1,33 @@
+Date: Fri 16 Dec 12:32:00 EST 2022
+From: https://sourceware.org/pipermail/gdb-patches/2020-April/167630.html
+Subject: Don't use deprecated function if python version is 3.9
+Source: Comcast
+License: CLOSED
+Upstream-Status: Pending
+Signed-off-by: Sushant Daspute <sushant_daspute@comcast.com>
+
+Index: collectd-5.12.0/src/python.c
+===================================================================
+--- collectd-5.12.0.orig/src/python.c
++++ collectd-5.12.0/src/python.c
+@@ -1141,7 +1141,9 @@ static void *cpy_interactive(void *pipef
+ #else
+   PyOS_AfterFork_Child();
+ #endif
++#if PY_VERSION_HEX < 0x03090000
+   PyEval_InitThreads();
++#endif
+   close(*(int *)pipefd);
+   PyRun_InteractiveLoop(stdin, "<stdin>");
+   PyOS_setsig(SIGINT, cur_sig);
+@@ -1178,7 +1180,9 @@ static int cpy_init(void) {
+       ;
+     (void)close(pipefd[0]);
+   } else {
++#if PY_VERSION_HEX < 0x03090000
+     PyEval_InitThreads();
++#endif
+     state = PyEval_SaveThread();
+   }
+   CPY_LOCK_THREADS
+

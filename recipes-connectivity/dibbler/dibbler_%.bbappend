@@ -4,7 +4,8 @@ SRC_URI += " \
         file://client_back.conf \
         "
 
-RDEPENDS_${PN}-client_append_broadband = " ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'bash', '', d)}"
+RDEPENDS_${PN}-client_append_broadband = " bash"
+RDEPENDS_${PN}-client_remove_broadband_morty = "bash"
 
 SRC_URI_append_hybrid = " file://client_back_hybrid.conf"
 

@@ -137,9 +137,7 @@ def get_noinst_tools_paths (d, bb, tools):
 
 FILES_${PN}-noinst-tools = "${@get_noinst_tools_paths(d, bb, d.getVar('NOINST_TOOLS', True))}"
 
-RDEPENDS_${PN}-testtools += "python python-dbus python-pygobject"
-RDEPENDS_${PN}-testtools_remove_dunfell += "python python-dbus python-pygobject"
-RDEPENDS_${PN}-testtools_append_dunfell += "python3 python3-dbus python3-pygobject"
+RDEPENDS_${PN}-testtools += "${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', 'python3 python3-dbus python3-pygobject', 'python python-dbus python-pygobject', d)}"
 
 # The python3-core package provides python interpreter in the latest version used in dunfell
 RDEPENDS_${PN}-testtools_append_dunfell = " python3-core"

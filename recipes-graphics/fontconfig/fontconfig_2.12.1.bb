@@ -41,4 +41,4 @@ EXTRA_OECONF = " --disable-docs --with-default-fonts=${datadir}/fonts"
 
 BBCLASSEXTEND = "native"
 
-COMPATIBLE_HOST_dunfell = "null"
+COMPATIBLE_HOST = "null"

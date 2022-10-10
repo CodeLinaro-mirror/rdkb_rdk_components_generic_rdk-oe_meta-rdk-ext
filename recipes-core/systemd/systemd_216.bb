@@ -24,10 +24,7 @@ PE = "1"
 # recipe from meta-rdk (ie OE 2.2 onwards), ensure that this legacy recipe isn't
 # parsed at all when building with the versions of OE which don't require it.
 
-COMPATIBLE_HOST_morty = 'null'
-COMPATIBLE_HOST_pyro = 'null'
-COMPATIBLE_HOST_rocko = 'null'
-COMPATIBLE_HOST_dunfell = "null"
+COMPATIBLE_HOST = "null"
 
 DEPENDS = "kmod docbook-sgml-dtd-4.1-native intltool-native gperf-native acl readline dbus libcap libcgroup glib-2.0 qemu-native"
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES', 'pam', 'libpam', '', d)}"

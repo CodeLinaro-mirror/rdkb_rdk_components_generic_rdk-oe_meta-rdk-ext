@@ -134,7 +134,7 @@ index 0000000..bcae3f8
 +#include <cstring>
 +#include <algorithm>
 +#include <functional>
-+
++#include <string>
 +#include <stdlib.h>
 +#include <unistd.h>
 +#include <ctype.h>

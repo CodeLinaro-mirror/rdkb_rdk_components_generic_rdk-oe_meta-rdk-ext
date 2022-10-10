@@ -17,7 +17,7 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-ba
 	   file://0001-XRE-12082-Reset-eos-on-appsrc-on-send-flush-gst1.18.patch \
 	   file://0001-decodebin3-continue-parsebin-autoplug-if-requested-gst1.18.patch \
            "
-SRC_URI += "${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'file://0001-fix-gst-plugins-base-configure-issue-with-dunfell.patch ', '',d)}"
+SRC_URI += "${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', 'file://0001-fix-gst-plugins-base-configure-issue-with-dunfell.patch ', '',d)}"
 
 SRC_URI[sha256sum] = "960b7af4585700db0fdd5b843554e11e2564fed9e061f591fae88a7be6446fa3"
 

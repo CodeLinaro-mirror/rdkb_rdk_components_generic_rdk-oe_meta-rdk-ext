@@ -39,3 +39,4 @@ do_install() {
 }
 
 COMPATIBLE_HOST_dunfell = "null"
+COMPATIBLE_HOST_kirkstone = "null"

@@ -4,8 +4,8 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:${THISDIR}/backports:"
 
 PACKAGECONFIG_remove = "vconsole ldconfig"
 PACKAGECONFIG_remove_dunfell = "${@bb.utils.contains('DISTRO_FEATURES', 'networkd-support', '', 'networkd', d)}"
-PACKAGECONFIG_remove_dunfell = "resolved"
-PACKAGECONFIG_remove_dunfell = "nss-resolve"
+PACKAGECONFIG_remove_kirkstone = "${@bb.utils.contains('DISTRO_FEATURES', 'networkd-support', '', 'networkd', d)}"
+PACKAGECONFIG_remove = "${@bb.utils.contains_any('DISTRO_FEATURES','dunfell kirkstone',' resolved nss-resolve ','',d)} "
 
 PACKAGECONFIG_remove_libc-uclibc = "sysusers machined"
 
@@ -46,8 +46,9 @@ FILES_${PN}-usb-support = " \
         ${rootlibexecdir}/udev/rules.d/99-usb-mount.rules \
        "
 
-FILES_${PN}_append_dunfell = " ${datadir}/bash-completion"
-FILES_${PN}_append_dunfell = " ${sbindir}/usb-mount.sh"
+FILES_${PN}_append = " ${datadir}/bash-completion"
+FILES_${PN}_remove_morty = "${datadir}/bash-completion"
+FILES_${PN}_append = " ${sbindir}/usb-mount.sh"
 
 do_install_append() {
 	install -d ${D}${sysconfdir}/sysctl.d
@@ -141,6 +142,7 @@ FILES_${PN}_remove = "${bindir}/busctl ${datadir}/bash-completion/completions/bu
 FILES_${PN}_append_client = " /media/apps"
 FILES_${PN}_append_hybrid = " /media/apps"
 FILES_${PN}_append_hybrid += "${sysconfdir}/sysctl.d/50-portreserv.conf"
+FILES_${PN} += "/media"
 
 SYSTEMD_SERVICE_systemd-binfmt_remove_hybrid = " systemd-binfmt.service"
 SYSTEMD_SERVICE_systemd-binfmt_remove_client = " systemd-binfmt.service"

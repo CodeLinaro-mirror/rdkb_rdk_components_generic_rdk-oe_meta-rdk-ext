@@ -3,4 +3,4 @@ SRC_URI += " \
              ${@bb.utils.contains('DISTRO_FEATURES', 'yocto-3.1.15', '', 'file://CVE-2018-1000500.patch', d)} \
              file://busybox-1.31-ping-mdev-support.patch \
            "
-VERSION_PATCHES_append_client = " file://busybox-1.31-udhcp-trigger-milestones.patch"
+VERSION_PATCHES_append_client = " ${@bb.utils.contains('DISTRO_FEATURES', 'kirkstone', ' file://busybox-1.35-udhcp-trigger-milestones.patch', ' file://busybox-1.31-udhcp-trigger-milestones.patch', d)}"

@@ -10,7 +10,7 @@ PACKAGECONFIG_DISTRO += " pcre"
 
 PACKAGECONFIG[printsupport] = ",-DQT_NO_PRINTER,,"
 
-DEPENDS_append_dunfell = " dbus directfb libxkbcommon"
+DEPENDS_append = " dbus directfb libxkbcommon"
 DEPENDS_append_dunfell_rpi = " libtirpc"
 CXXFLAGS_append_dunfell_rpi = " -I${STAGING_INCDIR}/tirpc"
 
@@ -42,9 +42,8 @@ do_install_append() {
         mv ${D}${libdir}/fonts ${D}${datadir}
 	rm -rf ${D}${libdir}/cacert.pem
 	rm -rf ${D}${libdir}/libQt5Test.so.5.*
-}
-do_install_append_morty() {
-    	rm -f ${D}/${libdir}/qt5/plugins/platforms/libqlinuxfb.so*
+    	
+	rm -f ${D}/${libdir}/qt5/plugins/platforms/libqlinuxfb.so*
     	rm -f ${D}/${libdir}/qt5/plugins/sqldrivers/libqsqlite.so*
     	rm -rf ${D}/${libdir}/qt5/plugins/sqldrivers
     	rm -f ${D}/${libdir}/qt5/plugins/bearer/libqconnmanbearer.so*
@@ -53,22 +52,19 @@ do_install_append_morty() {
     	rm -f ${D}/${libdir}/qt5/plugins/platforminputcontexts/libmaliitplatforminputcontextplugin.so*
     	rm -f ${D}/${libdir}/qt5/plugins/accessible/libqtaccessiblewidgets.so
     	rm -rf ${D}/${libdir}/qt5/plugins/accessible
+
+       #only for yocto version above morty
+       if ${@bb.utils.contains('DISTRO_FEATURES', 'morty', "false", "true", d)}; then 
+ 	       rm -f  ${D}/${datadir}/fonts/DejaVuSans-BoldOblique.ttf
+               rm -f  ${D}/${datadir}/fonts/DejaVuSans-Oblique.ttf
+       fi
 }
-do_install_append_dunfell() {
-    	rm -f ${D}/${libdir}/qt5/plugins/platforms/libqlinuxfb.so*
-    	rm -f ${D}/${libdir}/qt5/plugins/sqldrivers/libqsqlite.so*
-    	rm -rf ${D}/${libdir}/qt5/plugins/sqldrivers
-    	rm -f ${D}/${libdir}/qt5/plugins/bearer/libqconnmanbearer.so*
-    	rm -f ${D}/${libdir}/qt5/plugins/bearer/libqnmbearer.so*
-    	rm -f ${D}/${libdir}/qt5/plugins/platforminputcontexts/libibusplatforminputcontextplugin.so*
-    	rm -f ${D}/${libdir}/qt5/plugins/platforminputcontexts/libmaliitplatforminputcontextplugin.so*
-    	rm -f ${D}/${libdir}/qt5/plugins/accessible/libqtaccessiblewidgets.so
-    	rm -rf ${D}/${libdir}/qt5/plugins/accessible
-        
+
+
+do_install_remove_morty() {
         rm -f  ${D}/${datadir}/fonts/DejaVuSans-BoldOblique.ttf
         rm -f  ${D}/${datadir}/fonts/DejaVuSans-Oblique.ttf
 }
-
 FILES_${PN}-fonts-ttf-vera       = "${datadir}/fonts/Vera*.ttf"
 FILES_${PN}-fonts-ttf-dejavu     = "${datadir}/fonts/DejaVu*.ttf"
 FILES_${PN}-fonts-pfa            = "${datadir}/fonts/*.pfa"

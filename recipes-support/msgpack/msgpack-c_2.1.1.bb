@@ -14,8 +14,9 @@ SRCREV = "20ef1f925b007f170ab1c257e4aa61fdd0927773"
 SRC_URI = "git://github.com/msgpack/msgpack-c \
            file://0001-Comment-intentional-fallthrough-in-case-statements.patch \
            "
-SRC_URI_append_dunfell = " file://0001-Fix-Werror-class-memaccess.patch \
-                         "
+SRC_URI_append = " file://0001-Fix-Werror-class-memaccess.patch "
+SRC_URI_remove_morty = " file://0001-Fix-Werror-class-memaccess.patch"
+
 inherit cmake pkgconfig
 
 EXTRA_OECMAKE += " -DMSGPACK_BUILD_TESTS=OFF "

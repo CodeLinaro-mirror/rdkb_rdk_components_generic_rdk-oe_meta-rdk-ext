@@ -200,6 +200,8 @@ SRC_URI += "file://2.22.6/0316-BCOM-6652-fix-gst1_18-playbin3-autoplug.patch"
 SRC_URI += "file://2.22.6/0317-Fix-HTMLMediaElement-MediaSource-Crash.patch"
 SRC_URI += "file://2.22/0001-comcast-RDK-40160-WPE-CFLAGS.patch"
 
+SRC_URI_append_kirkstone = " file://2.22.6/001-Fix_build_issues_with_gcc11.patch"
+
 # device specific configs
 PACKAGECONFIG[westeros] = "-DUSE_WPEWEBKIT_BACKEND_WESTEROS=ON -DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_KEY_INPUT_HANDLING_LINUX_INPUT=OFF -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
 PACKAGECONFIG[encryptedmedia] = "-DENABLE_ENCRYPTED_MEDIA=ON,-DENABLE_ENCRYPTED_MEDIA=OFF,"
@@ -224,6 +226,7 @@ PACKAGECONFIG_append = " intl"
 PACKAGECONFIG_append = " remoteinspector"
 #PACKAGECONFIG_append = " gamepad"
 
+FILES_${PN} += " ${libdir}/wpe-webkit-0.1/injected-bundle/libWPEInjectedBundle.so"
 FILES_${PN}-web-inspector-plugin += " ${libdir}/wpe-webkit-*/libWPEWebInspectorResources.so"
 
 SELECTED_OPTIMIZATION_remove = "-g"

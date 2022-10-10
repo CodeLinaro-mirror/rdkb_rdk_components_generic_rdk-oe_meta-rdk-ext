@@ -14,7 +14,7 @@ SRC_URI[sha256sum] = "04d63bf48816c6f41c73f6de0f912a7cef0aab39c44162a7bcece1923d
 
 S = "${WORKDIR}/${PNREAL}-${PV}"
 
-inherit ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'meson', 'mesonmorty', d)} pkgconfig upstream-version-is-even gobject-introspection
+inherit ${@bb.utils.contains('DISTRO_FEATURES', 'morty', 'mesonmorty', 'meson', d)} pkgconfig upstream-version-is-even gobject-introspection
 
 EXTRA_OEMESON += " \
     -Ddoc=disabled \

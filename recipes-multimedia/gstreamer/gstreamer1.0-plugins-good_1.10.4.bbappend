@@ -41,3 +41,5 @@ SRC_URI_append = " file://0002-qtdemux-add-context-for-a-preferred-protection.pa
 ## When SVP is enabled on the Broadcom chip, i.e., XG1v4, need to disable aac audio parser.
 SRC_URI_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'sage_svp', 'file://0006-audioparser-remove-aacparse-for-svp.patch', '', d)}"
 SRC_URI_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'sage_svp', 'file://0011-audioparser-remove-eac3.patch', '', d)}"
+
+EXTRA_OECONF_remove_kirkstone += "--enable-introspection=no"

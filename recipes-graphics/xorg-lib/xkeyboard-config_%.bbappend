@@ -1,5 +1,5 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
-SRC_URI_append = " file://Enhancing-keycode-support.patch"
+SRC_URI_append = " ${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell morty', 'file://Enhancing-keycode-support.patch', 'file://Enhancing-keycode-support_kirkstone.patch', d)}"
 
 do_install_append () {
         rm -rf ${D}${datadir}/X11/xkb/compat/japan

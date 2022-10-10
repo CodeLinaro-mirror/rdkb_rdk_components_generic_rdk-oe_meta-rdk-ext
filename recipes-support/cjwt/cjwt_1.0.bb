@@ -20,6 +20,9 @@ CFLAGS_append = " \
     -I${STAGING_INCDIR}/cjson \
     -I${STAGING_INCDIR}/trower-base64 \
     "
+
+CFLAGS_append_kirkstone = " -Wno-deprecated-declarations "
+
 inherit cmake pkgconfig
 EXTRA_OECMAKE = "-DBUILD_TESTING=OFF -DBUILD_YOCTO=true"
 

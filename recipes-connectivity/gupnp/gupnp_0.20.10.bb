@@ -1,4 +1,4 @@
-require ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'recipes-connectivity/gupnp/gupnp_0.20.10.inc', 'recipes-connectivity/gupnp/gupnp.inc', d)}
+require ${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', 'recipes-connectivity/gupnp/gupnp_0.20.10.inc', 'recipes-connectivity/gupnp/gupnp.inc', d)}
 
 SRC_URI = "http://download.gnome.org/sources/${BPN}/0.20/${BPN}-${PV}.tar.xz \
            file://delia-26739.patch \
@@ -18,6 +18,7 @@ DEFAULT_PREFERENCE = "-1"
 EXTRA_OECONF += "--enable-introspection=no"
 
 RDEPENDS_${PN}-dev_append_dunfell = " ${PYTHON_PN}"
+RDEPENDS_${PN}-dev_append_kirkstone = " ${PYTHON_PN}"
 RDEPENDS_${PN}-dev_remove_broadband = "python-textutils python-xml"
 RDEPENDS_${PN}-dev_append = " ${PYTHON_PN}-xml ${PYTHON_PN}-core"
 RDEPENDS_${PN}-dev_remove_daisy = "${PYTHON_PN}-xml ${PYTHON_PN}-core"

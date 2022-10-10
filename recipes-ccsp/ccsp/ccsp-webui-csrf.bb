@@ -5,6 +5,7 @@ HOMEPAGE = "https://github.com/mebjas/CSRF-Protector-PHP"
 DEPENDS = "ccsp-common-library php chrpath-replacement-native"
 
 include recipes-ccsp/ccsp/ccsp_common.inc
+EXTRA_OECONF_append  = " --with-ccsp-platform=bcm --with-ccsp-arch=arm "
 
 LICENSE = "Apache-2.0"
 

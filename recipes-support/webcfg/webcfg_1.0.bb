@@ -19,7 +19,7 @@ S = "${WORKDIR}/git"
 
 ASNEEDED = ""
 
-inherit pkgconfig cmake pythonnative
+inherit pkgconfig cmake ${@bb.utils.contains("DISTRO_FEATURES", "kirkstone", "python3native", "pythonnative", d)}
 
 EXTRA_OECMAKE = "-DBUILD_TESTING=OFF -DBUILD_YOCTO=true"
 
@@ -49,7 +49,7 @@ CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin', '-I${
 
 CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'aker', '-I${STAGING_INCDIR}/nanomsg -I${STAGING_INCDIR}/libparodus', '', d)}"
 
-CFLAGS_append_dunfell = " -Wno-format-truncation -Wno-sizeof-pointer-memaccess"
+CFLAGS_append = " -Wno-format-truncation -Wno-sizeof-pointer-memaccess"
 
 SRC_URI_append += " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin', 'file://webconfig_metadata.json', '', d)}"
 SRC_URI_append += " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin', 'file://webconfig_video_metadata.json', '', d)}"
@@ -63,7 +63,7 @@ do_install_append_broadband() {
       install -d ${D}/usr/ccsp/webconfig
       install -d ${D}/etc
       touch ${D}/etc/WEBCONFIG_ENABLE
-      (python ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties ${MACHINE})
+      (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties ${MACHINE})
     fi
 
     if ${@bb.utils.contains("DISTRO_FEATURES", "WanFailOverSupportEnable", "true", "false", d)}

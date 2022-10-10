@@ -5,7 +5,7 @@ SRC_URI += "${@bb.utils.contains('DISTRO_FEATURES', 'syslog-ng', ' file://syslog
 RDEPENDS_${PN}_remove = "gawk"
 inherit update-alternatives
 
-RDEPENDS_${PN}_append_dunfell = " busybox"
+RDEPENDS_${PN}_append = "${@bb.utils.contains_any('DISTRO_FEATURES','dunfell kirkstone',' busybox','',d)} "
 
 RREPLACES_${PN}  += "busybox-syslog sysklogd rsyslog"
 

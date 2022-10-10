@@ -25,6 +25,9 @@ do_configure_prepend() {
 	cp ${WORKDIR}/find.pl ${S}/util/find.pl
 }
 
-do_install_append_dunfell() {
-  rm -f ${D}${bindir}/c_rehash
+do_install_append() {
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'morty', 'false', 'true', d)}; then
+        rm -f ${D}${bindir}/c_rehash
+    fi
 }
+

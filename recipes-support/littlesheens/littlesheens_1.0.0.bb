@@ -7,7 +7,8 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 SECTION = "libs"
 
 DEPENDS = "duktape"
-DEPENDS_append_dunfell = " vim-native coreutils-native"
+DEPENDS_append = " vim-native coreutils-native"
+DEPENDS_remove_morty = " vim-native coreutils-native"
 
 S = "${WORKDIR}/git"
 

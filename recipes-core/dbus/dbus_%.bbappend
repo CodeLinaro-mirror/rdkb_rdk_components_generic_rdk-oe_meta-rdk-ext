@@ -14,12 +14,12 @@ SRC_URI_append_broadband = " \
 # version of systemd, used by the RDK for both OE 1.6 and OE 2.1).
 PACKAGECONFIG_remove_krogoth = "systemd"
 
+#Removed --with-xml expact as the configuration is not supported in 1.14. It was not supported in dunfell version 1.12.16 as well.
 EXTRA_OECONF_broadband = "--disable-tests \
                           --disable-xml-docs \
                           --disable-doxygen-docs \
                           --disable-libaudit \
                           --disable-checks \
-                          --with-xml=expat \
                           --disable-systemd"
 
 do_install_append() {

@@ -32,7 +32,7 @@ EXTRA_OECONF += "--without-rpm --with-perl-modules=no --disable-embedded-perl \
 SRC_URI += "file://netsnmp-fix-ipAddressTable-issue.patch \
 "
 
-SRC_URI_append_dunfell = " file://pciutils3.5.1_udev_leak.patch \
+SRC_URI_append = " file://pciutils3.5.1_udev_leak.patch \
                          "
 
 SRC_URI_append_broadband = " \

@@ -8,7 +8,7 @@ SECTION = "multimedia"
 
 DEPENDS = "gstreamer1.0 glib-2.0-native"
 
-inherit gettext ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'meson', 'mesonmorty', d)} pkgconfig upstream-version-is-even
+inherit gettext ${@bb.utils.contains('DISTRO_FEATURES', 'morty', 'mesonmorty', 'meson', d)} pkgconfig upstream-version-is-even
 
 require gstreamer1.0-plugins-packaging.inc
 #require gst-plugins-package.inc

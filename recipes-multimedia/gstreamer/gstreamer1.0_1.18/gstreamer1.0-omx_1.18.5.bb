@@ -16,7 +16,7 @@ S = "${WORKDIR}/gst-omx-${PV}"
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad"
 
-inherit ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'meson', 'mesonmorty', d)} pkgconfig upstream-version-is-even
+inherit ${@bb.utils.contains('DISTRO_FEATURES', 'morty', 'mesonmorty', 'meson', d)} pkgconfig upstream-version-is-even
 
 GSTREAMER_1_0_OMX_TARGET ?= "bellagio"
 GSTREAMER_1_0_OMX_CORE_NAME ?= "${libdir}/libomxil-bellagio.so.0"

@@ -41,7 +41,7 @@ def supported_docs(group_id, docs):
     for count in range(0, len(docs)):
         key_count = 0
         # Individual subdocs are segregated
-        for key, value in docs[count].items():
+        for key, value in list(docs[count].items()):
             key_count += 1
             if key == "name":
                 name = value
@@ -58,7 +58,7 @@ def supported_docs(group_id, docs):
             if key == "dest":
                 dest =value
 
-            if (len(docs[count].keys())) == key_count:
+            if (len(list(docs[count].keys()))) == key_count:
                 if name is not None and bit_pos is not None and support is not None and version is not None :
                     if secondary_doc is not None and secondary_doc is True:
                         supplementary_docs(name)
@@ -105,7 +105,7 @@ def bit_position(name, bit_pos, group_id, support, rbus_listener, dest):
     if not bool(bit_position_map):
         bit_position_map[group_id] = temp_str
 
-    elif bit_position_map.has_key(group_id):
+    elif group_id in bit_position_map:
         temp_str = "," + temp_str
         prev_value = bit_position_map[group_id]
         current_value = prev_value + temp_str
@@ -167,14 +167,14 @@ def json_read(data, dest, device_name):
     global supported_bits
     group_id = None
     docs = None
-    for (dev, subdoc) in data.items():
+    for (dev, subdoc) in list(data.items()):
         # Filtering based on device name from Json
         if dev in device_name:
             # print dev
             max_group_size = len(subdoc)
             supported_bits = [0 for i in range(0, max_group_size)]
             for count in range(0, len(subdoc)):
-                for (key, value) in subdoc[count].items():
+                for (key, value) in list(subdoc[count].items()):
                     if key == "group_id":
                         group_id = value
 
@@ -217,7 +217,7 @@ def json_read(data, dest, device_name):
             fout.write("\n")
 
         for write_bit in range(1,max_group_size+1):
-            if bit_position_map.has_key(write_bit):
+            if write_bit in bit_position_map:
                 fout.write("WEBCONFIG_SUBDOC_MAP_")
                 fout.write(str(write_bit))
                 fout.write("=")
@@ -233,9 +233,9 @@ def json_read(data, dest, device_name):
             fout.write("\n")
 
         fout.close()
-        print "The "+dest+" file is created successfully\n"
+        print("The "+dest+" file is created successfully\n")
     else:
-        print "Either the device is not listed or it has no supported docs\n"
+        print("Either the device is not listed or it has no supported docs\n")
 
 
 '''Start of the program which requires 3 arguments input_json output_file_location device_name'''

@@ -17,7 +17,8 @@ SRC_URI = " \
 
 RDEPENDS_${PN} += "util-linux-uuidgen"
 
-RDEPENDS_${PN}_append_dunfell = " bash"
+RDEPENDS_${PN}_append = " bash"
+RDEPENDS_${PN}_remove_morty = "bash"
 
 PV = "git+${SRCPV}"
 S = "${WORKDIR}/git"

@@ -10,3 +10,4 @@ do_install_append_morty(){
 PACKAGECONFIG_remove = "udev"
 FILES_${PN}_remove = "${sysconfdir}/lvm ${sbindir}"
 RDEPENDS_${PN}_remove = "thin-provisioning-tools"
+ALLOW_EMPTY_${PN}-udevrules  = "1"

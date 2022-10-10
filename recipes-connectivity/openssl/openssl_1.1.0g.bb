@@ -145,5 +145,5 @@ FILES_${PN} =+ " ${libdir}/ssl-1.1/*"
 PACKAGES =+ "${PN}-engines"
 #FILES_${PN}-engines = "${libdir}/engines-1.1"
 
-COMPATIBLE_HOST_dunfell = "null"
+COMPATIBLE_HOST = "null"
 

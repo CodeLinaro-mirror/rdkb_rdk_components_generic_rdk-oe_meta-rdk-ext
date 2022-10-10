@@ -1,0 +1,3 @@
+FULL_OPTIMIZATION_remove = "-Os"
+FULL_OPTIMIZATION_append = "-O2"
+
