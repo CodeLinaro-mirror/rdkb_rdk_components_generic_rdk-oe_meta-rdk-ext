@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d499814247adaee08d88080841cb5665"
 PR="r0"
 
 # openssl will provide libcrypto
-DEPENDS = "zlib bzip2 openssl expat"
+DEPENDS = "zlib bzip2 openssl expat zstd"
 
 LIBARCHIVE_TAG="v3.6.1"
 
