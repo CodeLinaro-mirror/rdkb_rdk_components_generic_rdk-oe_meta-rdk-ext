@@ -134,11 +134,11 @@ fi
 #TCXB6-3863 add downlink-prefix-ifaces in client.conf
 echo downlink-prefix-ifaces \"brlan0\" >> $DHCP_CONFIG_FILE_TMP
 
-if [ "$BOX_TYPE" = "XB3" ] || [ "$MODEL_NUM" = "TG3482G" ]; then
-	dibbler_client_enable=`syscfg get dibbler_client_enable`
+if [ "$BOX_TYPE" = "XB3" ] || [ "$MODEL_NUM" = "TG3482G" ] || [ "$MODEL_NUM" = "TG4482A" ]; then
+	dibbler_client_enable=`syscfg get dibbler_client_enable_v2`
         if [ "$dibbler_client_enable" = "true" ] ; then
 		EMAC=`ifconfig erouter0 | grep HWaddr | cut -d"r" -f5 | cut -d" " -f2 |  cut -d":" -f3-6`
-		if [ "$MODEL_NUM" = "TG3482G" ]
+		if [ "$MODEL_NUM" = "TG3482G" ] || [ "$MODEL_NUM" = "TG4482A" ]
 		then
 			MAC=`echo $EMAC | awk '{split($1,a,":");printf("%s%s%s%s",a[4],a[3],a[2],a[1])}'`
 		else
