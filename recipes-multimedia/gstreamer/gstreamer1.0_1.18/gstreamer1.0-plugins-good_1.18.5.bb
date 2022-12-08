@@ -40,6 +40,7 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-go
            file://0044-qtdemux-Don-t-emit-GstSegment-correcting-start-time-.patch \
            file://0045-qtdemux-Add-MSE-style-flush.patch \
            file://0046-qtdemux-Fix-crash-on-MSE-style-flush.patch \
+           file://0040-check-return-caps-value-in-piff.patch \
            "
 SRC_URI_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'sage_svp', 'file://0001-audioparser-remove-eac3-aacparse-for-svp.patch', '', d)}"
 
