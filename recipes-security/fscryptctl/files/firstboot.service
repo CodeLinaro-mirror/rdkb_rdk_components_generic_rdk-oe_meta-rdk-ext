@@ -1,0 +1,15 @@
+[Unit]
+Description=FirstBoot
+After=network.target
+Before=rc-local.service
+ConditionPathIsReadWrite=/opt/
+ConditionPathExists=!/opt/firstboot.done
+
+[Service]
+ExecStart=/lib/rdk/firstboot.sh
+ExecStartPost=/bin/touch /opt/firstboot.done
+Type=oneshot
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
