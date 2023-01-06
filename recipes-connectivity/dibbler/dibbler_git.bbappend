@@ -10,3 +10,4 @@ SRC_URI_append_client = " file://0001-RDK-32168-Set-default-log-path-for-dibbler
 
 SRC_URI_append_broadband = " file://dhcpv6c_handle_system_time_change.patch "
 SRC_URI_append_broadband = " file://Fix-For-Dibbler-Crash-InNobinding-Rebinding-Solicit-Transition.patch "
+SRC_URI_append_broadband = " file://Fix-Dibbler-IPv6-Resolve-Conf-Expiry-Event-Alignment.patch"
