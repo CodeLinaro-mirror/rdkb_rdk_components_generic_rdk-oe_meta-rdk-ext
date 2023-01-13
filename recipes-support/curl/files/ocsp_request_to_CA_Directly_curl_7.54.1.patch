@@ -109,7 +109,7 @@ Index: curl-7.54.1/lib/vtls/openssl.c
 +    STACK_OF(OPENSSL_STRING) *reqnames = NULL;
 +    ENGINE *e = NULL;
 +    const EVP_MD *cert_id_md = NULL;
-+    BIO *bio_err;
++    BIO *bio_err = NULL;
 +
 +    ids = sk_OCSP_CERTID_new_null();
 +    reqnames = sk_OPENSSL_STRING_new_null();
@@ -335,7 +335,7 @@ Index: curl-7.54.1/lib/vtls/openssl.c
 +    STACK_OF(CONF_VALUE) *headers = NULL;
 +    char *host = NULL, *port = NULL, *path = "/";
 +    int use_ssl = -1;
-+    BIO *bio_err;
++    BIO *bio_err = NULL;
 +
 +    if (!OCSP_parse_url(ocspuri, &host, &port, &path, &use_ssl)) {
 +        printf("Error parsing URL\n");
@@ -391,16 +391,16 @@ Index: curl-7.54.1/lib/vtls/openssl.c
 +    /* OCSP_REQUEST_print(outbio, request, 0); */
 +
 +    response = get_ocspresponse_from_CA(connssl->handle, request, timeout, ocsp_uri);
-+    if(!response)
-+       goto end;
-+       /* OCSP_RESPONSE_print(outbio, response, 0); */
++    if(!response) { failf(data, "No OCSP response received from CA");
++       goto end; }
++    /* OCSP_RESPONSE_print(outbio, response, 0); */
 +
-+       ocsp_status = OCSP_response_status(response);
-+       if(ocsp_status != OCSP_RESPONSE_STATUS_SUCCESSFUL) {
-+           failf(data, "invalid ocsp response: %s (%d)", OCSP_response_status_str(ocsp_status), ocsp_status);
-+           result = CURLE_SSL_INVALIDCERTSTATUS;
-+           goto end;
-+       }
++    ocsp_status = OCSP_response_status(response);
++    if(ocsp_status != OCSP_RESPONSE_STATUS_SUCCESSFUL) {
++       failf(data, "invalid ocsp response: %s (%d)", OCSP_response_status_str(ocsp_status), ocsp_status);
++       result = CURLE_SSL_INVALIDCERTSTATUS;
++       goto end;
++    }
 +
 +    br1 = OCSP_response_get1_basic(response);
 +    if(!br1) {
