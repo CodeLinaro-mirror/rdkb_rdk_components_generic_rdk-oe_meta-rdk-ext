@@ -10,10 +10,10 @@ Index: git/CMakeLists.txt
 ===================================================================
 --- /dev/null
 +++ git/CMakeLists.txt
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,26 @@
 +cmake_minimum_required(VERSION 2.8.12)
 +project(linenoise)
-+
++include(GNUInstallDirs)
 +set(CMAKE_DEBUG_POSTFIX d)
 +add_library(linenoise SHARED linenoise.c)
 +
@@ -24,11 +24,16 @@ Index: git/CMakeLists.txt
 +
 +set_property(TARGET linenoise PROPERTY VERSION "1.0")
 +
++MESSAGE(STATUS "Checking Vars")
++MESSAGE(STATUS ${CMAKE_INSTALL_LIBDIR})
++MESSAGE(STATUS ${CMAKE_INSTALL_BINDIR})
++MESSAGE(STATUS ${CMAKE_INSTALL_INCLUDEDIR})
++
 +install(TARGETS linenoise
-+    ARCHIVE DESTINATION lib
-+    LIBRARY DESTINATION lib
-+    RUNTIME DESTINATION bin
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 +)
 +
-+install(FILES linenoise.h DESTINATION include)
++install(FILES linenoise.h DESTINATION  ${CMAKE_INSTALL_INCLUDEDIR} )
 +
