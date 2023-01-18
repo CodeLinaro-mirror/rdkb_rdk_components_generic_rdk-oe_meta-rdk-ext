@@ -28,12 +28,17 @@ def use_rdk_perf_service(d):
 USE_RDKPERF_SERVICE = "${@use_rdk_perf_service(d)}"
 
 # git@github.com:rdkcentral/rdkperf.git
+# Testing with development branch
+#SRC_URI = "git://github.com/rdkcentral/rdkperf;protocol=git;branch=development"
+#SRCREV = "${AUTOREV}"
+
+# Using the main branch
 SRC_URI = "git://github.com/rdkcentral/rdkperf;protocol=git;branch=main"
-SRCREV = "16c8c6c2a42683601114aa6e827f8a9dd6427259"
+SRCREV = "277d3ec4c895f9e635c6f52425e46e4b6bf955ef"
 #SRCREV = "${AUTOREV}"
 
 
-PV = "0.8+git${SRCPV}"
+PV = "1.0+git${SRCPV}"
 S = "${WORKDIR}/git"
 
 
