@@ -29,6 +29,7 @@ SRC_URI += "file://2.28.2/990.patch"
 SRC_URI += "file://2.28.3/996.patch"
 SRC_URI += "file://2.28/1009.patch"
 SRC_URI += "file://2.28.3/1010.patch"
+SRC_URI += "file://2.28.3/1011.patch"
 SRC_URI += "file://2.28.2/1012.patch"
 SRC_URI += "file://2.28.3/1015.patch"
 
