@@ -1,0 +1,72 @@
+From 1eb5e7f3f03cb67b5314701527d90e7485fb0b61 Mon Sep 17 00:00:00 2001
+From: Andrzej Surdej <Andrzej_Surdej@comcast.com>
+Date: Thu, 19 Jan 2023 15:26:56 +0100
+Subject: [PATCH] ImageBuffer: Fix crash in PendingImageBitmap destruction
+
+Delete FileReaderLoader before destroying PendingImageBitmap
+as it keeps a client ponter back and may use it after
+PendingImageBitmap object is destroyed.
+
+This fixes a crash when PendingImageBitmap is deleted (via stop())
+before promise is resolved.
+---
+ Source/WebCore/html/ImageBitmap.cpp | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/Source/WebCore/html/ImageBitmap.cpp b/Source/WebCore/html/ImageBitmap.cpp
+index 788af799d1da..57bc90f11077 100644
+--- a/Source/WebCore/html/ImageBitmap.cpp
++++ b/Source/WebCore/html/ImageBitmap.cpp
+@@ -553,7 +553,7 @@ public:
+ private:
+     PendingImageBitmap(ScriptExecutionContext& scriptExecutionContext, RefPtr<Blob>&& blob, ImageBitmapOptions&& options, Optional<IntRect> rect, ImageBitmap::Promise&& promise)
+         : ActiveDOMObject(&scriptExecutionContext)
+-        , m_blobLoader(FileReaderLoader::ReadAsArrayBuffer, this)
++        , m_blobLoader(makeUnique<FileReaderLoader>(FileReaderLoader::ReadAsArrayBuffer, this))
+         , m_blob(WTFMove(blob))
+         , m_options(WTFMove(options))
+         , m_rect(WTFMove(rect))
+@@ -564,9 +564,17 @@ private:
+         m_createImageBitmapTimer.suspendIfNeeded();
+     }
+ 
++    ~PendingImageBitmap()
++    {
++        if (m_blobLoader) {
++            m_blobLoader->cancel();
++            m_blobLoader = nullptr;
++        }
++    }
++
+     void start(ScriptExecutionContext& scriptExecutionContext)
+     {
+-        m_blobLoader.start(&scriptExecutionContext, *m_blob);
++        m_blobLoader->start(&scriptExecutionContext, *m_blob);
+     }
+ 
+     // ActiveDOMObject
+@@ -593,7 +601,7 @@ private:
+ 
+     void didFinishLoading() override
+     {
+-        createImageBitmapAndResolvePromiseSoon(m_blobLoader.arrayBufferResult());
++        createImageBitmapAndResolvePromiseSoon(m_blobLoader->arrayBufferResult());
+     }
+ 
+     void didFail(int) override
+@@ -619,10 +627,10 @@ private:
+             return;
+         }
+ 
+-        ImageBitmap::createFromBuffer(m_arrayBufferToProcess.releaseNonNull(), m_blob->type(), m_blob->size(), m_blobLoader.url(), WTFMove(m_options), WTFMove(m_rect), WTFMove(m_promise));
++        ImageBitmap::createFromBuffer(m_arrayBufferToProcess.releaseNonNull(), m_blob->type(), m_blob->size(), m_blobLoader->url(), WTFMove(m_options), WTFMove(m_rect), WTFMove(m_promise));
+     }
+ 
+-    FileReaderLoader m_blobLoader;
++    std::unique_ptr<FileReaderLoader> m_blobLoader;
+     RefPtr<Blob> m_blob;
+     ImageBitmapOptions m_options;
+     Optional<IntRect> m_rect;
+-- 
+2.25.1
+
