@@ -1,0 +1,142 @@
+From 0ba34256426687d0d9eb21db0d23a3a5947c2067 Mon Sep 17 00:00:00 2001
+From: "Vivek.A" <Vivek_Arumugam@comcast.com>
+Date: Mon, 23 Jan 2023 08:55:26 +0000
+Subject: [PATCH] Add a provision in WebKitURIResponse to check if the response is from a main frame resource
+
+---
+ .../Shared/API/glib/WebKitURIResponse.cpp     | 42 ++++++++++++++++++-
+ .../API/glib/WebKitURIResponsePrivate.h       |  2 +
+ .../API/glib/WebKitResponsePolicyDecision.cpp |  4 +-
+ .../UIProcess/API/wpe/WebKitURIResponse.h     |  3 ++
+ 4 files changed, 49 insertions(+), 2 deletions(-)
+
+diff --git a/Source/WebKit/Shared/API/glib/WebKitURIResponse.cpp b/Source/WebKit/Shared/API/glib/WebKitURIResponse.cpp
+index 46e6546dd4b79..48d37e9667fb2 100644
+--- a/Source/WebKit/Shared/API/glib/WebKitURIResponse.cpp
++++ b/Source/WebKit/Shared/API/glib/WebKitURIResponse.cpp
+@@ -47,10 +47,12 @@ enum {
+     PROP_CONTENT_LENGTH,
+     PROP_MIME_TYPE,
+     PROP_SUGGESTED_FILENAME,
+-    PROP_HTTP_HEADERS
++    PROP_HTTP_HEADERS,
++    PROP_IS_MAIN_FRAME
+ };
+ 
+ struct _WebKitURIResponsePrivate {
++    RefPtr<API::NavigationResponse> navigationResponse;
+     ResourceResponse resourceResponse;
+     CString uri;
+     CString mimeType;
+@@ -83,6 +85,9 @@ static void webkitURIResponseGetProperty(GObject* object, guint propId, GValue*
+     case PROP_HTTP_HEADERS:
+         g_value_set_boxed(value, webkit_uri_response_get_http_headers(response));
+         break;
++    case PROP_IS_MAIN_FRAME:
++        g_value_set_boolean(value, webkit_uri_response_is_main_frame(response));
++        break;
+     default:
+         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, propId, paramSpec);
+     }
+@@ -173,6 +178,22 @@ static void webkit_uri_response_class_init(WebKitURIResponseClass* responseClass
+             _("The HTTP headers of the response"),
+             SOUP_TYPE_MESSAGE_HEADERS,
+             WEBKIT_PARAM_READABLE));
++
++    /**
++     * WebKitURIResponse:is-main-frame:
++     *
++     * Indication of the origin of the response, TRUE if the response is for main frame, FALSE otherwise
++     *
++     */
++    g_object_class_install_property(
++        objectClass,
++        PROP_IS_MAIN_FRAME,
++        g_param_spec_boolean(
++            "is-main-frame",
++            _("Is main frame response"),
++            _("Whether the response is for the main frame"),
++            FALSE,
++            WEBKIT_PARAM_READABLE));
+ }
+ 
+ /**
+@@ -284,6 +305,19 @@ SoupMessageHeaders* webkit_uri_response_get_http_headers(WebKitURIResponse* resp
+     return response->priv->httpHeaders.get();
+ }
+ 
++/**
++ * webkit_uri_response_is_main_frame:
++ * @response: a #WebKitURIResponse
++ *
++ * Returns: (transfer none): TRUE if the response is for a request from main frame or FALSE
++ */
++gboolean webkit_uri_response_is_main_frame(WebKitURIResponse* response)
++{
++    g_return_val_if_fail(WEBKIT_IS_URI_RESPONSE(response), false);
++    g_return_val_if_fail(response->priv->navigationResponse != nullptr, false);
++    return response->priv->navigationResponse->frame().isMainFrame();
++}
++
+ WebKitURIResponse* webkitURIResponseCreateForResourceResponse(const WebCore::ResourceResponse& resourceResponse)
+ {
+     WebKitURIResponse* uriResponse = WEBKIT_URI_RESPONSE(g_object_new(WEBKIT_TYPE_URI_RESPONSE, NULL));
+@@ -291,6 +325,12 @@ WebKitURIResponse* webkitURIResponseCreateForResourceResponse(const WebCore::Res
+     return uriResponse;
+ }
+ 
++void webkitURIResponseSetNavigationResponse(WebKitURIResponse* response, RefPtr<API::NavigationResponse> navigationResponse)
++{
++    g_return_if_fail(WEBKIT_IS_URI_RESPONSE(response));
++    response->priv->navigationResponse = navigationResponse;
++}
++
+ const WebCore::ResourceResponse& webkitURIResponseGetResourceResponse(WebKitURIResponse* uriResponse)
+ {
+     return uriResponse->priv->resourceResponse;
+diff --git a/Source/WebKit/Shared/API/glib/WebKitURIResponsePrivate.h b/Source/WebKit/Shared/API/glib/WebKitURIResponsePrivate.h
+index c2dc49c177989..33ac7a1fe7afe 100644
+--- a/Source/WebKit/Shared/API/glib/WebKitURIResponsePrivate.h
++++ b/Source/WebKit/Shared/API/glib/WebKitURIResponsePrivate.h
+@@ -27,9 +27,11 @@
+ #define WebKitURIResponsePrivate_h
+ 
+ #include "WebKitURIResponse.h"
++#include "APINavigationResponse.h"
+ #include <WebCore/ResourceResponse.h>
+ 
+ WebKitURIResponse* webkitURIResponseCreateForResourceResponse(const WebCore::ResourceResponse&);
++void webkitURIResponseSetNavigationResponse(WebKitURIResponse* response, RefPtr<API::NavigationResponse> navigationResponse);
+ const WebCore::ResourceResponse& webkitURIResponseGetResourceResponse(WebKitURIResponse*);
+ 
+ #endif // WebKitURIResponsePrivate_h
+diff --git a/Source/WebKit/UIProcess/API/glib/WebKitResponsePolicyDecision.cpp b/Source/WebKit/UIProcess/API/glib/WebKitResponsePolicyDecision.cpp
+index bf4001b407b6d..8d318ba30876b 100644
+--- a/Source/WebKit/UIProcess/API/glib/WebKitResponsePolicyDecision.cpp
++++ b/Source/WebKit/UIProcess/API/glib/WebKitResponsePolicyDecision.cpp
+@@ -142,8 +142,10 @@ WebKitURIRequest* webkit_response_policy_decision_get_request(WebKitResponsePoli
+ WebKitURIResponse* webkit_response_policy_decision_get_response(WebKitResponsePolicyDecision* decision)
+ {
+     g_return_val_if_fail(WEBKIT_IS_RESPONSE_POLICY_DECISION(decision), nullptr);
+-    if (!decision->priv->response)
++    if (!decision->priv->response) {
+         decision->priv->response = adoptGRef(webkitURIResponseCreateForResourceResponse(decision->priv->navigationResponse->response()));
++        webkitURIResponseSetNavigationResponse(decision->priv->response.get(), decision->priv->navigationResponse);
++    }
+     return decision->priv->response.get();
+ }
+ 
+diff --git a/Source/WebKit/UIProcess/API/wpe/WebKitURIResponse.h b/Source/WebKit/UIProcess/API/wpe/WebKitURIResponse.h
+index 79b09ce48dbcb..6ef9472ee0718 100644
+--- a/Source/WebKit/UIProcess/API/wpe/WebKitURIResponse.h
++++ b/Source/WebKit/UIProcess/API/wpe/WebKitURIResponse.h
+@@ -78,6 +78,9 @@ webkit_uri_response_get_suggested_filename (WebKitURIResponse    *response);
+ WEBKIT_API SoupMessageHeaders *
+ webkit_uri_response_get_http_headers       (WebKitURIResponse    *response);
+ 
++WEBKIT_API gboolean
++webkit_uri_response_is_main_frame       (WebKitURIResponse    *response);
++
+ G_END_DECLS
+ 
+ #endif
