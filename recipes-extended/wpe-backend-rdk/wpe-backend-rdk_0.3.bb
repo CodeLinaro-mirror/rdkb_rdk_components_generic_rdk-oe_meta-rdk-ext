@@ -8,13 +8,12 @@ DEPENDS += "libwpe glib-2.0"
 
 PV = "0.3+git${SRCPV}"
 
-# Revision date: Aug 11 2022
-SRCREV = "13a8f6a2182cd5d95b630f4c94917ac841231ffc"
+# Revision date: Jan 25 2023
+SRCREV = "495d11b9dadb21b00d3cadfd9c0fb3df40a9255e"
 BASE_URI ?= "git://github.com/WebPlatformForEmbedded/WPEBackend-rdk.git;protocol=http;branch=master"
 SRC_URI = "${BASE_URI}"
 
-SRC_URI += "file://0005-Naive-gamepad-support.patch"
-SRC_URI += "file://83.patch"
+SRC_URI += "file://comcast-Naive-gamepad-support.patch"
 
 S = "${WORKDIR}/git"
 
@@ -28,6 +27,7 @@ PACKAGECONFIG_append += " gamepad"
 PACKAGECONFIG[westeros] = "-DUSE_BACKEND_WESTEROS=ON -DUSE_KEY_INPUT_HANDLING_LINUX_INPUT=OFF,,wayland westeros libxkbcommon"
 PACKAGECONFIG[essos] = "-DUSE_BACKEND_ESSOS=ON -DUSE_INPUT_LIBINPUT=OFF,-DUSE_BACKEND_ESSOS=OFF,essos libxkbcommon"
 PACKAGECONFIG[gamepad] = "-DUSE_GENERIC_GAMEPAD=ON,-DUSE_GENERIC_GAMEPAD=OFF,"
+
 
 EXTRA_OECMAKE += " \
     -DCMAKE_BUILD_TYPE=Release \

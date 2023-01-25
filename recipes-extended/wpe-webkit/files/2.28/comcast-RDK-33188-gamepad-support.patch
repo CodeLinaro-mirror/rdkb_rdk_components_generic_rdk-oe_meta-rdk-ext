@@ -1,23 +1,25 @@
-From aeba8e096aad5d38b8664ceebe3abfbfff6d99ac Mon Sep 17 00:00:00 2001
+From b6d5461c9ef6f7ebdd169c11455b7f3b506925e1 Mon Sep 17 00:00:00 2001
 From: Manoj Bhatta <manoj_bhatta@comcast.com>
 Date: Mon, 12 Dec 2022 16:01:26 +0000
 Subject: [PATCH] comcast - RDK-33188 - Gamepad changes
 
-This patch has additional fixes for 
+This patch has additional fixes for
 1) DELIA-59361: make gamepad visible on axes movement, if not
+
+%% original patch: comcast-RDK-33188-gamepad-support.patch
 ---
  Source/WebCore/Headers.cmake                  |   1 +
- Source/WebCore/PlatformWPE.cmake              |  10 ++
- .../platform/gamepad/wpe/WPEGamepad.cpp       |  77 ++++++++
- .../WebCore/platform/gamepad/wpe/WPEGamepad.h |  32 ++++
- .../gamepad/wpe/WPEGamepadProvider.cpp        | 169 ++++++++++++++++++
+ Source/WebCore/PlatformWPE.cmake              |  10 +
+ .../platform/gamepad/wpe/WPEGamepad.cpp       |  75 ++++++++
+ .../WebCore/platform/gamepad/wpe/WPEGamepad.h |  34 ++++
+ .../gamepad/wpe/WPEGamepadProvider.cpp        | 175 ++++++++++++++++++
  .../platform/gamepad/wpe/WPEGamepadProvider.h |  52 ++++++
  Source/WebKit/SourcesWPE.txt                  |   1 +
- Source/WebKit/UIProcess/API/wpe/WPEView.cpp   |  50 ++++++
+ Source/WebKit/UIProcess/API/wpe/WPEView.cpp   |  50 +++++
  Source/WebKit/UIProcess/API/wpe/WPEView.h     |   4 +
  .../UIProcess/Gamepad/UIGamepadProvider.cpp   |   2 +-
  .../Gamepad/wpe/UIGamepadProviderWPE.cpp      |  36 ++++
- 11 files changed, 433 insertions(+), 1 deletion(-)
+ 11 files changed, 439 insertions(+), 1 deletion(-)
  create mode 100644 Source/WebCore/platform/gamepad/wpe/WPEGamepad.cpp
  create mode 100644 Source/WebCore/platform/gamepad/wpe/WPEGamepad.h
  create mode 100644 Source/WebCore/platform/gamepad/wpe/WPEGamepadProvider.cpp
@@ -56,10 +58,10 @@ index 1f3f287994f7..1924b70461ae 100644
 +endif ()
 diff --git a/Source/WebCore/platform/gamepad/wpe/WPEGamepad.cpp b/Source/WebCore/platform/gamepad/wpe/WPEGamepad.cpp
 new file mode 100644
-index 000000000000..4f8763fecd6b
+index 000000000000..ba43c513f6f1
 --- /dev/null
 +++ b/Source/WebCore/platform/gamepad/wpe/WPEGamepad.cpp
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,75 @@
 +#include "config.h"
 +
 +#if ENABLE(GAMEPAD)
@@ -71,33 +73,39 @@ index 000000000000..4f8763fecd6b
 +
 +namespace WebCore {
 +
-+WPEGamepad::WPEGamepad(struct wpe_gamepad_provider* provider, uint32_t gamepad_id, unsigned index)
++WPEGamepad::WPEGamepad(struct wpe_gamepad_provider* provider, uintptr_t gamepad_id, unsigned index)
 +    : PlatformGamepad(index)
 +{
 +    m_connectTime = m_lastUpdateTime = MonotonicTime::now();
 +    m_gamepad = wpe_gamepad_create(provider, gamepad_id);
 +
 +    if (m_gamepad) {
-+        static struct wpe_gamepad_client s_client = {
-+            // button_values_changed
-+            [](struct wpe_gamepad* gamepad, void *data) {
++        static struct wpe_gamepad_client_interface s_client = {
++            // button_changed
++            [](void* data, enum wpe_gamepad_button button, bool pressed) {
 +                auto& self = *reinterpret_cast<WPEGamepad*>(data);
-+                self.updateButtonValues(gamepad);
++                self.updateButtonValue(static_cast<size_t>(button), pressed);
 +            },
-+            // axis_values_changed
-+            [] (struct wpe_gamepad* gamepad, void *data) {
++            // axis_changed
++            [] (void* data, enum wpe_gamepad_axis axis, double value) {
 +                auto& self = *reinterpret_cast<WPEGamepad*>(data);
-+                self.updateAxisValues(gamepad);
-+            }
++                self.updateAxisValue(static_cast<size_t>(axis), value);
++            },
++            // _wpe_reserved1
++            nullptr,
++            // _wpe_reserved2
++            nullptr,
++            // _wpe_reserved3
++            nullptr
 +        };
 +        wpe_gamepad_set_client(m_gamepad, &s_client, this);
 +
-+        m_id = wpe_gamepad_get_device_name(m_gamepad);
++        m_id = wpe_gamepad_get_id(m_gamepad);
 +
-+        m_buttonValues.resize(wpe_gamepad_get_button_count(m_gamepad));
++        m_buttonValues.resize(static_cast<size_t>(WPE_GAMEPAD_BUTTON_COUNT));
 +        m_buttonValues.fill(0);
 +
-+        m_axisValues.resize(wpe_gamepad_get_axis_count(m_gamepad));
++        m_axisValues.resize(static_cast<size_t>(WPE_GAMEPAD_AXIS_COUNT));
 +        m_axisValues.fill(0);
 +    }
 +}
@@ -111,26 +119,18 @@ index 000000000000..4f8763fecd6b
 +    }
 +}
 +
-+void WPEGamepad::updateButtonValues(struct wpe_gamepad* gamepad)
++void WPEGamepad::updateButtonValue(size_t button, bool pressed)
 +{
-+    if (gamepad != m_gamepad)
-+        return;
-+
-+    wpe_gamepad_copy_button_values(gamepad, m_buttonValues.data(), m_buttonValues.size());
++    m_buttonValues[button] = pressed ? 1.0 : 0.0;
 +    m_lastUpdateTime = MonotonicTime::now();
-+
-+    WPEGamepadProvider::singleton().scheduleInputNotification(gamepad, true);
++    WPEGamepadProvider::singleton().scheduleInputNotification(gamepad(), true);
 +}
 +
-+void WPEGamepad::updateAxisValues(struct wpe_gamepad* gamepad)
++void WPEGamepad::updateAxisValue(size_t axis, double value)
 +{
-+    if (gamepad != m_gamepad)
-+        return;
-+
-+    wpe_gamepad_copy_axis_values(gamepad, m_axisValues.data(), m_axisValues.size());
++    m_axisValues[axis] = value;
 +    m_lastUpdateTime = MonotonicTime::now();
-+
-+    WPEGamepadProvider::singleton().scheduleInputNotification(gamepad, true);
++    WPEGamepadProvider::singleton().scheduleInputNotification(gamepad(), true);
 +}
 +
 +
@@ -139,10 +139,10 @@ index 000000000000..4f8763fecd6b
 +#endif // ENABLE(GAMEPAD)
 diff --git a/Source/WebCore/platform/gamepad/wpe/WPEGamepad.h b/Source/WebCore/platform/gamepad/wpe/WPEGamepad.h
 new file mode 100644
-index 000000000000..bdfc12af186f
+index 000000000000..d72f649d3128
 --- /dev/null
 +++ b/Source/WebCore/platform/gamepad/wpe/WPEGamepad.h
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,34 @@
 +#pragma once
 +
 +#if ENABLE(GAMEPAD)
@@ -156,15 +156,17 @@ index 000000000000..bdfc12af186f
 +
 +class WPEGamepad : public PlatformGamepad {
 +public:
-+    WPEGamepad(struct wpe_gamepad_provider* provider, uint32_t gamepad_id, unsigned index);
++    WPEGamepad(struct wpe_gamepad_provider* provider, uintptr_t gamepad_id, unsigned index);
 +    virtual ~WPEGamepad();
 +
 +    const Vector<double>& axisValues() const final { return m_axisValues; }
 +    const Vector<double>& buttonValues() const final { return m_buttonValues; }
 +
++    struct wpe_gamepad* gamepad() const { return m_gamepad; }
++
 +private:
-+    void updateButtonValues(struct wpe_gamepad*);
-+    void updateAxisValues(struct wpe_gamepad*);
++    void updateButtonValue(size_t button, bool pressed);
++    void updateAxisValue(size_t axis, double value);
 +
 +    Vector<double> m_buttonValues;
 +    Vector<double> m_axisValues;
@@ -177,10 +179,10 @@ index 000000000000..bdfc12af186f
 +#endif // ENABLE(GAMEPAD)
 diff --git a/Source/WebCore/platform/gamepad/wpe/WPEGamepadProvider.cpp b/Source/WebCore/platform/gamepad/wpe/WPEGamepadProvider.cpp
 new file mode 100644
-index 000000000000..4481c17f2861
+index 000000000000..8ed791a2508c
 --- /dev/null
 +++ b/Source/WebCore/platform/gamepad/wpe/WPEGamepadProvider.cpp
-@@ -0,0 +1,169 @@
+@@ -0,0 +1,175 @@
 +#include "config.h"
 +
 +#if ENABLE(GAMEPAD)
@@ -223,17 +225,23 @@ index 000000000000..4481c17f2861
 +        m_shouldDispatchCallbacks = false;
 +        m_provider = wpe_gamepad_provider_create();
 +        if (m_provider) {
-+            static struct wpe_gamepad_provider_client s_client = {
++            static struct wpe_gamepad_provider_client_interface s_client = {
 +                // gamepad_connected
-+                [](void* data, uint32_t gamepad_id) {
++                [](void* data, uintptr_t gamepad_id) {
 +                    auto& provider = *reinterpret_cast<WPEGamepadProvider*>(data);
 +                    provider.gamepadConnected(gamepad_id);
 +                },
 +                // gamepad_disconnected
-+                [](void* data, uint32_t gamepad_id) {
++                [](void* data, uintptr_t gamepad_id) {
 +                    auto& provider = *reinterpret_cast<WPEGamepadProvider*>(data);
 +                    provider.gamepadDiconnected(gamepad_id);
-+                }
++                },
++                // _wpe_reserved1
++                nullptr,
++                // _wpe_reserved2
++                nullptr,
++                // _wpe_reserved3
++                nullptr
 +            };
 +            wpe_gamepad_provider_set_client(m_provider, &s_client, this);
 +            wpe_gamepad_provider_start(m_provider);
@@ -260,7 +268,7 @@ index 000000000000..4481c17f2861
 +    }
 +}
 +
-+void WPEGamepadProvider::gamepadConnected(uint32_t id)
++void WPEGamepadProvider::gamepadConnected(uintptr_t id)
 +{
 +    if (m_gamepadMap.contains(id))
 +        return;
@@ -285,15 +293,15 @@ index 000000000000..4481c17f2861
 +        client->platformGamepadConnected(*m_gamepadVector[index]);
 +}
 +
-+void WPEGamepadProvider::gamepadDiconnected(uint32_t id)
++void WPEGamepadProvider::gamepadDiconnected(uintptr_t id)
 +{
 +    if (!m_gamepadMap.contains(id))
 +        return;
 +
-+    if (m_lastActiveGamepad && id == wpe_gamepad_get_id(m_lastActiveGamepad))
++    auto gamepad = m_gamepadMap.take(id);
++    if (m_lastActiveGamepad && m_lastActiveGamepad == gamepad->gamepad())
 +        m_lastActiveGamepad = nullptr;
 +
-+    auto gamepad = m_gamepadMap.take(id);
 +    auto index = m_gamepadVector.find(gamepad.get());
 +    if (index != notFound)
 +        m_gamepadVector[index] = nullptr;
@@ -343,7 +351,7 @@ index 000000000000..4481c17f2861
 +struct wpe_view_backend* WPEGamepadProvider::viewForGamepadInput()
 +{
 +    if (m_provider)
-+        return wpe_gamepad_provider_get_view_for_gamepad_input(m_provider, m_lastActiveGamepad);
++        return wpe_gamepad_provider_get_view_backend(m_provider, m_lastActiveGamepad);
 +    return nullptr;
 +}
 +
@@ -352,7 +360,7 @@ index 000000000000..4481c17f2861
 +#endif // ENABLE(GAMEPAD)
 diff --git a/Source/WebCore/platform/gamepad/wpe/WPEGamepadProvider.h b/Source/WebCore/platform/gamepad/wpe/WPEGamepadProvider.h
 new file mode 100644
-index 000000000000..eca84ebccb28
+index 000000000000..c29957250099
 --- /dev/null
 +++ b/Source/WebCore/platform/gamepad/wpe/WPEGamepadProvider.h
 @@ -0,0 +1,52 @@
@@ -389,14 +397,14 @@ index 000000000000..eca84ebccb28
 +private:
 +    WPEGamepadProvider();
 +
-+    void gamepadConnected(uint32_t id);
-+    void gamepadDiconnected(uint32_t id);
++    void gamepadConnected(uintptr_t id);
++    void gamepadDiconnected(uintptr_t id);
 +
 +    void connectionDelayTimerFired();
 +    void inputNotificationTimerFired();
 +
 +    Vector<PlatformGamepad*> m_gamepadVector;
-+    HashMap<uint32_t, std::unique_ptr<WPEGamepad>> m_gamepadMap;
++    HashMap<uintptr_t, std::unique_ptr<WPEGamepad>> m_gamepadMap;
 +    Timer m_connectionDelayTimer;
 +    Timer m_inputNotificationTimer;
 +    bool m_shouldDispatchCallbacks { false };
@@ -580,3 +588,6 @@ index 000000000000..14f06583716f
 +}
 +
 +#endif // ENABLE(GAMEPAD)
+-- 
+2.17.1
+

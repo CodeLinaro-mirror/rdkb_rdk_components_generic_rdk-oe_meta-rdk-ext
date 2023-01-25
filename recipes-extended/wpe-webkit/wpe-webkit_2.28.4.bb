@@ -69,6 +69,7 @@ SRC_URI += "file://2.28/comcast-LLAMA-8893-Fix-audio-mute-when-using-asplayer.pa
 SRC_URI += "file://2.28/comcast-DELIA-59087-Disable-pausing-playback-for-buf.patch"
 SRC_URI += "file://2.28.1/comcast-AMLOGIC-3262-disable-scaletempto.patch"
 SRC_URI += "file://2.28.4/comcast-DELIA-60055-Analyze-higher-CPU-usage.patch"
+SRC_URI += "file://2.28/comcast-RDK-40160-WPE-CFLAGS.patch"
 
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
 PACKAGECONFIG[encryptedmedia]    = "-DENABLE_ENCRYPTED_MEDIA=ON,-DENABLE_ENCRYPTED_MEDIA=OFF,"
