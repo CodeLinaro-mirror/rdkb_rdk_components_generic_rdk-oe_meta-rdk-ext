@@ -197,6 +197,7 @@ SRC_URI += "file://2.22.6/0001-DELIA-58210-Flush-pending-canvas-drawing.patch"
 SRC_URI += "file://2.22.6/0314-LLAMA-7080-Fixing-canvas-issues.patch"
 SRC_URI += "file://2.22.6/0316-set-brcmpcmsink-low_latency-property-for-webrtc-streams.patch"
 SRC_URI += "file://2.22.6/0316-BCOM-6652-fix-gst1_18-playbin3-autoplug.patch"
+SRC_URI += "file://2.22.6/0317-Fix-HTMLMediaElement-MediaSource-Crash.patch"
 
 # device specific configs
 PACKAGECONFIG[westeros] = "-DUSE_WPEWEBKIT_BACKEND_WESTEROS=ON -DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_KEY_INPUT_HANDLING_LINUX_INPUT=OFF -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
