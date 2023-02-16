@@ -77,6 +77,21 @@ SRC_URI += "file://2.28/comcast-DELIA-60227-Malloc-Heap-Breakdown.patch"
 SRC_URI += "file://2.28.7/comcast-DELIA-62248-Fix-AppleTV-format-error.patch"
 SRC_URI += "file://2.28.7/comast-XIONE-12615-Perform-instant-rate-change-using-custom-event.patch"
 
+PACKAGECONFIG[cssshapes]         = "-DENABLE_CSS_SHAPES=ON,-DENABLE_CSS_SHAPES=OFF,"
+PACKAGECONFIG[fetchapi]          = "-DENABLE_FETCH_API=ON,-DENABLE_FETCH_API=OFF,"
+PACKAGECONFIG[full_logs]         = "-DENABLE_LOGS=ON,-DENABLE_LOGS=OFF,"
+PACKAGECONFIG[fusion]            = "-DUSE_FUSION_API_GSTREAMER=ON,-DUSE_FUSION_API_GSTREAMER=OFF,"
+PACKAGECONFIG[highdpicanvas]     = "-DENABLE_HIGH_DPI_CANVAS=ON,-DENABLE_HIGH_DPI_CANVAS=OFF,"
+PACKAGECONFIG[inputspeech]       = "-DENABLE_INPUT_SPEECH=ON,-DENABLE_INPUT_SPEECH=OFF,"
+PACKAGECONFIG[intl]              = "-DENABLE_INTL=ON,-DENABLE_INTL=OFF,"
+PACKAGECONFIG[performance-timeline] = "-DENABLE_PERFORMANCE_TIMELINE=ON,-DENABLE_PERFORMANCE_TIMELINE=OFF,"
+PACKAGECONFIG[picturesize]       = "-DENABLE_PICTURE_SIZES=ON,-DENABLE_PICTURE_SIZES=OFF,"
+PACKAGECONFIG[promise]           = "-DENABLE_PROMISES=ON,-DENABLE_PROMISES=OFF,"
+PACKAGECONFIG[resourcetiming]    = "-DENABLE_RESOURCE_TIMING=ON,-DENABLE_RESOURCE_TIMING=OFF,"
+PACKAGECONFIG[scriptedspeech]    = "-DENABLE_SCRIPTED_SPEECH=ON,-DENABLE_SCRIPTED_SPEECH=OFF,"
+PACKAGECONFIG[suidsandboxlinux]  = "-DENABLE_SUID_SANDBOX_LINUX=ON,-DENABLE_SUID_SANDBOX_LINUX=OFF,"
+PACKAGECONFIG[shadowdom]         = "-DENABLE_SHADOW_DOM=ON,-DENABLE_SHADOW_DOM=OFF,"
+PACKAGECONFIG[provisioning]      = "-DENABLE_PROVISIONING=ON,-DENABLE_PROVISIONING=OFF,libprovision,libprovision"
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
 PACKAGECONFIG[encryptedmedia]    = "-DENABLE_ENCRYPTED_MEDIA=ON,-DENABLE_ENCRYPTED_MEDIA=OFF,"
 PACKAGECONFIG[mathml]            = "-DENABLE_MATHML=ON,-DENABLE_MATHML=OFF,"
@@ -111,6 +126,8 @@ PACKAGECONFIG[subtlecrypto]      = ""
 PACKAGECONFIG[instantratechange] = "-DENABLE_INSTANT_RATE_CHANGE=ON,-DENABLE_INSTANT_RATE_CHANGE=OFF,"
 PACKAGECONFIG[malloc_heap_breakdown] = "-DENABLE_MALLOC_HEAP_BREAKDOWN=ON,-DENABLE_MALLOC_HEAP_BREAKDOWN=OFF,malloc-zone, malloc-zone"
 
+PACKAGECONFIG_append = " cssshapes fetchapi full_logs performance-timeline picturesize \
+                         promise ${PROVISIONING} resourcetiming"
 PACKAGECONFIG_append = " webcrypto webdriver intl remoteinspector experimental releaselog accessibility speechsynthesis native_video webaudio"
 PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'usesoup3', 'usesoup2', d)}"
 
@@ -124,6 +141,10 @@ SELECTED_OPTIMIZATION_append = " -g1 "
 
 TUNE_CCARGS_remove = "-fno-omit-frame-pointer -fno-optimize-sibling-calls"
 TUNE_CCARGS_append = " -fno-delete-null-pointer-checks"
+
+EXTRA_OECMAKE += " \
+    -DCMAKE_COLOR_MAKEFILE=OFF \
+"
 
 RDEPS_VIDEO += " \
     gstreamer1.0-plugins-bad-opusparse \
