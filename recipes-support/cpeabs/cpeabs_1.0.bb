@@ -6,8 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSES/Apache-2.0.txt;md5=c846ebb396f8b174b10ded477
 
 DEPENDS = "cjson msgpack-c rbus wdmp-c cimplog"
 
-SRCREV = "cffe7420efdbed9038c5f89a9a1f92be4a9ab8e6"
-
+SRCREV = "99297c9eefe296b95b7becdffd0599cc4fd00071"
 SRC_URI = "git://github.com/xmidt-org/cpeabs.git"
 
 PV = "git+${SRCPV}"
