@@ -1,0 +1,1026 @@
+Index: git/ss_fscryptctl.c
+===================================================================
+--- /dev/null
++++ git/ss_fscryptctl.c
+@@ -0,0 +1,830 @@
++ /*
++ * If not stated otherwise in this file or this component's Licenses.txt file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2023 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
++
++/* Include files */
++#include "ss_fscryptctl.h"
++
++/* Human-readable strings for encryption modes, indexed by the encryption mode */
++static const char *const mode_strings[] = {
++	[FSCRYPT_MODE_AES_256_XTS] = "AES-256-XTS",
++	[FSCRYPT_MODE_AES_256_CTS] = "AES-256-CTS",
++	[FSCRYPT_MODE_AES_128_CBC] = "AES-128-CBC",
++	[FSCRYPT_MODE_AES_128_CTS] = "AES-128-CTS",
++	[FSCRYPT_MODE_SM4_XTS] = "SM4-XTS",
++	[FSCRYPT_MODE_SM4_CTS] = "SM4-CTS",
++	[FSCRYPT_MODE_ADIANTUM] = "Adiantum",
++	[FSCRYPT_MODE_AES_256_HCTR2] = "AES-256-HCTR2",
++};
++
++/* Valid amounts of filename padding, indexed by the padding flag */
++static const int padding_values[] = {4, 8, 16, 32};
++
++/* Session handling structure */
++struct session_t *head_session = NULL;
++
++/* extern variables and functions */
++extern char identifier_hex[33];
++extern int cmd_get_policy(int argc, char *const argv[]);
++extern int cmd_remove_key(int argc, char *const argv[]);
++
++/* Function protypes */
++static void string_to_mode(const char *str, unsigned char *mode_ret);
++static int string_to_padding_flag(const char *str);
++static int get_ioctl_fd(unsigned int sessionId);
++static int is_session_exist(char *applicationPath,unsigned int *sessionId);
++static int insert_session_info (int fd, char *rootDir, unsigned int sessionId);
++static int free_session_info(unsigned int sessionId);
++static void remove_last_slash_char(char *str);
++static char *get_application_path(unsigned int sessionId);
++static int fscrypt_removeKey(char *keyid , char *mountpoint);
++static unsigned int fscrypt_getPolicy(char *dirPath);
++static unsigned int get_errno_return_value( int errNo, unsigned int sessionId);
++static int create_dir(char *dirPath);
++static int check_and_create_dir(char *dir);
++static unsigned int check_ownership_capability(char *path);
++static int get_fscrypt_encryption_mode(unsigned char *contents_encryption_mode,
++				unsigned char *filenames_encryption_mode, unsigned char *padding_flags);
++
++/* Function Definition */
++
++/***************************************************************************
++ * @brief API used to Converts str to an encryption mode.
++ * @param str indicates encryption mode as a string.
++ * @param mode_ret to get encryption mode value.
++ * @return None.
++ ***************************************************************************/
++static void string_to_mode(const char *str, unsigned char *mode_ret)
++{
++	if(str == NULL || mode_ret == NULL)
++		return;
++
++	for (size_t i = 0; i < ARRAY_SIZE(mode_strings); i++)
++	{
++		if (mode_strings[i] != NULL && strcmp(str, mode_strings[i]) == 0)
++		{
++			*mode_ret = i;
++			return;
++		}
++	}
++	return;
++}
++
++/***************************************************************************
++ * @brief API used to converts an amount of padding (as a string) into the appropriate padding flag.
++ * @param str indicates padding as a string.
++ * @return appropriate padding flag value upon success else returns -1 if the flag is invalid.
++ ***************************************************************************/
++static int string_to_padding_flag(const char *str)
++{
++	if(str == NULL)
++		return -1;
++
++	int padding = atoi(str);
++	for (size_t i = 0; i < ARRAY_SIZE(padding_values); i++)
++	{
++		if (padding == padding_values[i])
++		{
++			return i;
++		}
++	}
++	return -1;
++}
++
++/***************************************************************************
++ * @brief API used to get the file decriptor from session info structure.
++ * @param sessionId used to represent the session.
++ * @return file descriptor value upon success else returns -1 if the sessionId is invalid.
++ ***************************************************************************/
++static int get_ioctl_fd(unsigned int sessionId)
++{
++	struct session_t *ptr = head_session;
++
++	while(ptr != NULL)
++	{
++		if(ptr->session_id == sessionId)
++		{
++			return ptr->fd;
++		}
++		ptr = ptr->next;
++	}
++
++	return -1;
++}
++
++/***************************************************************************
++ * @brief API used to check the session is exist or not based on the application secure directory path.
++ * @param applicationPath indicates application secure directory path.
++ * @return 0 upon success else returns -1.
++ ***************************************************************************/
++static int is_session_exist(char *applicationPath,unsigned int *sessionId)
++{
++	struct session_t *ptr = head_session;
++
++	if(sessionId == NULL || applicationPath == NULL)
++		return -1;
++
++	while(ptr != NULL)
++	{
++		if (strncmp(ptr->rootDir,applicationPath,strlen(ptr->rootDir))==0)
++		{
++			*sessionId = ptr->session_id;
++			return 0;
++		}
++		ptr = ptr->next;
++	}
++
++	return -1;
++}
++
++/***************************************************************************
++ * @brief API used to add the session info into the session list.
++ * @param fd indicates File descriptor.
++ * @param rootDir indicates application secure directory path.
++ * @param sessionId indicates the session info.
++ * @return 0 upon success else returns -1.
++ ***************************************************************************/
++static int insert_session_info (int fd, char *rootDir, unsigned int sessionId)
++{
++	int len = 0;
++
++	if(rootDir == NULL)
++        	return -1;
++
++	struct session_t *link = (struct session_t*) malloc(sizeof(struct session_t));
++	if (link == NULL)
++	{
++		printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
++		return -1;
++	}
++	link->rootDir = (char *) malloc(strlen(rootDir)+1);
++	if (link->rootDir == NULL)
++	{
++		printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
++		free(link);
++		return -1;
++	}
++	link->fd = fd;
++	len = strlen(rootDir);
++	strncpy(link->rootDir,rootDir,len);
++	link->rootDir[len++]='\0';
++	link->session_id = sessionId;
++	link->next = head_session;
++	head_session = link;
++
++	return 0;
++}
++
++/***************************************************************************
++ * @brief API used to delete/free the session info from the session list.
++ * @param sessionId is used to represent the session.
++ * @return 0 upon success else returns -1.
++ ***************************************************************************/
++static int free_session_info(unsigned int sessionId)
++{
++	struct session_t *current = head_session, *previous;
++
++	if (head_session == NULL)
++	{
++		printf("%s:%d Error : Invalid  Session!!!\n",__FILE__,__LINE__);
++		return -1;
++	}
++
++	if (current->session_id == sessionId)
++	{
++		head_session = current->next;
++		close(current->fd);
++		free(current->rootDir);
++		free(current);
++		return 0;
++	}
++
++	while (current != NULL && current->session_id != sessionId)
++	{
++		previous = current;
++		current = current->next;
++	}
++
++	if (current == NULL)
++	{
++		printf("%s:%d Session info not found \n",__FILE__,__LINE__);
++		return -1;
++	}
++	previous->next = current->next;
++	close(current->fd);
++	free(current->rootDir);
++	free(current);
++
++	return 0;
++}
++
++/***************************************************************************
++ * @brief API used to remove the last character '/' from application secure directory path.
++ * @param str indicates application secure directory path.
++ * @return None.
++ ***************************************************************************/
++static void remove_last_slash_char(char *str)
++{
++	char *temp = NULL;
++
++	if(str == NULL)
++	{
++		return;
++	}
++
++	temp = strrchr(str,'/');
++
++	if(temp == NULL)
++	{
++		return;
++	}
++
++	if (strlen(temp) == 1 && strlen(str) > 1)
++	{
++		str[strlen(str) -1] = '\0';
++	}
++}
++
++/***************************************************************************
++ * @brief API used to get the application secure directory path based on session id.
++ * @param sessionId indicates session info.
++ * @return application secure directory path upon success else returns a NULL.
++ ***************************************************************************/
++static char *get_application_path(unsigned int sessionId)
++{
++	struct session_t *ptr = head_session;
++
++	while(ptr != NULL)
++	{
++		if(ptr->session_id == sessionId)
++		{
++			return ptr->rootDir;
++		}
++		ptr = ptr->next;
++	}
++
++	return NULL;
++}
++
++/***************************************************************************
++ * @brief API used to encrypt the application secure directory.
++ * @param keyid indicates key identifier.
++ * @param mountpoint indicates application secure directory mountpoint.
++ * @return EXIT_SUCCESS upon success else returns a EXIT_FAILURE.
++ ***************************************************************************/
++static int fscrypt_removeKey(char *keyid , char *mountpoint)
++{
++	char *const argv1[]={"remove_key",keyid,mountpoint};
++	return cmd_remove_key(3,argv1);
++}
++
++/***************************************************************************
++ * @brief API used to get the key identifier value.
++ * @param dirPath indicates application secure directory path.
++ * @return FSCRYPT_SUCCESS upon success else returns a FSCRYPT_FAILURE.
++ ***************************************************************************/
++static unsigned int fscrypt_getPolicy(char *dirPath)
++{
++	char *mountpoint = NULL;
++	char *temp_path = NULL;
++	int len =0;
++	char *const argv1[]={"get_policy",dirPath};
++	int ret = EXIT_FAILURE;
++
++	if(dirPath == NULL)
++  		return FSCRYPT_FAILURE;
++
++	ret = cmd_get_policy(2,argv1);
++
++	if (ret == EXIT_SUCCESS)
++	{
++		mountpoint = (char *)malloc(strlen(dirPath));
++		if (mountpoint == NULL)
++		{
++			printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
++			return FSCRYPT_FAILURE;
++		}
++
++		temp_path = strrchr(dirPath,'/');
++		len = strlen(dirPath)-strlen(temp_path);
++		strncpy(mountpoint, dirPath,len);
++		mountpoint [len++] = '\0';
++		ret = fscrypt_removeKey(identifier_hex,mountpoint);
++		free(mountpoint);
++	}
++
++	if (ret == EXIT_FAILURE)
++	{
++		return FSCRYPT_FAILURE;
++	}
++
++	return FSCRYPT_SUCCESS;
++}
++
++/***************************************************************************
++ * @brief API used to get the return value based on the error number.
++ * @param errNo indicates error number from the kernel.
++ * @param sessionId indicates session info.
++ * @return appropriate error value.
++ ***************************************************************************/
++static unsigned int get_errno_return_value( int errNo, unsigned int sessionId)
++{
++	unsigned int status = FSCRYPT_FAILURE;
++	char *dirPath = NULL;
++	int ret = -1;
++
++	if (errNo == ENOENT || errNo == EIO || errNo == EFAULT || errNo == EINVAL || errNo == ENODATA )
++	{
++		status = FSCRYPT_INVALID_PARARM;
++	}
++	else if( errNo == ENOMEM)
++	{
++		status = FSCRYPT_FAILURE;
++	}
++	else if (errNo == EFBIG)
++	{
++		status = FSCRYPT_NO_MEM;
++	}
++	else if (errNo == EBUSY)
++	{
++		dirPath = get_application_path(sessionId);
++		if (dirPath != NULL)
++		{
++			status = fscrypt_getPolicy(dirPath);
++		}
++	}
++	else if (errNo == ENOKEY)
++	{
++		ret = free_session_info(sessionId);
++		if (ret < 0)
++		{
++			printf("%s:%d Free session info fail\n",__FILE__,__LINE__);
++			return FSCRYPT_FAILURE;
++		}
++		status = FSCRYPT_SUCCESS;
++	}
++	return status;
++}
++
++/***************************************************************************
++ * @brief API used to create a sub folder if not exist.
++ * @param dirPath indicates sub folder path.
++ * @return 0 upon success else returns appropriate error value.
++ ***************************************************************************/
++static int create_dir(char *dirPath)
++{
++	char *p = NULL;
++	char *dPath = strdup(dirPath);
++	int status = -1;
++
++	if(dirPath == NULL)
++		return status;
++
++	for (p = dPath + 1; *p; p++)
++	{
++		if (*p == '/')
++		{
++			*p = '\0';
++			if (access(dPath, F_OK) == -1)
++			{
++				status = mkdir(dPath, 0700);
++				if((status < 0) && (status != -EEXIST))
++				{
++					return status;
++				}
++			}
++			*p = '/';
++		}
++	}
++	status = mkdir(dPath, 0700);
++	return status;
++}
++
++/***************************************************************************
++ * @brief API used to create the specified directory in restrictive mode.
++ * @param dir indicates directory path.
++ * @return 0 upon success else returns appropriate error value.
++ ***************************************************************************/
++static int check_and_create_dir(char *dir)
++{
++	int status = -1;
++
++	if (dir == NULL)
++	{
++		printf("%s:%d the dir is NULL\n", __FILE__,__LINE__);
++		return status;
++	}
++	if (access(dir, F_OK) == 0)
++	{
++		return 0;
++	}
++	status = mkdir(dir, DIR_MODE);
++	if (status < 0)
++	{
++		status = create_dir(dir);
++	return status;
++	}
++	return status;
++}
++
++/***************************************************************************
++ * @brief API used to check the ownership capability.
++ * @param path indicates application secure directory path.
++ * @return FSCRYPT_SUCCESS upon success else returns FSCRYPT_FAILURE.
++ ***************************************************************************/
++static unsigned int check_ownership_capability(char *path)
++{
++	struct stat sb;
++	uid_t process_euid;
++	if(path == NULL)
++		return FSCRYPT_FAILURE;
++
++	if(stat(path, &sb) == -1)
++	{
++		return FSCRYPT_FAILURE;
++	}
++	process_euid = geteuid();
++	if(process_euid != sb.st_uid)
++	{
++		printf("%s:%d Encryption directory accces is restricted to user\n",__FILE__,__LINE__);
++		return FSCRYPT_FAILURE;
++	}
++	return FSCRYPT_SUCCESS;
++}
++
++/***************************************************************************
++ * @brief API used to get the content,filename encryption mode value and padding flag.
++ * @param contents_encryption_mode indicates contents encryption mode as a string.
++ * @param filenames_encryption_mode indicates filenames encryption mode as a string.
++ * @param padding_flags indicates padding flags as a string.
++ * @return 0 upon success else returns appropriate error value.
++ ***************************************************************************/
++static int get_fscrypt_encryption_mode(unsigned char *contents_encryption_mode,
++				unsigned char *filenames_encryption_mode, unsigned char *padding_flags )
++{
++	FILE *fp = NULL;
++	char line[256] = {0};
++
++	if(contents_encryption_mode == NULL || filenames_encryption_mode == NULL || padding_flags == NULL)
++		return -1;
++
++	fp = fopen("/etc/fscrypt.conf","r");
++
++	if (fp == NULL)
++	{
++		printf("%s:%d Unable to read fscrypt.conf file \n",__FILE__,__LINE__);
++		return -1;
++	}
++
++	while( fgets(line, sizeof(line), fp))
++	{
++		line[strcspn(line, "\n")] = '\0';
++		if(strncmp(FSCRYPT_PADDING,line,strlen(FSCRYPT_PADDING)) == 0)
++		{
++			char *s = strchr(line,':');
++			s++;
++			*padding_flags = string_to_padding_flag(s);
++		}
++		else if(strncmp(FSCRYPT_CONTENTS,line,strlen(FSCRYPT_CONTENTS)) == 0)
++		{
++			char *s = strchr(line,':');
++			s++;
++			string_to_mode(s, contents_encryption_mode);
++		}
++		else if (strncmp(FSCRYPT_FILENAMES,line,strlen(FSCRYPT_FILENAMES)) == 0)
++		{
++			char *s = strchr(line,':');
++			s++;
++			string_to_mode(s, filenames_encryption_mode);
++		}
++	}
++	fclose(fp);
++
++	return 0;
++}
++
++/***************************************************************************
++ * @brief API used to clear the session information.
++ * @param sessionId is used to represent the session.
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_closeSession (unsigned int *sessionId)
++{
++	int fd = -1;
++	int ret = -1;
++	struct fscrypt_close_session_arg closeSessionarg = {0};
++
++	if(sessionId == NULL)
++	{
++		printf("%s:%d Invalid Session Handle\n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	fd = get_ioctl_fd(*sessionId);
++
++	if(fd < 0)
++	{
++		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	closeSessionarg.session_id = *sessionId;
++
++	ret = ioctl(fd, FS_IOC_CLOSE_SESSION, &closeSessionarg);
++	if (ret != 0)
++	{
++		return get_errno_return_value(errno,*sessionId);
++	}
++
++	ret = free_session_info(*sessionId);
++
++	if (ret < 0)
++	{
++		printf("%s:%d Free session info fail\n",__FILE__,__LINE__);
++		return FSCRYPT_FAILURE;
++	}
++
++	*sessionId = INVALID_SESSION_ID;
++	return FSCRYPT_SUCCESS;
++}
++
++/***************************************************************************
++ * @brief API used to read the file from encrypted directory.
++ * @param sessionId is used to represent the session
++ * @param domain indicates sub folder of the encrypted directory
++ * @param key indicates file name
++ * @param dataBuffer indicates data buffer for read the data
++ * @param size indicates size of the file
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_readData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int *size)
++{
++	struct fscrypt_data_arg arg = {0};
++	int fd = -1;
++	char *dirPath = NULL;
++	unsigned int errorcode = FSCRYPT_FAILURE;
++	int ret = -1;
++
++	if ((sessionId < RANDOM_SESSION_ID_LOWER_MIN || sessionId > RANDOM_SESSION_ID_UPPER_MAX) || dataBuffer == NULL || size == NULL || *size == 0 || key == NULL)
++	{
++		printf("%s:%d Invalid param\n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	remove_last_slash_char(domain);
++
++	arg.session_id = sessionId;
++	arg.domain = domain;
++	arg.key = key;
++	arg.data = dataBuffer;
++	arg.data_len = *size;
++
++	fd = get_ioctl_fd(sessionId);
++
++	if(fd < 0)
++	{
++		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	ret = ioctl(fd, FS_IOC_READ_ENCRYPTION_FILE_DATA, &arg);
++	if (ret != 0 && ret != arg.data_len)
++	{
++		errorcode = get_errno_return_value(errno,sessionId);
++		if (errorcode == FSCRYPT_NO_MEM)
++		{
++			*size = arg.data_len;
++		}
++		return errorcode;
++	}
++	return FSCRYPT_SUCCESS;
++}
++
++/***************************************************************************
++ * @brief API used to write the file from encrypted directory.
++ * @param sessionId is used to represent the session
++ * @param domain indicates sub folder of the encrypted directory
++ * @param key indicates file name
++ * @param dataBuffer indicates data buffer to write the data
++ * @param size indicates size of the file
++ * @param fmode indicates file mode
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_writeData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int size, int fmode)
++{
++	struct fscrypt_data_arg arg = {0};
++	int fd = -1;
++	char *dirPath = NULL;
++	int ret = -1;
++
++	if ((sessionId < RANDOM_SESSION_ID_LOWER_MIN || sessionId > RANDOM_SESSION_ID_UPPER_MAX) || dataBuffer == NULL || size == 0 || key == NULL)
++	{
++		printf("%s:%d Invalid param\n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	remove_last_slash_char(domain);
++
++	arg.session_id = sessionId;
++	arg.domain = domain;
++	arg.key = key;
++	arg.data = dataBuffer;
++	arg.data_len = size;
++	arg.file_mode = fmode;
++
++	fd = get_ioctl_fd(sessionId);
++
++	if(fd < 0)
++	{
++		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	ret = ioctl(fd, FS_IOC_WRITE_ENCRYPTION_FILE_DATA, &arg);
++	if (ret !=0 )
++	{
++		return get_errno_return_value(errno,sessionId);
++	}
++	return FSCRYPT_SUCCESS;
++}
++
++/***************************************************************************
++ * @brief API used to add the key in keyring and set the encryption policy.
++ * @param masterKey indicates master key path or NULL if NULL, master key generated by kernel space and should be unique.
++ * @param application_root_path indicates a user encrypted directory path and stored the information under this path.
++ * @param sessionId is used to represent the session
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_openSession (char *masterKey, char *application_root_path, unsigned int *sessionId)
++{
++	unsigned char contents_encryption_mode;
++	unsigned char filenames_encryption_mode;
++	unsigned char padding_flags;
++	struct fscrypt_open_session_arg openSessionarg = {0};
++	int ret = -1;
++	char *mountpoint = NULL;
++	char *temp_path = NULL;
++	int len = 0;
++	unsigned int sessionID = 0;
++	int fd = -1;
++
++	if(application_root_path == NULL || sessionId == NULL)
++		return FSCRYPT_FAILURE;
++
++	remove_last_slash_char(application_root_path);
++
++	ret = is_session_exist(application_root_path,&sessionID);
++
++	if (ret == 0)
++	{
++		printf("Session[%u] already Exist!!!\n",sessionID);
++		*sessionId = sessionID;
++		return FSCRYPT_SUCCESS;
++	}
++
++	ret = check_and_create_dir(application_root_path);
++
++	if (ret < 0)
++	{
++		printf("%s:%d Invalid Application root path,errno[%d]\n",__FILE__,__LINE__,errno);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	if (check_ownership_capability(application_root_path)== FSCRYPT_FAILURE)
++	{
++		return FSCRYPT_FAILURE;
++	}
++
++	ret = get_fscrypt_encryption_mode(&contents_encryption_mode, &filenames_encryption_mode, &padding_flags);
++
++	if (ret < 0)
++	{
++		contents_encryption_mode = FSCRYPT_MODE_AES_256_XTS;
++		filenames_encryption_mode = FSCRYPT_MODE_AES_256_CTS;
++		padding_flags = FSCRYPT_POLICY_FLAGS_PAD_32;
++	}
++
++	openSessionarg.master_key = masterKey;
++	openSessionarg.root_dir = application_root_path;
++	openSessionarg.policy.version = FSCRYPT_POLICY_V2;
++	openSessionarg.policy.contents_encryption_mode = contents_encryption_mode;
++	openSessionarg.policy.filenames_encryption_mode = filenames_encryption_mode;
++	openSessionarg.policy.flags = padding_flags;
++
++	/*Secure directory mount path is called mountpoint
++
++	Ex: /opt/secure/netflix        ==> secure directory mount path (mountpoint)
++	/opt/secure/netflix/secure_dir ==> secure storagepath (application_root_path)*/
++
++	mountpoint = (char *)malloc(strlen(application_root_path));
++
++	if (mountpoint == NULL)
++	{
++		printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
++		return FSCRYPT_FAILURE;
++	}
++
++	temp_path = strrchr(application_root_path,'/');
++
++	if (temp_path == NULL)
++	{
++		printf("%s:%d Invalid path\n",__FILE__,__LINE__);
++		free(mountpoint);
++		return FSCRYPT_FAILURE;
++	}
++
++	len = strlen(application_root_path)-strlen(temp_path);
++	strncpy(mountpoint, application_root_path,len);
++	mountpoint [len++] = '\0';
++
++	fd = open(mountpoint, O_RDONLY | O_CLOEXEC);
++	if (fd < 0)
++	{
++		printf("%s:%d Mountpoint[%s] open Fail\n",__FILE__,__LINE__,mountpoint);
++		free(mountpoint);
++		return FSCRYPT_FAILURE;
++	}
++
++	ret = ioctl(fd, FS_IOC_OPEN_SESSION, &openSessionarg);
++
++	if (ret != 0)
++	{
++		printf("%s:%d Open Session CMD fail\n",__FILE__,__LINE__);
++		free(mountpoint);
++		return get_errno_return_value(errno,openSessionarg.session_id);
++	}
++
++	*sessionId = openSessionarg.session_id;
++
++	ret = insert_session_info(fd, application_root_path, *sessionId);
++	if(ret != 0 )
++	{
++		printf("%s:%d insert_session_info API Failed\n",__FILE__,__LINE__);
++		free(mountpoint);
++        return FSCRYPT_FAILURE;
++	}
++
++
++	free(mountpoint);
++
++	return FSCRYPT_SUCCESS;
++}
++
++/***************************************************************************
++ * @brief API used to delete the folder and file from encrypted directory.
++ * @param sessionId is used to represent the session.
++ * @param domain indicates sub folder of the encrypted directory
++ * @param key indicates file name
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_deleteData (unsigned int sessionId, char *domain, char *key)
++{
++	struct fscrypt_delete_file_arg arg = {0};
++	int fd = -1;
++	int ret = -1;
++
++	if(key == NULL)
++		return FSCRYPT_INVALID_PARARM;
++
++	if (sessionId < RANDOM_SESSION_ID_LOWER_MIN || sessionId > RANDOM_SESSION_ID_UPPER_MAX)
++	{
++		printf("%s:%d Invalid param\n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	remove_last_slash_char(domain);
++
++	arg.session_id = sessionId;
++	arg.domain = domain;
++	arg.key = key;
++
++	fd = get_ioctl_fd(sessionId);
++	if(fd < 0)
++	{
++		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
++		return FSCRYPT_INVALID_PARARM;
++	}
++
++	ret = ioctl(fd, FS_IOC_DELETE_DATA, &arg);
++	if (ret != 0)
++	{
++		return get_errno_return_value(errno,sessionId);
++	}
++	return FSCRYPT_SUCCESS;
++}
++
+Index: git/ss_fscryptctl.h
+===================================================================
+--- /dev/null
++++ git/ss_fscryptctl.h
+@@ -0,0 +1,186 @@
++/*
++ * If not stated otherwise in this file or this component's Licenses.txt file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2023 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
++
++#ifndef _SS_FSCRYPTCTL_H
++#define _SS_FSCRYPTCTL_H
++
++/* Include Files */
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <errno.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <fcntl.h>
++#include <linux/ioctl.h>
++#include <linux/types.h>
++
++/* Session id range */
++#define RANDOM_SESSION_ID_LOWER_MIN     1000
++#define RANDOM_SESSION_ID_UPPER_MAX     100000
++#define INVALID_SESSION_ID 0
++
++/* Error Codes */
++#define FSCRYPT_SUCCESS 0x00000000
++#define FSCRYPT_FAILURE 0x00000001
++#define FSCRYPT_INVALID_PARARM 0x00000010
++#define FSCRYPT_NO_MEM 0x00000011
++
++/* Set Policy inputs */
++#define FSCRYPT_PADDING  	"padding:"
++#define FSCRYPT_CONTENTS 	"contents:"
++#define FSCRYPT_FILENAMES	"filenames:"
++#define FSCRYPT_KEY_IDENTIFIER_SIZE	16
++#define FSCRYPT_POLICY_V2		2
++
++/* Encryption Modes */
++#define FSCRYPT_MODE_AES_256_XTS                1
++#define FSCRYPT_MODE_AES_256_CTS                4
++#define FSCRYPT_MODE_AES_128_CBC                5
++#define FSCRYPT_MODE_AES_128_CTS                6
++#define FSCRYPT_MODE_SM4_XTS                    7
++#define FSCRYPT_MODE_SM4_CTS                    8
++#define FSCRYPT_MODE_ADIANTUM                   9
++#define FSCRYPT_MODE_AES_256_HCTR2              10
++
++/* Encryption policy flags */
++#define FSCRYPT_POLICY_FLAGS_PAD_4			0x00
++#define FSCRYPT_POLICY_FLAGS_PAD_8			0x01
++#define FSCRYPT_POLICY_FLAGS_PAD_16			0x02
++#define FSCRYPT_POLICY_FLAGS_PAD_32			0x03
++#define FSCRYPT_POLICY_FLAGS_PAD_MASK		0x03
++#define FSCRYPT_POLICY_FLAG_DIRECT_KEY		0x04
++#define FSCRYPT_POLICY_FLAG_IV_INO_LBLK_64	0x08
++#define FSCRYPT_POLICY_FLAG_IV_INO_LBLK_32	0x10
++
++#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
++#define DIR_MODE    0700
++
++/* Write IOCTL call file mode*/
++typedef enum {
++	FSCRYPT_WRITE = 0,
++	FSCRYPT_APPEND,
++}fscrypt_file_mode;
++
++/* Session information structure */
++struct session_t {
++	int fd;
++	char *rootDir;
++	unsigned int session_id;
++	struct session_t *next;
++};
++
++/* Policy structure */
++struct fscrypt_policy_v2 {
++	unsigned char version;
++	unsigned char contents_encryption_mode;
++	unsigned char filenames_encryption_mode;
++	unsigned char flags;
++	unsigned char __reserved[4];
++	unsigned char master_key_identifier[FSCRYPT_KEY_IDENTIFIER_SIZE];
++};
++
++/* Struct passed to FS_IOC_OPEN_SESSION */
++struct fscrypt_open_session_arg {
++	char *master_key;
++	char *root_dir;
++	struct fscrypt_policy_v2 policy;
++	unsigned int session_id;
++};
++/* Struct passed to FS_IOC_CLOSE_SESSION */
++struct fscrypt_close_session_arg {
++	unsigned int session_id;
++};
++
++/* Struct passed to FS_IOC_READ_ENCRYPTION_FILE_DATA/FS_IOC_WRITE_ENCRYPTION_FILE_DATA */
++struct fscrypt_data_arg {
++	unsigned char *domain;
++	unsigned char *key;
++	unsigned char *data;
++	int data_len;
++	fscrypt_file_mode file_mode;
++	unsigned int session_id;
++};
++
++/* Struct passed to FS_IOC_DELETE_DATA */
++struct fscrypt_delete_file_arg {
++	unsigned char *domain;
++	unsigned char *key;
++	unsigned int session_id;
++};
++
++/* IOCTL commands */
++#define FS_IOC_OPEN_SESSION						_IOWR('f', 28, struct fscrypt_open_session_arg)
++#define FS_IOC_READ_ENCRYPTION_FILE_DATA		_IOWR('f', 29, struct fscrypt_data_arg)
++#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA		_IOWR('f', 30, struct fscrypt_data_arg)
++#define FS_IOC_CLOSE_SESSION					_IOWR('f', 31, struct fscrypt_close_session_arg)
++#define FS_IOC_DELETE_DATA						_IOR('f', 32, struct fscrypt_delete_file_arg)
++
++/* Global Function protypes */
++/***************************************************************************
++ * @brief API used to add the key in keyring and set the encryption policy.
++ * @param masterKey indicates master key path or NULL if NULL, master key generated by kernel space and should be unique.
++ * @param application_root_path indicates a user encrypted directory path and stored the information under this path.
++ * @param sessionId is used to represent the session
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_openSession (char *masterKey, char *application_root_path, unsigned int *sessionId);
++
++/***************************************************************************
++ * @brief API used to read the file from encrypted directory.
++ * @param sessionId is used to represent the session
++ * @param domain indicates sub folder of the encrypted directory
++ * @param key indicates file name
++ * @param dataBuffer indicates data buffer for read the data
++ * @param size indicates size of the file
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_readData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int *size);
++
++/***************************************************************************
++ * @brief API used to write the file from encrypted directory.
++ * @param sessionId is used to represent the session
++ * @param domain indicates sub folder of the encrypted directory
++ * @param key indicates file name
++ * @param dataBuffer indicates data buffer to write the data
++ * @param size indicates size of the file
++ * @param fmode indicates file mode
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_writeData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int size, int fmode);
++
++/***************************************************************************
++ * @brief API used to clear the session information.
++ * @param sessionId is used to represent the session.
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_closeSession (unsigned int *sessionId);
++
++/***************************************************************************
++ * @brief API used to delete the folder and file from encrypted directory.
++ * @param sessionId is used to represent the session.
++ * @param domain indicates sub folder of the encrypted directory
++ * @param key indicates file name
++ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ ***************************************************************************/
++unsigned int fscrypt_deleteData (unsigned int sessionId, char *domain, char *key);
++
++#endif /* _SS_FSCRYPTCTL_H */
++
