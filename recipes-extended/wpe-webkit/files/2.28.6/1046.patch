@@ -1,0 +1,77 @@
+From 1ecf25e061ba614812884fb7ebd53f345b7bbe91 Mon Sep 17 00:00:00 2001
+From: Filipe Norte <filipe.norte@sky.uk>
+Date: Mon, 6 Mar 2023 16:22:26 +0000
+Subject: [PATCH] REALTEK-695: Cache video quality stats
+
+When the pipeline is composed by a playsink, setting the
+pipeline to the READY state (e.g. when reaching EOS) may
+cause the videosink state to be set to NULL as part of
+the videochain deactivation process (videosink is
+a child element of playsink). Some sink implementations
+reset the stats when the element's state is set to NULL,
+but the application may still query them as from app's
+perspective they should be still retrievable.
+Keep a cache of latest stats and return cached values
+when sink state is NULL
+---
+ .../gstreamer/MediaPlayerPrivateGStreamer.cpp | 27 ++++++++++++++-----
+ .../gstreamer/MediaPlayerPrivateGStreamer.h   |  3 +++
+ 2 files changed, 24 insertions(+), 6 deletions(-)
+
+diff --git a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
+index de0eeb5b14c8..e158f9bc3864 100644
+--- a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
++++ b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
+@@ -3741,14 +3741,29 @@ Optional<VideoPlaybackQualityMetrics> MediaPlayerPrivateGStreamer::videoPlayback
+     uint64_t totalVideoFrames = 0;
+     uint64_t droppedVideoFrames = 0;
+     if (webkitGstCheckVersion(1, 17, 0)) {
+-        GUniqueOutPtr<GstStructure> stats;
+-        g_object_get(m_videoSink.get(), "stats", &stats.outPtr(), nullptr);
+ 
+-        if (!gst_structure_get_uint64(stats.get(), "rendered", &totalVideoFrames))
+-            return WTF::nullopt;
++        // When the pipeline is composed by a playsink, setting the pipeline to the READY state (e.g. when reaching EOS)
++        // may cause the videosink state to be set to NULL as part of the videochain deactivation process (videosink is
++        // a child element of playsink). Some sink implementations reset the stats when the element's state is set
++        // to NULL, but the application may still query them as from app's perspective they should be still retrievable.
++        // Keep a cache of latest stats and return cached values when sink state is NULL
+ 
+-        if (!gst_structure_get_uint64(stats.get(), "dropped", &droppedVideoFrames))
+-            return WTF::nullopt;
++        if ( m_videoSink && (GST_STATE(m_videoSink.get()) != GST_STATE_NULL) ) {
++            GUniqueOutPtr<GstStructure> stats;
++            g_object_get(m_videoSink.get(), "stats", &stats.outPtr(), nullptr);
++
++            if (!gst_structure_get_uint64(stats.get(), "rendered", &totalVideoFrames)) {
++                return WTF::nullopt;
++            }
++            if (!gst_structure_get_uint64(stats.get(), "dropped", &droppedVideoFrames)) {
++                return WTF::nullopt;
++            }
++            m_cachedTotalVideoFrames = totalVideoFrames;
++            m_cachedDroppedVideoFrames = droppedVideoFrames;
++        } else {
++            totalVideoFrames = m_cachedTotalVideoFrames;
++            droppedVideoFrames = m_cachedDroppedVideoFrames;
++        }
+     } else if (m_fpsSink) {
+         unsigned renderedFrames, droppedFrames;
+         g_object_get(m_fpsSink.get(), "frames-rendered", &renderedFrames, "frames-dropped", &droppedFrames, nullptr);
+diff --git a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h
+index 7f9f5798db9a..ecefa1d8fb27 100644
+--- a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h
++++ b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.h
+@@ -569,6 +569,9 @@ private:
+     GRefPtr<GstElement> m_fpsSink { nullptr };
+ 
+ private:
++    uint64_t m_cachedTotalVideoFrames = 0;
++    uint64_t m_cachedDroppedVideoFrames = 0;
++
+ #if USE(WPE_VIDEO_PLANE_DISPLAY_DMABUF)
+     GUniquePtr<struct wpe_video_plane_display_dmabuf_source> m_wpeVideoPlaneDisplayDmaBuf;
+ #endif
+-- 
+2.39.2
+

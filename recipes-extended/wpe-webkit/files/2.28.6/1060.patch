@@ -1,0 +1,65 @@
+From fd480d79532b1496e9c990592ab6755dcc5b333c Mon Sep 17 00:00:00 2001
+From: Eugene Mutavchi <Ievgen_Mutavchi@comcast.com>
+Date: Sat, 25 Mar 2023 01:51:33 +0000
+Subject: [PATCH 2/3] [GST][MSE] fix incorrect segment sent to sinks on rewind
+ after flush
+
+segmentFixerProbe can incorrectly adjust segment on rewind if
+application removed the samples before issuing a seek call.
+---
+ .../graphics/gstreamer/mse/PlaybackPipeline.cpp       | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/Source/WebCore/platform/graphics/gstreamer/mse/PlaybackPipeline.cpp b/Source/WebCore/platform/graphics/gstreamer/mse/PlaybackPipeline.cpp
+index c11d34b9d5aec..94ce7781ab5b3 100644
+--- a/Source/WebCore/platform/graphics/gstreamer/mse/PlaybackPipeline.cpp
++++ b/Source/WebCore/platform/graphics/gstreamer/mse/PlaybackPipeline.cpp
+@@ -290,6 +290,14 @@ GstPadProbeReturn segmentFixerProbe(GstPad*, GstPadProbeInfo* info, gpointer use
+ {
+     GstEvent* event = GST_EVENT(info->data);
+ 
++    if (GST_PAD_PROBE_INFO_TYPE(info) & GST_PAD_PROBE_TYPE_EVENT_FLUSH) {
++        if (GST_EVENT_TYPE(event) == GST_EVENT_FLUSH_START) {
++            GST_DEBUG("Segment fixer probe removed on flush start event: %" GST_PTR_FORMAT, event);
++            return GST_PAD_PROBE_REMOVE;
++        }
++        return GST_PAD_PROBE_OK;
++    }
++
+     if (GST_EVENT_TYPE(event) != GST_EVENT_SEGMENT)
+         return GST_PAD_PROBE_OK;
+ 
+@@ -373,7 +381,7 @@ void PlaybackPipeline::flush(AtomString trackId)
+     GRefPtr<GstPad> sinkPad = gst_element_get_static_pad(appsrc, "src");
+     GRefPtr<GstPad> srcPad = sinkPad ? gst_pad_get_peer(sinkPad.get()) : nullptr;
+     if (srcPad)
+-        gst_pad_add_probe(srcPad.get(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, segmentFixerProbe, nullptr, nullptr);
++        gst_pad_add_probe(srcPad.get(), static_cast<GstPadProbeType>(GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM | GST_PAD_PROBE_TYPE_EVENT_FLUSH), segmentFixerProbe, nullptr, nullptr);
+ 
+     GST_DEBUG_OBJECT(appsrc, "Sending new seamless segment: [%" GST_TIME_FORMAT ", %" GST_TIME_FORMAT "], rate: %f",
+         GST_TIME_ARGS(segment->start), GST_TIME_ARGS(segment->stop), segment->rate);
+From 9e44b95e60d407ed6ddeb9763cc288d99532d02a Mon Sep 17 00:00:00 2001
+From: Eugene Mutavchi <Ievgen_Mutavchi@comcast.com>
+Date: Sat, 25 Mar 2023 01:56:55 +0000
+Subject: [PATCH 3/3] [GST][MSE] allow flush immediately gst seek completed
+
+SourceBuffer can enqueue repeated data after replacing samples
+immediately after seek. This can happen when seek completion is
+delayed due to async transition.
+---
+ .../graphics/gstreamer/mse/SourceBufferPrivateGStreamer.cpp     | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Source/WebCore/platform/graphics/gstreamer/mse/SourceBufferPrivateGStreamer.cpp b/Source/WebCore/platform/graphics/gstreamer/mse/SourceBufferPrivateGStreamer.cpp
+index a4218b1712129..bddf580c6ca86 100644
+--- a/Source/WebCore/platform/graphics/gstreamer/mse/SourceBufferPrivateGStreamer.cpp
++++ b/Source/WebCore/platform/graphics/gstreamer/mse/SourceBufferPrivateGStreamer.cpp
+@@ -128,7 +128,7 @@ void SourceBufferPrivateGStreamer::flush(const AtomString& trackId)
+     ASSERT(isMainThread());
+ 
+     // This is only for on-the-fly reenqueues after appends. When seeking, the seek will do its own flush.
+-    if (!m_playerPrivate.seeking())
++    if (!m_playerPrivate.seeking() || m_playerPrivate.gstSeekCompleted())
+         m_playerPrivate.playbackPipeline()->flush(trackId);
+ }
+ 

@@ -1,0 +1,55 @@
+From 338b4380625edeec206dcd0d5a26e3f761a118c7 Mon Sep 17 00:00:00 2001
+From: Eugene Mutavchi <Ievgen_Mutavchi@comcast.com>
+Date: Fri, 24 Mar 2023 22:35:27 +0000
+Subject: [PATCH] [GST][MSE] Fix YT loop playback tests
+
+This change fixes 2 problems:
+
+ - inconsistent readyState in HTMLMediaElement and
+ MediaPlayerPrivateGStreamerMSE. This happens when currentMediaTime()
+ triggers a seek to 0 position for looping video (from within the
+ updateStates). seek internally changes the readyState to HaveMetadata,
+causing the wrong value to be captured at the begining of
+updateStates(), and later a failure to finishSeek in HtmlMediaElement.
+
+ - seek to 0 after EOS with looping disabled. MSE player cannot
+ recover after transition to READY state.
+
+Tests: https://ytlr-cert.appspot.com/2021/main.html?&test_type=msecodec-test&tests=55,56,57
+---
+ .../graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp         | 2 +-
+ .../graphics/gstreamer/mse/MediaPlayerPrivateGStreamerMSE.cpp  | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
+index d03239e80ab6b..bd3d7c2c8e8a0 100644
+--- a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
++++ b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
+@@ -2750,7 +2750,7 @@ void MediaPlayerPrivateGStreamer::didEnd()
+     // until we get the initial STREAMS_SELECTED message one more time.
+     m_waitingForStreamsSelectedEvent = true;
+ 
+-    if (!m_player->isLooping()) {
++    if (!m_player->isLooping() && !isMediaSource()) {
+         m_isPaused = true;
+         changePipelineState(GST_STATE_READY);
+         m_didDownloadFinish = false;
+diff --git a/Source/WebCore/platform/graphics/gstreamer/mse/MediaPlayerPrivateGStreamerMSE.cpp b/Source/WebCore/platform/graphics/gstreamer/mse/MediaPlayerPrivateGStreamerMSE.cpp
+index 0ac00929f30c6..5b39cf37026d5 100644
+--- a/Source/WebCore/platform/graphics/gstreamer/mse/MediaPlayerPrivateGStreamerMSE.cpp
++++ b/Source/WebCore/platform/graphics/gstreamer/mse/MediaPlayerPrivateGStreamerMSE.cpp
+@@ -511,12 +511,13 @@ void MediaPlayerPrivateGStreamerMSE::updateStates()
+     if (UNLIKELY(!m_pipeline || m_didErrorOccur))
+         return;
+ 
++    const bool mseBuffering = !isTimeBuffered(currentMediaTime());
++
+     MediaPlayer::NetworkState oldNetworkState = m_networkState;
+     MediaPlayer::ReadyState oldReadyState = m_readyState;
+     GstState state, pending;
+ 
+     GstStateChangeReturn getStateResult = gst_element_get_state(m_pipeline.get(), &state, &pending, 250 * GST_NSECOND);
+-    const bool mseBuffering = !isTimeBuffered(currentMediaTime());
+ 
+     bool shouldUpdatePlaybackState = false;
+     switch (getStateResult) {
