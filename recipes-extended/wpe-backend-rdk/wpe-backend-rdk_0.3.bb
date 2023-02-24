@@ -16,6 +16,7 @@ SRC_URI = "${BASE_URI}"
 SRC_URI += "file://comcast-Naive-gamepad-support.patch"
 SRC_URI += "file://0001-Fix-browser-crash-when-the-compositor-is-not-created.patch"
 SRC_URI += "file://0001-Send-SIGHUP-if-compositor-is-terminated.patch"
+SRC_URI += "file://comcast-manette-gamepad-support.patch"
 
 S = "${WORKDIR}/git"
 
@@ -24,12 +25,13 @@ inherit cmake pkgconfig
 WPE_BACKEND ?= "essos headless"
 
 PACKAGECONFIG ?= "${WPE_BACKEND}"
-PACKAGECONFIG_append += " gamepad"
+PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'gamepad-using-libmanette', ' manettegamepad', ' gamepad', d)}"
 
 PACKAGECONFIG[westeros] = "-DUSE_BACKEND_WESTEROS=ON -DUSE_KEY_INPUT_HANDLING_LINUX_INPUT=OFF,,wayland westeros libxkbcommon"
 PACKAGECONFIG[essos] = "-DUSE_BACKEND_ESSOS=ON -DUSE_INPUT_LIBINPUT=OFF,-DUSE_BACKEND_ESSOS=OFF,essos libxkbcommon"
 PACKAGECONFIG[gamepad] = "-DUSE_GENERIC_GAMEPAD=ON,-DUSE_GENERIC_GAMEPAD=OFF,"
 PACKAGECONFIG[headless] = "-DUSE_BACKEND_HEADLESS=ON -DUSE_INPUT_LIBINPUT=OFF,-DUSE_BACKEND_HEADLESS=OFF,"
+PACKAGECONFIG[manettegamepad] = "-DUSE_LIBMANETTE_GAMEPAD=ON, -DUSE_LIBMANETTE_GAMEPAD=OFF, libmanette"
 
 
 EXTRA_OECMAKE += " \
