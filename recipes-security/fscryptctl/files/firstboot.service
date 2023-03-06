@@ -4,6 +4,7 @@ After=network.target
 Before=rc-local.service
 ConditionPathIsReadWrite=/opt/
 ConditionPathExists=!/opt/firstboot.done
+ConditionPathExists=/lib/rdk/firstboot.sh
 
 [Service]
 ExecStart=/lib/rdk/firstboot.sh
