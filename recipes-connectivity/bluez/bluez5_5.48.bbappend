@@ -1,13 +1,12 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}_${PV}:"
 
 ## Disable Patches
 SRC_URI_remove = " \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', 'file://0001-hciattach-bcm43xx-fix-the-delay-timer-for-firmware-d.patch', '', d)} \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', 'file://cve-2017-1000250.patch', '', d)} \
+    file://0001-hciattach-bcm43xx-fix-the-delay-timer-for-firmware-d.patch \
+    file://cve-2017-1000250.patch \
     "
 ## Patches ported by SkyQ
-SRC_URI += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', ' \
-    file://breakpad.patch \
+SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-002-disable-unneeded-plugins.patch \
     file://bluez-5.48-003-add-configurable-char-write-value-options.patch \
     file://bluez-5.48-004-disable-ble-battery-profile.patch \
@@ -39,12 +38,11 @@ SRC_URI += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', ' \
     file://bluez-5.48-033-enable-debug-logging.patch \
     file://0001-testtools-fix-SIOCGSTAMP-undeclared-error.patch \
     file://0002-libexecdir-location.patch \
-    ', '', d)} \
 	"
 
 ## Disabled SkyQ Patches
 #file://bluez-5.48-018-change_storage_dir.patch
 
-SRC_URI_append_hybrid += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', '', 'file://0001-bluetooth_autoenable_policy_main_conf.patch', d)}"
-SRC_URI_append_client += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', '', 'file://0001-bluetooth_autoenable_policy_main_conf.patch', d)}"
+#SRC_URI_append_hybrid += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', '', 'file://0001-bluetooth_autoenable_policy_main_conf.patch', d)}"
+#SRC_URI_append_client += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', '', 'file://0001-bluetooth_autoenable_policy_main_conf.patch', d)}"
 
