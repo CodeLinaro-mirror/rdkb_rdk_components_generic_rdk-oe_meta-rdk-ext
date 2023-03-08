@@ -28,6 +28,7 @@ SRC_URI += "file://2.28.3/996.patch"
 SRC_URI += "file://2.28.3/1005.patch"
 SRC_URI += "file://2.28/1009.patch"
 SRC_URI += "file://2.28.3/1010.patch"
+SRC_URI += "file://2.28.5/1042.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.28/comcast-XRE-15382-libwebrtc-fake-encoder.patch"
