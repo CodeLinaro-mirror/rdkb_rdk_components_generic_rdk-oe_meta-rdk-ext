@@ -1,0 +1,536 @@
+From 433297b0745fe1ac078c694321f81c24c9786235 Mon Sep 17 00:00:00 2001
+From: aahmed878 <Alsameema_Ahmedansar@comcast.com>
+Date: Tue, 14 Mar 2023 05:19:47 +0000
+Subject: [PATCH 1/3] qtdemux: Parsing sgpd/sbgp box to support per sample
+ group encryption
+
+ISO/IEC 23001-7 Common encryption specification defines seig box
+which can override default protection parameters of Track Encryption box (tenc).
+Note that, Sample to Group box (sbgp) and Sample Group Description box (sgpd)
+are required for parsing seig box, since sbgp and sgpd are linked structure
+and seig is one type of child box of sgpd.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=782224
+---
+ gst/isomp4/fourcc.h        |   4 +
+ gst/isomp4/qtdemux.c       | 296 ++++++++++++++++++++++++++++++++++++-
+ gst/isomp4/qtdemux.h       |   2 +
+ gst/isomp4/qtdemux_dump.c  |  88 +++++++++++
+ gst/isomp4/qtdemux_dump.h  |   4 +
+ gst/isomp4/qtdemux_types.c |   2 +
+ 6 files changed, 394 insertions(+), 2 deletions(-)
+
+diff --git a/gst/isomp4/fourcc.h b/gst/isomp4/fourcc.h
+index 7102b9c..5be8d40 100644
+--- a/gst/isomp4/fourcc.h
++++ b/gst/isomp4/fourcc.h
+@@ -296,6 +296,10 @@ G_BEGIN_DECLS
+ #define FOURCC_vivo     GST_MAKE_FOURCC('v','i','v','o')
+ #define FOURCC_saiz     GST_MAKE_FOURCC('s','a','i','z')
+ #define FOURCC_saio     GST_MAKE_FOURCC('s','a','i','o')
++#define FOURCC_sbgp     GST_MAKE_FOURCC('s','b','g','p')
++#define FOURCC_sgpd     GST_MAKE_FOURCC('s','g','p','d')
++#define FOURCC_seig     GST_MAKE_FOURCC('s','e','i','g')
++
+ 
+ #define FOURCC_3gg6     GST_MAKE_FOURCC('3','g','g','6')
+ #define FOURCC_3gg7     GST_MAKE_FOURCC('3','g','g','7')
+diff --git a/gst/isomp4/qtdemux.c b/gst/isomp4/qtdemux.c
+index 4f43148..78ce0aa 100644
+--- a/gst/isomp4/qtdemux.c
++++ b/gst/isomp4/qtdemux.c
+@@ -200,6 +200,7 @@ typedef struct _QtDemuxCencSampleSetInfo QtDemuxCencSampleSetInfo;
+  * This is a good usecase for the GStreamer accumulated SEGMENT events.
+  */
+ 
++typedef struct _QtDemuxSampleToGroup QtDemuxSampleToGroup;
+ struct _QtDemuxSegment
+ {
+   /* global time and duration, all gst time */
+@@ -234,6 +235,27 @@ struct _QtDemuxCencSampleSetInfo
+   GPtrArray *crypto_info;
+ };
+ 
++typedef struct _QtDemuxSampleToGroupEntry
++{
++  guint32 sample_count;
++  guint32 group_description_idx;
++
++  /* grouping_type specific data */
++  gpointer data;
++} QtDemuxSampleToGroupEntry;
++
++struct _QtDemuxSampleToGroup
++{
++  guint32 grouping_type;
++  guint32 grouping_type_parameter;      /* version 1 only */
++
++  QtDemuxSampleToGroupEntry *sbgp_entries;
++  guint32 sbgp_entries_length;
++
++  GDestroyNotify entry_free_func;
++};
++
++
+ static const gchar *
+ qt_demux_state_string (enum QtDemuxState state)
+ {
+@@ -2552,6 +2574,34 @@ gst_qtdemux_stream_flush_segments_data (QtDemuxStream * stream)
+   stream->accumulated_base = 0;
+ }
+ 
++static void
++gst_qtdemux_sample_to_group_free_internal (QtDemuxSampleToGroup *
++    sample_to_group)
++{
++  if (sample_to_group->entry_free_func) {
++    guint i;
++    for (i = 0; i < sample_to_group->sbgp_entries_length; i++) {
++      QtDemuxSampleToGroupEntry *entry = &sample_to_group->sbgp_entries[i];
++      sample_to_group->entry_free_func (entry->data);
++    }
++  }
++
++  g_free (sample_to_group->sbgp_entries);
++  g_free (sample_to_group);
++}
++
++static void
++gst_qtdemux_sample_to_group_free (QtDemuxStream * stream)
++{
++  if (stream->sample_to_group)
++    g_list_free_full (stream->sample_to_group,
++        (GDestroyNotify) gst_qtdemux_sample_to_group_free_internal);
++
++  stream->sample_to_group = NULL;
++}
++
++
++
+ static void
+ gst_qtdemux_stream_flush_samples_data (QtDemuxStream * stream)
+ {
+@@ -2572,6 +2622,7 @@ gst_qtdemux_stream_flush_samples_data (QtDemuxStream * stream)
+   stream->n_samples_moof = 0;
+   stream->duration_moof = 0;
+   stream->duration_last_moof = 0;
++  gst_qtdemux_sample_to_group_free (stream);
+ }
+ 
+ static void gst_qtdemux_stream_flush_crypto_info (QtDemuxStream * stream)
+@@ -4105,15 +4156,236 @@ qtdemux_parse_pssh (GstQTDemux * qtdemux, GNode * node)
+   return TRUE;
+ }
+ 
++static gboolean
++qtdemux_parse_sbgp (GstQTDemux * qtdemux, GstByteReader * br,
++    QtDemuxStream * stream)
++{
++  guint32 version, grouping_type, entry_count;
++  guint32 grouping_type_parameter = 0;
++  guint i;
++  QtDemuxSampleToGroup *sample_to_group = NULL;
++
++  g_return_val_if_fail (qtdemux != NULL, FALSE);
++  g_return_val_if_fail (stream != NULL, FALSE);
++  g_return_val_if_fail (br != NULL, FALSE);
++
++  if (!gst_byte_reader_get_uint32_be (br, &version))
++    return FALSE;
++
++  version >>= 24;
++  if (version == 1) {
++    if (!gst_byte_reader_get_uint32_be (br, &grouping_type_parameter)) {
++      return FALSE;
++    }
++  }
++
++  if (!qt_atom_parser_get_fourcc (br, &grouping_type))
++    return FALSE;
++
++  switch (grouping_type) {
++    case FOURCC_seig:
++      if (stream->protection_scheme_type != FOURCC_cenc) {
++        GST_ERROR_OBJECT (qtdemux, "Common Encryption is required for seig");
++        return FALSE;
++      }
++      break;
++    default:
++      /* FIXME: now we consider only seig type for protected stream.
++       * There might be informal types more */
++      GST_DEBUG_OBJECT (qtdemux, "Unknown grouping_type %" GST_FOURCC_FORMAT,
++          GST_FOURCC_ARGS (grouping_type));
++      return FALSE;
++  }
++
++  if (!gst_byte_reader_get_uint32_be (br, &entry_count))
++    return FALSE;
++
++  sample_to_group = g_new0 (QtDemuxSampleToGroup, 1);
++  sample_to_group->sbgp_entries =
++      g_new0 (QtDemuxSampleToGroupEntry, entry_count);
++  sample_to_group->sbgp_entries_length = entry_count;
++  sample_to_group->entry_free_func =
++      (GDestroyNotify) qtdemux_gst_structure_free;
++
++  sample_to_group->grouping_type = grouping_type;
++  sample_to_group->grouping_type_parameter = grouping_type_parameter;
++
++  GST_DEBUG_OBJECT (qtdemux, "grouping_type: %" GST_FOURCC_FORMAT
++      ", entry_count:  %" G_GUINT32_FORMAT,
++      GST_FOURCC_ARGS (grouping_type), entry_count);
++
++  for (i = 0; i < entry_count; i++) {
++    QtDemuxSampleToGroupEntry *entry = &sample_to_group->sbgp_entries[i];
++    guint32 sample_count;
++    guint32 group_description_idx;
++
++    if (!gst_byte_reader_get_uint32_be (br, &sample_count))
++      goto failed;
++    if (!gst_byte_reader_get_uint32_be (br, &group_description_idx))
++      goto failed;
++
++    GST_LOG_OBJECT (qtdemux, "entry %u (sample_count: %" G_GUINT32_FORMAT "), "
++        "group_description_index: %" G_GUINT32_FORMAT,
++        i, sample_count, group_description_idx);
++
++    entry->sample_count = sample_count;
++    entry->group_description_idx = group_description_idx;
++  }
++
++  stream->sample_to_group =
++      g_list_append (stream->sample_to_group, sample_to_group);
++
++  return TRUE;
++
++failed:
++  GST_ERROR_OBJECT (qtdemux, "Failed to parse SampleToGroup box");
++  if (sample_to_group)
++    gst_qtdemux_sample_to_group_free_internal (sample_to_group);
++
++  return FALSE;
++}
++
++static gboolean
++qtdemux_parse_seig (GstQTDemux * qtdemux, GstByteReader * br,
++    QtDemuxSampleToGroupEntry * group_entry)
++{
++  guint8 *kid;
++  guint8 is_protected, iv_size;
++  GstBuffer *kid_buf;
++
++  if (!gst_byte_reader_skip (br, 2))
++    return FALSE;
++
++  if (!gst_byte_reader_get_uint8 (br, &is_protected)) {
++    GST_ERROR_OBJECT (qtdemux, "failed to get is protected");
++    return FALSE;
++  }
++
++  if (!gst_byte_reader_get_uint8 (br, &iv_size)) {
++    GST_ERROR_OBJECT (qtdemux, "failed to get iv size");
++    return FALSE;
++  }
++
++  if (!gst_byte_reader_dup_data (br, 16, &kid)) {
++    GST_ERROR_OBJECT (qtdemux, "failed to get kid");
++    return FALSE;
++  }
++
++  kid_buf = gst_buffer_new_wrapped (kid, 16);
++
++  if (G_UNLIKELY (group_entry->data)) {
++    gst_structure_free ((GstStructure *) group_entry->data);
++  }
++
++  group_entry->data =
++      gst_structure_new ("application/x-cenc",
++      "iv_size", G_TYPE_UINT, iv_size,
++      "encrypted", G_TYPE_BOOLEAN, (is_protected == 1),
++      "kid", GST_TYPE_BUFFER, kid_buf, NULL);
++
++  GST_DEBUG_OBJECT (qtdemux, "sample properties from seig: "
++      "is_encrypted=%u, iv_size=%u", is_protected, iv_size);
++  gst_buffer_unref (kid_buf);
++
++  return TRUE;
++}
++
++static gboolean
++qtdemux_parse_sgpd (GstQTDemux * qtdemux, GstByteReader * br,
++    QtDemuxStream * stream)
++{
++  guint32 version = 0;
++  guint32 grouping_type;
++  guint32 default_length = 0, default_sample_description_idx = 0;
++  guint32 entry_count;
++  guint i;
++  QtDemuxSampleToGroup *ref_sbgp = NULL;
++  QtDemuxSampleToGroupEntry *group_entry;
++  GList *iter;
++
++  g_return_val_if_fail (qtdemux != NULL, FALSE);
++  g_return_val_if_fail (stream != NULL, FALSE);
++  g_return_val_if_fail (br != NULL, FALSE);
++
++  if (!stream->n_samples_moof)
++    return FALSE;
++
++  if (!gst_byte_reader_get_uint32_be (br, &version))
++    return FALSE;
++
++  if (!qt_atom_parser_get_fourcc (br, &grouping_type))
++    return FALSE;
++
++  switch (grouping_type) {
++    case FOURCC_seig:
++      if (stream->protection_scheme_type != FOURCC_cenc) {
++        GST_ERROR_OBJECT (qtdemux, "Common Encryption is required for seig");
++        return FALSE;
++      }
++      break;
++    default:
++      /* FIXME: now we consider only seig type for protected stream.
++       * There might be informal types more */
++      GST_DEBUG_OBJECT (qtdemux, "Unknown grouping_type %" GST_FOURCC_FORMAT,
++          GST_FOURCC_ARGS (grouping_type));
++      return FALSE;
++  }
++
++  for (iter = stream->sample_to_group; iter; iter = g_list_next (iter)) {
++    QtDemuxSampleToGroup *sbgp = (QtDemuxSampleToGroup *) iter->data;
++    if (sbgp->grouping_type == grouping_type) {
++      ref_sbgp = sbgp;
++      break;
++    }
++  }
++
++  if (!ref_sbgp) {
++    GST_ERROR_OBJECT (qtdemux, "Cannot find matching SampleToGroup");
++    return FALSE;
++  }
++
++  version >>= 24;
++  if (version == 1 && !gst_byte_reader_get_uint32_be (br, &default_length)) {
++    return FALSE;
++  } else if (version > 1 &&
++      !gst_byte_reader_get_uint32_be (br, &default_sample_description_idx)) {
++    return FALSE;
++  }
++
++  if (!gst_byte_reader_get_uint32_be (br, &entry_count))
++    return FALSE;
++
++  GST_DEBUG_OBJECT (qtdemux, "grouping_type: %" GST_FOURCC_FORMAT
++      ", entry_count:  %" G_GUINT32_FORMAT,
++      GST_FOURCC_ARGS (grouping_type), entry_count);
++
++  group_entry = ref_sbgp->sbgp_entries;
++
++  for (i = 0; i < entry_count; i++) {
++    /* group_description_idx of value zero indicates
++     * that this sample is a member of no group of this type */
++    while (group_entry->group_description_idx == 0)
++      group_entry++;
++
++    if (!qtdemux_parse_seig (qtdemux, br, group_entry))
++      return FALSE;
++
++    group_entry++;
++  }
++
++  return TRUE;
++}
++
++
+ static gboolean
+ qtdemux_parse_moof (GstQTDemux * qtdemux, const guint8 * buffer, guint length,
+     guint64 moof_offset, QtDemuxStream * stream)
+ {
+   GNode *moof_node, *traf_node, *tfhd_node, *trun_node, *tfdt_node, *mfhd_node;
+-  GNode *uuid_node;
++  GNode *uuid_node, *sbgp_node, *sgpd_node;
+   GstByteReader mfhd_data, trun_data, tfhd_data, tfdt_data;
+   GNode *saiz_node, *saio_node, *pssh_node, *senc_node;
+-  GstByteReader saiz_data, saio_data, senc_data;
++  GstByteReader saiz_data, saio_data, sbgp_data, senc_data, sgpd_data;
+   guint32 ds_size = 0, ds_duration = 0, ds_flags = 0;
+   gint64 base_offset, running_offset;
+   guint32 frag_num;
+@@ -4149,6 +4421,25 @@ qtdemux_parse_moof (GstQTDemux * qtdemux, const guint8 * buffer, guint length,
+     if (!qtdemux_parse_tfhd (qtdemux, &tfhd_data, &stream, &ds_duration,
+             &ds_size, &ds_flags, &base_offset))
+       goto missing_tfhd;
++    sbgp_node =
++        qtdemux_tree_get_child_by_type_full (traf_node, FOURCC_sbgp,
++        &sbgp_data);
++    while (sbgp_node) {
++      qtdemux_parse_sbgp (qtdemux, &sbgp_data, stream);
++      /* iterate all siblings */
++      sbgp_node = qtdemux_tree_get_sibling_by_type_full (sbgp_node, FOURCC_sbgp,
++          &sbgp_data);
++    }
++
++    sgpd_node =
++        qtdemux_tree_get_child_by_type_full (traf_node, FOURCC_sgpd,
++        &sgpd_data);
++    while (sgpd_node) {
++      qtdemux_parse_sgpd (qtdemux, &sgpd_data, stream);
++      /* iterate all siblings */
++      sgpd_node = qtdemux_tree_get_sibling_by_type_full (sbgp_node, FOURCC_sgpd,
++          &sgpd_data);
++    }
+ 
+     /* The following code assumes at most a single set of sample auxiliary
+      * data in the fragment (consisting of a saiz box and a corresponding saio
+@@ -6332,6 +6623,7 @@ gst_qtdemux_do_fragmented_seek (GstQTDemux * qtdemux)
+     gboolean is_audio_or_video;
+ 
+     stream = QTDEMUX_NTH_STREAM (qtdemux, i);
++	gst_qtdemux_sample_to_group_free (stream);
+ 
+     if (stream->ra_entries == NULL)
+       continue;
+diff --git a/gst/isomp4/qtdemux.h b/gst/isomp4/qtdemux.h
+index 715ace7..7fdeb1e 100644
+--- a/gst/isomp4/qtdemux.h
++++ b/gst/isomp4/qtdemux.h
+@@ -490,6 +490,8 @@ struct _QtDemuxStream
+   guint32 def_sample_flags;
+ 
+   gboolean disabled;
++  /* SampleToGroup information structure */
++  GList *sample_to_group;
+ 
+   /* stereoscopic video streams */
+   GstVideoMultiviewMode multiview_mode;
+diff --git a/gst/isomp4/qtdemux_dump.c b/gst/isomp4/qtdemux_dump.c
+index 25921df..99c443d 100644
+--- a/gst/isomp4/qtdemux_dump.c
++++ b/gst/isomp4/qtdemux_dump.c
+@@ -1032,6 +1032,94 @@ qtdemux_dump_gmin (GstQTDemux * qtdemux, GstByteReader * data, int depth)
+   return TRUE;
+ }
+ 
++gboolean
++qtdemux_dump_sbgp (GstQTDemux * qtdemux, GstByteReader * data, int depth)
++{
++  guint32 version;
++  guint32 grouping_type;
++  guint32 entry_count;
++  guint i;
++
++  if (!gst_byte_reader_get_uint32_be (data, &version))
++    return FALSE;
++
++  GST_LOG ("%*s  version/flags: %08x", depth, "", version);
++
++  if (!gst_byte_reader_get_uint32_le (data, &grouping_type))
++    return FALSE;
++
++  GST_LOG ("%*s  grouping type: %" GST_FOURCC_FORMAT, depth, "",
++      GST_FOURCC_ARGS (grouping_type));
++
++  if ((version >> 24) == 1) {
++    guint32 grouping_type_parm;
++    if (!gst_byte_reader_get_uint32_be (data, &grouping_type_parm))
++      return FALSE;
++    GST_LOG ("%*s  grouping type parameter: %" G_GUINT32_FORMAT, depth, "",
++        grouping_type_parm);
++  }
++
++  if (!gst_byte_reader_get_uint32_be (data, &entry_count))
++    return FALSE;
++
++  GST_LOG ("%*s  entry count: %" G_GUINT32_FORMAT, depth, "", entry_count);
++
++  for (i = 0; i < entry_count; i++) {
++    guint32 sample_count;
++    guint32 group_description_idx;
++    if (!gst_byte_reader_get_uint32_be (data, &sample_count))
++      return FALSE;
++    if (!gst_byte_reader_get_uint32_be (data, &group_description_idx))
++      return FALSE;
++    GST_LOG ("%*s     sample_count: %" G_GUINT32_FORMAT, depth, "",
++        sample_count);
++    GST_LOG ("%*s     group_description_idx: %d", depth, "",
++        group_description_idx);
++  }
++
++  return TRUE;
++}
++
++gboolean
++qtdemux_dump_sgpd (GstQTDemux * qtdemux, GstByteReader * data, int depth)
++{
++  guint32 version;
++  guint32 grouping_type;
++  guint32 entry_count;
++  guint32 default_length_or_sample;
++
++
++  if (!gst_byte_reader_get_uint32_be (data, &version))
++    return FALSE;
++
++  GST_LOG ("%*s  version/flags: %08x", depth, "", version);
++
++  if (!gst_byte_reader_get_uint32_le (data, &grouping_type))
++    return FALSE;
++
++  GST_LOG ("%*s  grouping type: %" GST_FOURCC_FORMAT, depth, "",
++      GST_FOURCC_ARGS (grouping_type));
++
++  if (!gst_byte_reader_get_uint32_be (data, &default_length_or_sample))
++    return FALSE;
++
++  if ((version >> 24) == 1) {
++    GST_LOG ("%*s  default length: %" G_GUINT32_FORMAT, depth, "",
++        default_length_or_sample);
++  } else if ((version >> 24) >= 2) {
++    GST_LOG ("%*s  default sample description index: %" G_GUINT32_FORMAT, depth,
++        "", default_length_or_sample);
++  }
++
++  if (!gst_byte_reader_get_uint32_be (data, &entry_count))
++    return FALSE;
++
++  GST_LOG ("%*s  entry count: %" G_GUINT32_FORMAT, depth, "", entry_count);
++
++  return TRUE;
++}
++
++
+ gboolean
+ qtdemux_dump_unknown (GstQTDemux * qtdemux, GstByteReader * data, int depth)
+ {
+diff --git a/gst/isomp4/qtdemux_dump.h b/gst/isomp4/qtdemux_dump.h
+index 45dcd3f..2bdf6b2 100644
+--- a/gst/isomp4/qtdemux_dump.h
++++ b/gst/isomp4/qtdemux_dump.h
+@@ -89,6 +89,10 @@ gboolean qtdemux_dump_dfLa (GstQTDemux * qtdemux, GstByteReader * data,
+     int depth);
+ gboolean qtdemux_dump_fLaC (GstQTDemux * qtdemux, GstByteReader * data,
+     int depth);
++gboolean qtdemux_dump_sbgp (GstQTDemux * qtdemux, GstByteReader * data,
++    int depth);
++gboolean qtdemux_dump_sgpd (GstQTDemux * qtdemux, GstByteReader * data,
++    int depth);
+ gboolean qtdemux_dump_gmin (GstQTDemux * qtdemux, GstByteReader * data,
+     int depth);
+ 
+diff --git a/gst/isomp4/qtdemux_types.c b/gst/isomp4/qtdemux_types.c
+index e9382ce..17328be 100644
+--- a/gst/isomp4/qtdemux_types.c
++++ b/gst/isomp4/qtdemux_types.c
+@@ -229,6 +229,8 @@ static const QtNodeType qt_node_types[] = {
+   {FOURCC_av1m, "AV1 Multi-Frame sample group entry", 0},
+   {FOURCC_av1s, "AV1 S-Frame sample group entry", 0},
+   {FOURCC_av1M, "AV1 Metadata sample group entry", 0},
++  {FOURCC_sbgp, "Sample to Group", 0, qtdemux_dump_sbgp},
++  {FOURCC_sgpd, "Sample Group Description", 0, qtdemux_dump_sgpd},
+   {0, "unknown", 0,},
+ };
+ 
+-- 
+2.24.3
+
