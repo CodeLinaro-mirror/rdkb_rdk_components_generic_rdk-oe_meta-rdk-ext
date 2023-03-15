@@ -10,7 +10,8 @@ PR="r0"
 
 MUSTACH_TAG="1.2.2"
 
-SRC_URI = "git://gitlab.com/jobol/mustach;protocol=https;tag=${MUSTACH_TAG}"
+SRC_URI = "git://gitlab.com/jobol/mustach;protocol=https"
+SRCREV = "a65e3a24a40aa479879a03ff3d7fb4288af65ea6"
 
 S = "${WORKDIR}/git"
 
