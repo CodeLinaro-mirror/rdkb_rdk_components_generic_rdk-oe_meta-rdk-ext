@@ -5,9 +5,12 @@ SRC_URI += " \
 "
 
 ## The below patches are needed to build systemd V230 with glibc V2.31 on dunfell(Yocto 3.1)
-SRC_URI_append_dunfell = " file://0001-memfd-patch-for-latest-version-of-glibc.patch \
+# journald-minimal-client-metadata-caching patch contains changes the remaining 3 patches as well
+SRC_URI_append_dunfell = " \
+            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd-journal-cache', 'file://journald-minimal-client-metadata-caching.patch', '\
+            file://0001-memfd-patch-for-latest-version-of-glibc.patch \
             file://0002-Remove-include-of-xlocale-header.patch \
-            file://0003-Remove-MS-constants-from-missing-header-file.patch \
+            file://0003-Remove-MS-constants-from-missing-header-file.patch', d)} \
             file://0001-nss-util-silence-warning-about-deprecated-RES_USE_IN.patch \
             file://99-default.preset \
             "
