@@ -2,7 +2,7 @@ require dwarf.inc
 
 ASLR = "${@bb.utils.contains('DISTRO_FEATURES', 'aslr', '1', '0', d)}"
 
-EXTRA_OECONF += "${@ASLR == "1" and "--enable-shared --disable-nonshared" or ""}"
+EXTRA_OECONF += "${@ASLR == "1" and "--enable-shared --disable-static" or ""}"
 
 do_install() {
     install -d ${D}${libdir} ${D}${includedir}/libdwarf

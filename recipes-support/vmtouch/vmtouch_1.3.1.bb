@@ -10,7 +10,7 @@ SRC_URI = "git://github.com/hoytech/vmtouch.git;branch=master;protocol=git"
 
 S = "${WORKDIR}/git"
 
-DEPENDS_append_dunfell = " perl-native"
+DEPENDS_append = " perl-native"
 
 do_install() {
     install -d ${D}${bindir}

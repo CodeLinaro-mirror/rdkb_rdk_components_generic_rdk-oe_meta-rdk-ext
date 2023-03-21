@@ -18,6 +18,7 @@ B = "${S}"
 PACKAGECONFIG ??= "nowarn"
 PACKAGECONFIG_remove_morty = "nowarn"
 PACKAGECONFIG[nowarn] = "--disable-compiler-warning-to-error"
+DEBIAN_NOAUTONAME_${PN}-main = "1"
 RDEPENDS_ipv6calc = " bash perl"
 do_install_append() {
 	install -d ${D}${libdir}

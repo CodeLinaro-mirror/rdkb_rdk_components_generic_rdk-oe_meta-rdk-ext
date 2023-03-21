@@ -18,7 +18,7 @@ S = "${WORKDIR}/gst-libav-${PV}"
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
 
-inherit ${@bb.utils.contains('DISTRO_FEATURES', 'morty', 'mesonmorty', 'meson', d)} pkgconfig upstream-version-is-even
+inherit meson pkgconfig upstream-version-is-even
 
 FILES_${PN} += "${libdir}/gstreamer-1.0/*.so"
 FILES_${PN}-staticdev += "${libdir}/gstreamer-1.0/*.a"
