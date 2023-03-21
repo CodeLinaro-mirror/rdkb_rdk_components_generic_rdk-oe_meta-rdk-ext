@@ -12,6 +12,8 @@ SRC_URI_append = " file://journalctl-250.patch \
 
 EXTRA_OECONF += " --enable-polkit=no"
 PACKAGECONFIG_remove = "pam"
+PACKAGECONFIG_append = " kmod"
+
 FILES_${PN} += "${sysconfdir}/udev/rules.d/10-ubi-device-systemd.rules"
 
 do_install_append() {

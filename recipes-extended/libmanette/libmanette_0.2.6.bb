@@ -14,7 +14,7 @@ SRC_URI = "https://download.gnome.org/sources/libmanette/0.2/libmanette-${PV}.ta
 
 SRC_URI[sha256sum] = "63653259a821ec7d90d681e52e757e2219d462828c9d74b056a5f53267636bac"
 
-inherit ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'meson', ' ', d)} pkgconfig gobject-introspection ptest vala
+inherit ${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', 'meson', ' ', d)} pkgconfig gobject-introspection ptest vala
 
 PACKAGECONFIG[wayland-inputfd] = "-Dwayland-inputfd=true,-Dwayland-inputfd=false,wayland wayland-native"
 
@@ -23,6 +23,7 @@ do_install_append() {
     cp -f ${WORKDIR}/gamecontrollerdb ${D}${datadir}/libmanette/
     chmod 0644 ${D}${datadir}/libmanette/gamecontrollerdb
     rm ${D}/usr/bin/manette-test
+    rmdir --ignore-fail-on-non-empty ${D}/usr/bin/
 }
 
 FILES_${PN} += "${datadir}/libmanette/"
