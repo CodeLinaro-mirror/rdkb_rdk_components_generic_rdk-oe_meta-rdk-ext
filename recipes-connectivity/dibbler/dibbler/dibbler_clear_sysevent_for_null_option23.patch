@@ -10,14 +10,16 @@ Index: dibbler-1.0.1/scripts/notify-scripts/client-notify-bsd.sh
  R=""
  
  mta_dhcp_option_received=0
-@@ -318,6 +319,10 @@ if [ "$SRV_OPTION23" != "" ] && [ "$SRV_
+@@ -318,6 +319,12 @@ if [ "$SRV_OPTION23" != "" ] && [ "$SRV_
  
       sysevent set wan6_ns "$SRV_OPTION23"
       sysevent set ipv6_nameserver "$SRV_OPTION23"
 +else
-+     sysevent set wan6_ns ""
-+     sysevent set ipv6_nameserver ""
-+     echo "OPTION 23 null , clear sysevents wan6_ns and ipv6_nameserver " >> $SYSEVENT_CLEAR_TMP
++     if [ "$1" != "expire" ];then
++       sysevent set wan6_ns ""
++       sysevent set ipv6_nameserver ""
++       echo "OPTION 23 null , clear sysevents wan6_ns and ipv6_nameserver " >> $SYSEVENT_CLEAR_TMP
++    fi
  fi
  
  if [ "$SRV_OPTION24" != "" ]; then
