@@ -34,7 +34,7 @@ USE_RDKPERF_SERVICE = "${@use_rdk_perf_service(d)}"
 
 # Using the main branch
 SRC_URI = "git://github.com/rdkcentral/rdkperf;protocol=git;branch=main"
-SRCREV = "277d3ec4c895f9e635c6f52425e46e4b6bf955ef"
+SRCREV = "d802d561c4a2a4456403d572da75e73032d48d91"
 #SRCREV = "${AUTOREV}"
 
 
