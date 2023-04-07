@@ -20,6 +20,7 @@ SRC_URI_append_broadband = " file://client-notify.patch \
                              file://server-notify.sh \
                              file://dibbler_clear_sysevent_for_null_option23.patch \
                              file://fix_type_casting.patch \
+                             ${@bb.utils.contains('DISTRO_FEATURES', 'benchmark_enable','file://oss_dibbler_conf.sh','',d)} \
 "
 
 #need to remove this patches one dibbler migrated to 1.0.1+1.0.2RC2
@@ -51,7 +52,12 @@ do_install_append_broadband() {
 
     install -m 755 ${S}/scripts/notify-scripts/client-notify-bsd.sh ${D}${base_libdir}/rdk/client-notify.sh
     install -m 755 ${WORKDIR}/dibbler-init.sh ${D}${base_libdir}/rdk/dibbler-init.sh
-    install -m 755 ${WORKDIR}/prepare_dhcpv6_config.sh ${D}${base_libdir}/rdk/prepare_dhcpv6_config.sh
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'benchmark_enable', 'true', 'false', d)}; then
+        install -m 755 ${WORKDIR}/oss_dibbler_conf.sh ${D}${base_libdir}/rdk/prepare_dhcpv6_config.sh
+    else
+        install -m 755 ${WORKDIR}/prepare_dhcpv6_config.sh ${D}${base_libdir}/rdk/prepare_dhcpv6_config.sh
+    fi
+
     install -m 755 ${WORKDIR}/udhcpc.vendor_specific ${D}${sysconfdir}/udhcpc.vendor_specific
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'bci', 'true', 'false', d)}; then
