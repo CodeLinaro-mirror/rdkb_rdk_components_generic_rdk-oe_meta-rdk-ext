@@ -67,6 +67,7 @@ SRC_URI += "file://2.28/comcast-DELIA-59087-Disable-pausing-playback-for-buf.pat
 SRC_URI += "file://2.28.1/comcast-AMLOGIC-3262-disable-scaletempto.patch"
 SRC_URI += "file://2.28/comcast-RDK-40160-WPE-CFLAGS.patch"
 SRC_URI += "file://2.28.4/comcast-DELIA-60055-Analyze-higher-CPU-usage.patch"
+SRC_URI += "file://2.28/comcast-DELIA-60227-Malloc-Heap-Breakdown.patch"
 
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
 PACKAGECONFIG[encryptedmedia]    = "-DENABLE_ENCRYPTED_MEDIA=ON,-DENABLE_ENCRYPTED_MEDIA=OFF,"
@@ -100,9 +101,12 @@ PACKAGECONFIG[native_audio]      = "-DUSE_GSTREAMER_NATIVE_AUDIO=ON, -DUSE_GSTRE
 PACKAGECONFIG[native_video]      = "-DUSE_GSTREAMER_NATIVE_VIDEO=ON, -DUSE_GSTREAMER_NATIVE_VIDEO=OFF,"
 PACKAGECONFIG[subtlecrypto]      = ""
 PACKAGECONFIG[instantratechange] = "-DENABLE_INSTANT_RATE_CHANGE=ON,-DENABLE_INSTANT_RATE_CHANGE=OFF,"
+PACKAGECONFIG[malloc_heap_breakdown] = "-DENABLE_MALLOC_HEAP_BREAKDOWN=ON,-DENABLE_MALLOC_HEAP_BREAKDOWN=OFF,malloc-zone, malloc-zone"
 
 PACKAGECONFIG_append = " webcrypto webdriver intl remoteinspector experimental releaselog accessibility speechsynthesis native_video webaudio"
 PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'usesoup3', 'usesoup2', d)}"
+
+PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'malloc_heap_breakdown', 'malloc_heap_breakdown', '', d)}"
 
 FILES_${PN} += " ${libdir}/wpe-webkit-1.0/injected-bundle/libWPEInjectedBundle.so"
 FILES_${PN}-web-inspector-plugin += " ${libdir}/wpe-webkit-1.0/libWPEWebInspectorResources.so"
