@@ -37,6 +37,9 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-go
            file://0042-qtdemux-Handle-protection-information-in-Sample-Grou.patch \
            file://0043-qtdemux-Identify-total-samples-in-sbgp-node-and-hand.patch \
            file://0044-qtdemux-Handle-Piff-parsing-to-use-sample-properties.patch \
+           file://0044-qtdemux-Don-t-emit-GstSegment-correcting-start-time-.patch \
+           file://0045-qtdemux-Add-MSE-style-flush.patch \
+           file://0046-qtdemux-Fix-crash-on-MSE-style-flush.patch \
            "
 SRC_URI_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'sage_svp', 'file://0001-audioparser-remove-eac3-aacparse-for-svp.patch', '', d)}"
 
