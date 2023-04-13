@@ -31,7 +31,7 @@ PROVISIONING_libc-musl = ""
 PROVISIONING_mipsel = ""
 PROVISIONING_x86 = ""
 
-PACKAGECONFIG ?= "usesoup2 2dcanvas cssshapes fetchapi full_logs mediasource encryptedmedia performance-timeline picturesize \
+PACKAGECONFIG ?= "2dcanvas cssshapes fetchapi full_logs mediasource encryptedmedia performance-timeline picturesize \
                   promise ${PROVISIONING} resourcetiming video ${WPE_BACKEND} mediastream native_audio sampling-profiler \
                   ${@bb.utils.contains('DISTRO_FEATURES', 'opencdm', 'wpeframework_opencdm', '', d)}"
 
@@ -67,7 +67,6 @@ PACKAGECONFIG[subtlecrypto] = "-DENABLE_SUBTLE_CRYPTO=ON,-DENABLE_SUBTLE_CRYPTO=
 PACKAGECONFIG[video] = "-DENABLE_VIDEO=ON -DENABLE_VIDEO_TRACK=ON,-DENABLE_VIDEO=OFF -DENABLE_VIDEO_TRACK=OFF,gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad,${RDEPS_VIDEO}"
 PACKAGECONFIG[webaudio] = "-DENABLE_WEB_AUDIO=ON,-DENABLE_WEB_AUDIO=OFF,gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good,${RDEPS_WEBAUDIO}"
 PACKAGECONFIG[native_audio] = "-DENABLE_NATIVE_AUDIO=ON, -DENABLE_NATIVE_AUDIO=OFF,"
-PACKAGECONFIG[usesoup2] = ",,libsoup-2.4"
 
 # DRM
 # new CDMI option which uses WPEFramework

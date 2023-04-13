@@ -1,0 +1,224 @@
+From a2a498844ef194b9d0df4877ed2bafe1625b212b Mon Sep 17 00:00:00 2001
+From: Pawel Lampe <pawel.lampe@sky.uk>
+Date: Mon, 6 Feb 2023 13:51:37 +0000
+Subject: [PATCH] Add headless backend
+
+---
+ CMakeLists.txt                | 14 +++++++++
+ src/headless/CMakeLists.txt   | 26 +++++++++++++++++
+ src/headless/interfaces.h     | 35 ++++++++++++++++++++++
+ src/headless/view-backend.cpp | 55 +++++++++++++++++++++++++++++++++++
+ src/loader-impl.cpp           | 14 +++++++++
+ 5 files changed, 144 insertions(+)
+ create mode 100644 src/headless/CMakeLists.txt
+ create mode 100644 src/headless/interfaces.h
+ create mode 100644 src/headless/view-backend.cpp
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c07a6c3..0dfa6e5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -19,6 +19,7 @@ option(USE_BACKEND_REALTEK "Whether to enable support for Realtek's Wayland EGL
+ option(USE_BACKEND_VIV_IMX6_EGL "Whether to enable support for NXP's IMX6 EGL WPE backend" OFF)
+ option(USE_BACKEND_WPEFRAMEWORK "WPEFramework abstraction layer is used as WPE backend" OFF)
+ option(USE_BACKEND_ESSOS "Whether to enable support for the Essos WPE backend" OFF)
++option(USE_BACKEND_HEADLESS "Whether to enable support for the Headless WPE backend" OFF)
+ 
+ option(USE_PLATFORM_BROADCOM "Whether the playback is based on Broadcom plugins" OFF)
+ option(USE_BACKEND_WESTEROS_MESA "Whether to enable support for the gbm based offscreen target for westeros Mesa only" OFF)
+@@ -147,6 +148,10 @@ if (USE_BACKEND_ESSOS)
+     include(src/essos/CMakeLists.txt)
+ endif ()
+ 
++if (USE_BACKEND_HEADLESS)
++    include(src/headless/CMakeLists.txt)
++endif ()
++
+ add_library(WPEBackend-rdk SHARED ${WPE_PLATFORM_SOURCES})
+ target_include_directories(WPEBackend-rdk PRIVATE ${WPE_PLATFORM_INCLUDE_DIRECTORIES})
+ target_link_libraries(WPEBackend-rdk ${WPE_PLATFORM_LIBRARIES})
+@@ -160,6 +165,15 @@ add_custom_command(TARGET WPEBackend-rdk
+         )
+ install(FILES ${CMAKE_BINARY_DIR}/libWPEBackend-default.so DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+ 
++if (USE_BACKEND_HEADLESS)
++    # Create a libWPEBackend-headless.so symlink to libWPEBackend-rdk.so and install it.
++    add_custom_command(TARGET WPEBackend-rdk
++        POST_BUILD
++        COMMAND ${CMAKE_COMMAND} -E create_symlink libWPEBackend-rdk.so ${CMAKE_BINARY_DIR}/libWPEBackend-headless.so
++        )
++    install(FILES ${CMAKE_BINARY_DIR}/libWPEBackend-headless.so DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
++endif ()
++
+ configure_file(wpebackend-rdk.pc.in wpebackend-rdk-${WPEBACKEND_RDK_API_VERSION}.pc @ONLY)
+ install(
+     FILES "${CMAKE_CURRENT_BINARY_DIR}/wpebackend-rdk-${WPEBACKEND_RDK_API_VERSION}.pc"
+diff --git a/src/headless/CMakeLists.txt b/src/headless/CMakeLists.txt
+new file mode 100644
+index 0000000..596cb48
+--- /dev/null
++++ b/src/headless/CMakeLists.txt
+@@ -0,0 +1,26 @@
++# If not stated otherwise in this file or this component's license file the
++# following copyright and licenses apply:
++#
++# Copyright 2023 RDK Management
++#
++# Licensed under the Apache License, Version 2.0 (the License);
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an AS IS BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++add_definitions(-DBACKEND_HEADLESS=1)
++
++list(APPEND WPE_PLATFORM_INCLUDE_DIRECTORIES
++    "${CMAKE_SOURCE_DIR}/src/headless"
++)
++
++list(APPEND WPE_PLATFORM_SOURCES
++    src/headless/view-backend.cpp
++)
+diff --git a/src/headless/interfaces.h b/src/headless/interfaces.h
+new file mode 100644
+index 0000000..5c0741d
+--- /dev/null
++++ b/src/headless/interfaces.h
+@@ -0,0 +1,35 @@
++/*
++ * If not stated otherwise in this file or this component's LICENSE file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2023 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef wpe_platform_headless_interfaces_h
++#define wpe_platform_headless_interfaces_h
++
++#include <wpe/wpe.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++extern struct wpe_view_backend_interface headless_view_backend_interface;
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif // wpe_platform_headless_interfaces_h
+diff --git a/src/headless/view-backend.cpp b/src/headless/view-backend.cpp
+new file mode 100644
+index 0000000..77e409d
+--- /dev/null
++++ b/src/headless/view-backend.cpp
+@@ -0,0 +1,55 @@
++/*
++ * If not stated otherwise in this file or this component's LICENSE file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2023 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <wpe/wpe.h>
++
++namespace Headless {
++
++struct ViewBackend
++{
++};
++
++} // namespace Headless
++
++extern "C" {
++
++struct wpe_view_backend_interface headless_view_backend_interface = {
++    // create
++    [](void*, struct wpe_view_backend* backend) -> void*
++    {
++        return new Headless::ViewBackend();
++    },
++    // destroy
++    [](void* data)
++    {
++        auto* backend = static_cast<Headless::ViewBackend*>(data);
++        delete backend;
++    },
++    // initialize
++    [](void* data)
++    {
++    },
++    // get_renderer_host_fd
++    [](void* data) -> int
++    {
++        return -1;
++    },
++};
++
++}
+diff --git a/src/loader-impl.cpp b/src/loader-impl.cpp
+index 5590bec..ee12c2a 100644
+--- a/src/loader-impl.cpp
++++ b/src/loader-impl.cpp
+@@ -70,6 +70,10 @@
+ #include "gamepad/interfaces.h"
+ #endif
+ 
++#ifdef BACKEND_HEADLESS
++#include "headless/interfaces.h"
++#endif
++
+ extern "C" {
+ 
+ struct wpe_renderer_host_interface noop_renderer_host_interface = {
+@@ -96,6 +100,16 @@ struct wpe_loader_interface _wpe_loader_interface = {
+         if (!std::strcmp(object_name, "_wpe_renderer_host_interface"))
+             return &noop_renderer_host_interface;
+ 
++#ifdef BACKEND_HEADLESS
++        static bool is_headless = std::strstr(wpe_loader_get_loaded_implementation_library_name(), "headless") != nullptr;
++        if (is_headless && !std::strcmp(object_name, "_wpe_view_backend_interface"))
++            return &headless_view_backend_interface;
++        if (is_headless && (!std::strcmp(object_name, "_wpe_renderer_backend_egl_interface")
++                            || !std::strcmp(object_name, "_wpe_renderer_backend_egl_target_interface")
++                            || !std::strcmp(object_name, "_wpe_renderer_backend_egl_offscreen_target_interface")))
++            return nullptr;
++#endif
++
+ #ifdef BACKEND_BCM_NEXUS
+         if (!std::strcmp(object_name, "_wpe_renderer_backend_egl_interface"))
+             return &bcm_nexus_renderer_backend_egl_interface;
+-- 
+2.37.3
+
