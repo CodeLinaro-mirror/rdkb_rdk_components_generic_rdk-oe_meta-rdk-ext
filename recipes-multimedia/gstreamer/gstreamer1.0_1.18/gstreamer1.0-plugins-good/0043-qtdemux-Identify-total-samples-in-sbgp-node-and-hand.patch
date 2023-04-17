@@ -1,12 +1,11 @@
 From 5a552367893f7b048ec7857fcf08df417d5d0302 Mon Sep 17 00:00:00 2001
 From: aahmed878 <Alsameema_Ahmedansar@comcast.com>
 Date: Tue, 14 Mar 2023 05:50:04 +0000
-Subject: [PATCH 3/3] qtdemux: Identify total samples in sbgp node and handle
- piff parsing to use sample properties kid if available
+Subject: [PATCH 3/3] qtdemux: Identify total samples in sbgp node
 
 DELIA-59316 : [AAMP][Charter] Playback failure with keyrotation on HEVC streams
 
-Reason for change: Identify total samples in sbgp node and handle piff parsing to use sample properties kid if available.
+Reason for change: Identify total samples in sbgp node.
 Test Procedure: Refer Ticket
 Risks: Medium
 Priority: P1
