@@ -44,7 +44,7 @@ do_install_append () {
     install -d ${D}${includedir}
     install -m 0755 fscryptctl ${D}${bindir}
     install -m 0755 libfscryptctl.so  ${D}${libdir}/
-    install -m 0644 ss_fscryptctl.h ${D}${includedir}/
+    install -m 0644 secure_storage.h ${D}${includedir}/
     install -d ${D}${systemd_unitdir}/system ${D}${sysconfdir}
     install -m 0644 ${WORKDIR}/firstboot.service ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/fscrypt.conf ${D}${sysconfdir}
@@ -55,7 +55,7 @@ SYSTEMD_SERVICE_${PN}  = "firstboot.service"
 FILES_${PN} += "${systemd_unitdir}/system/firstboot.service"
 FILES_${PN} += "${libdir}/libfscryptctl.so"
 FILES_${PN} += "${sysconfdir}/fscrypt.conf"
-FILES_${PN} += "${includedir}/ss_fscryptctl.h"
+FILES_${PN} += "${includedir}/secure_storage.h"
 
 INSANE_SKIP_${PN} = "ldflags"
 

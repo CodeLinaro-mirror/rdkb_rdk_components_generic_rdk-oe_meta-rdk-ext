@@ -1,8 +1,233 @@
+Index: git/secure_storage.h
+===================================================================
+--- /dev/null
++++ git/secure_storage.h
+@@ -0,0 +1,220 @@
++/*
++ * If not stated otherwise in this file or this component's Licenses.txt file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2023 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
++
++#ifndef __SECURE_STORAGE_H
++#define __SECURE_STORAGE_H
++
++#define RDK_SS_MASTER_KEY_SIZE    64
++#define RDK_SS_VERSION_SIZE       20
++
++/* Secure Storage Error Codes */
++typedef enum
++{
++    RDK_SS_ERROR_SUCCESS            = 0,
++    RDK_SS_ERROR_FAILURE,
++    RDK_SS_ERROR_INVALID_INPUT,
++    RDK_SS_ERROR_NO_MODULE_INIT,
++    RDK_SS_ERROR_MEM_ALLOCATION,
++    RDK_SS_ERROR_NOT_ENOUGH_MEMORY
++}RDK_SS_ERROR_ENUM;
++
++/* Secure Storage file mode operation */
++typedef enum {
++    RDK_SS_FILE_MODE_WRITE          = 0,
++    RDK_SS_FILE_MODE_APPEND
++}RDK_SS_FILE_MODE_ENUM;
++
++/* Secure Storage function pointers */
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSInit) ( void );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSOpenSession) ( char acxMasterKey[RDK_SS_MASTER_KEY_SIZE],
++                                             char *pxAppRootPath,
++                                             unsigned int *pxSessionId );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSReadData) ( unsigned int uintxSessionId,
++                                          char *pxDomain,
++                                          char *pxKey,
++                                          unsigned char *pxDataBuffer,
++                                          unsigned int *pxDataBufferSize );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSWriteData) ( unsigned int uintSessionId,
++                                           char *pxDomain,
++                                           char *pxKey,
++                                           unsigned char *pxDataBuffer,
++                                           unsigned int xDataBufferSize,
++                                           RDK_SS_FILE_MODE_ENUM exFileMode );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSCloseSession) ( unsigned int *pxSessionId );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSDeleteData) ( unsigned int uintxSessionId, char *pxDomain, char *pxKey );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSTerminate) ( void );
++
++/* Secure Storage structure which holds the version value and supported function pointer */
++typedef struct {
++    unsigned char        acSSVersionString[ RDK_SS_VERSION_SIZE ];
++    fpRdkSSInit          rdk_ss_init;
++    fpRdkSSOpenSession   rdk_ss_openSession;
++    fpRdkSSReadData      rdk_ss_readData;
++    fpRdkSSWriteData     rdk_ss_writeData;
++    fpRdkSSCloseSession  rdk_ss_closeSession;
++    fpRdkSSDeleteData    rdk_ss_deleteData;
++    fpRdkSSTerminate     rdk_ss_terminate;
++}RDK_SS_FUNCTION_STRUCT;
++
++/* Function protypes */
++/***************************************************************************
++ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need.
++ *        This function should be called once after the device bootup.
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_FAILURE if any error
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_init ( void );
++
++/***************************************************************************
++ * @brief API used to get the secure storage supported function pointer. This function must be called before calling
++ *        any other secure storage functions.
++ * @prerequisite        : None
++ * @in ppxSSFunctionStruct   : double pointer which holds the address of RDK_SS_FUNCTION_STRUCT.
++ *                              using this pointer, user can call the other SS supported functions ( rdk_ss_init,
++ *                              rdk_ss_openSession, rdk_ss_readData, rdk_ss_writeData, rdk_ss_closeSession,
++ *                              rdk_ss_deleteData and rdk_ss_terminate)
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_INVALID_INPUT if invalid input
++ *         RDK_SS_ERROR_FAILURE if any error
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_getFunction ( RDK_SS_FUNCTION_STRUCT** ppxSSFunctionStruct );
++
++/***************************************************************************
++ * @brief API used to create the unique ciphering key and protect the pxAppRootPath folder in where will store the files
++ *        and return the pxSessionId as a handle.
++ * @prerequisite             : rdk_ss_getFunction() call should be successful.
++ * @in  acxMasterKey         : Array of 64 Byte Key.
++ *                              If acxMasterKey is valid, will be used to generate the key to protect the files
++ *                              If acxMasterKey is NULL, internally will generate the key to protect the files
++ * @in  pxAppRootPath        : directory path in which the user want to keep the files as encrypted.
++ *                             This path must have minimum one sub-folder to get valid mountpoint.
++ *                             youtube/secure_dir       -> Valid
++ *                             youtube/secure_dir/test1 -> Valid
++ *                             youtube                  -> Invalid
++ *                               Ex1: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
++ *                                    youtube             ==> secure directory mount path (mountpoint)
++ *                               Ex2: youtube/secure_dir/test1    ==> secure storagepath (pxAppRootPath)
++ *                                    youtube/secure_dir          ==> secure directory mount path (mountpoint)
++ * @out pxSessionId          : pointer to hold the secure storage session handle of given pxAppRootPath.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ *         RDK_SS_ERROR_MEM_ALLOCATION if memory allocation failed
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_openSession ( char acxMasterKey[ RDK_SS_MASTER_KEY_SIZE ], char *pxAppRootPath, unsigned int *pxSessionId );
++
++/***************************************************************************
++ * @brief API used to read the file from the encrypted directory.
++ * @prerequisite             : rdk_ss_getFunction() call should be successful.
++ * @in uintxSessionId        : handle to identify the secure storage session
++ * @in pxDomain              : relative path from the root directory, from where we have to read a file.
++ *                              If pxDomain NULL, will read the file in pxAppRootPath directory
++ *                              If pxDomain Valid, will read the file in the specified pxDomain directory
++ *                                Ex: youtube/secure_dir  ==> secure storagepath (pxAppRootPath)
++ *                                    sample1             ==> domain path (pxDomain)
++ *                                    youtube/secure_dir/sample1 ==> path to read the file if pxDomain valid
++ *                                    youtube/secure_dir         ==> path to read the file if pxDomain NULL
++ * @in pxKey                 : file name to read the data. it must be valid.
++ * @in/out pxDataBuffer      : buffer to copy data from file.
++ * @in/out pxDataBufferSize  : size of the given pxDataBuffer. It must be valid.
++ *                              If the pxDataBufferSize is more enough to actual file size, it will be updated with the actual file size.
++ *                              If the pxDataBufferSize is less than the actual file size, it will be updated with actual size.
++ *                                 In this case, user should call this API again with the buffer of updated pxDataBufferSize value.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ *         RDK_SS_ERROR_NOT_ENOUGH_MEMORY if given size is less the actual file size.
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_readData ( unsigned int uintxSessionId,
++                                       char *pxDomain,
++                                       char *pxKey,
++                                       unsigned char *pxDataBuffer,
++                                       unsigned int *pxDataBufferSize );
++
++/***************************************************************************
++ * @brief API used to write the file data from the encrypted directory.
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ * @in uintxSessionId    : handle to identify the secure storage session
++ * @in pxDomain          : relative path from the root directory from where we have to write file.
++ *                          If pxDomain NULL, will write the file in pxAppRootPath directory
++ *                          If pxDomain Valid, will write the file in the specified pDomain directory
++ *                            Ex: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
++ *                                sample1            ==> domain path (pxDomain)
++ *                                youtube/secure_dir/sample1 ==> path to write the file if pxDomain valid
++ *                                youtube/secure_dir         ==> path to write the file if pxDomain NULL
++ * @in pxKey             : file name to write the data. it must be valid.
++ * @in pxDataBuffer      : data buffer to write in file.
++ * @in xDataBufferSize   : size of the given pxDataBuffer.
++ * @in exFileMode        : Mode of file operation. It can be RDK_SS_FILE_MODE_WRITE or
++ *                         RDK_SS_FILE_MODE_APPEND
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_writeData ( unsigned int uintxSessionId,
++                                        char *pxDomain,
++                                        char *pxKey,
++                                        unsigned char *pxDataBuffer,
++                                        unsigned int xDataBufferSize,
++                                        RDK_SS_FILE_MODE_ENUM exFileMode );
++
++/***************************************************************************
++ * @brief API used to remove the session handle.
++ * @prerequisite       : rdk_ss_getFunction() call should be successful.
++ * @in/out pxSessionId : handle to indentify the session.
++ *                       it will be returned as 0 if the session closed successfully.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_closeSession ( unsigned int *pxSessionId );
++
++/***************************************************************************
++ * @brief API used to delete the directory/file from the root directory.
++ * @prerequisite          : rdk_ss_getFunction() call should be successful.
++ * @in uintxSessionId     : represent the session.
++ * @in pxDomain           : relative path from root directory.
++ *                          If pxDomain NULL and key valid, will search and delete the file from root directory
++ *                          If pxDomain and key both valid, will search and delete the file from specified directory
++ *                          If pxDomain valid and key NULL, will search and delete the file from specified directory
++ *                          If pxDomain and key both NULL, will return RDK_SS_ERROR_INVALID_INPUT error.
++ * @in pxKey              : name of the file.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_deleteData ( unsigned int uintxSessionId, char *pxDomain, char *pxKey );
++
++/***************************************************************************
++ * @brief API used to Terminate the Secure Storage functionalities and release the used resources
++ *        and memory. This function should be called once before the device shutdown.
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_terminate ( void );
++
++#endif /* __SECURE_STORAGE_H */
 Index: git/ss_fscryptctl.c
 ===================================================================
 --- /dev/null
 +++ git/ss_fscryptctl.c
-@@ -0,0 +1,830 @@
+@@ -0,0 +1,1153 @@
 + /*
 + * If not stated otherwise in this file or this component's Licenses.txt file the
 + * following copyright and licenses apply:
@@ -25,16 +250,19 @@ Index: git/ss_fscryptctl.c
 +/* Include files */
 +#include "ss_fscryptctl.h"
 +
++static RDK_SS_FUNCTION_STRUCT gsRdkSsFunction;
++static unsigned char gsbRdkSSInitialization;
++
 +/* Human-readable strings for encryption modes, indexed by the encryption mode */
 +static const char *const mode_strings[] = {
-+	[FSCRYPT_MODE_AES_256_XTS] = "AES-256-XTS",
-+	[FSCRYPT_MODE_AES_256_CTS] = "AES-256-CTS",
-+	[FSCRYPT_MODE_AES_128_CBC] = "AES-128-CBC",
-+	[FSCRYPT_MODE_AES_128_CTS] = "AES-128-CTS",
-+	[FSCRYPT_MODE_SM4_XTS] = "SM4-XTS",
-+	[FSCRYPT_MODE_SM4_CTS] = "SM4-CTS",
-+	[FSCRYPT_MODE_ADIANTUM] = "Adiantum",
-+	[FSCRYPT_MODE_AES_256_HCTR2] = "AES-256-HCTR2",
++    [FSCRYPT_MODE_AES_256_XTS] = "AES-256-XTS",
++    [FSCRYPT_MODE_AES_256_CTS] = "AES-256-CTS",
++    [FSCRYPT_MODE_AES_128_CBC] = "AES-128-CBC",
++    [FSCRYPT_MODE_AES_128_CTS] = "AES-128-CTS",
++    [FSCRYPT_MODE_SM4_XTS] = "SM4-XTS",
++    [FSCRYPT_MODE_SM4_CTS] = "SM4-CTS",
++    [FSCRYPT_MODE_ADIANTUM] = "Adiantum",
++    [FSCRYPT_MODE_AES_256_HCTR2] = "AES-256-HCTR2",
 +};
 +
 +/* Valid amounts of filename padding, indexed by the padding flag */
@@ -51,7 +279,7 @@ Index: git/ss_fscryptctl.c
 +/* Function protypes */
 +static void string_to_mode(const char *str, unsigned char *mode_ret);
 +static int string_to_padding_flag(const char *str);
-+static int get_ioctl_fd(unsigned int sessionId);
++static int get_fileDesc(unsigned int sessionId);
 +static int is_session_exist(char *applicationPath,unsigned int *sessionId);
 +static int insert_session_info (int fd, char *rootDir, unsigned int sessionId);
 +static int free_session_info(unsigned int sessionId);
@@ -59,12 +287,12 @@ Index: git/ss_fscryptctl.c
 +static char *get_application_path(unsigned int sessionId);
 +static int fscrypt_removeKey(char *keyid , char *mountpoint);
 +static unsigned int fscrypt_getPolicy(char *dirPath);
-+static unsigned int get_errno_return_value( int errNo, unsigned int sessionId);
++static unsigned int convertErrnoToSSErrorCode( int errNo, unsigned int sessionId);
 +static int create_dir(char *dirPath);
 +static int check_and_create_dir(char *dir);
 +static unsigned int check_ownership_capability(char *path);
 +static int get_fscrypt_encryption_mode(unsigned char *contents_encryption_mode,
-+				unsigned char *filenames_encryption_mode, unsigned char *padding_flags);
++unsigned char *filenames_encryption_mode, unsigned char *padding_flags);
 +
 +/* Function Definition */
 +
@@ -76,18 +304,18 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static void string_to_mode(const char *str, unsigned char *mode_ret)
 +{
-+	if(str == NULL || mode_ret == NULL)
-+		return;
++    if(str == NULL || mode_ret == NULL)
++        return;
 +
-+	for (size_t i = 0; i < ARRAY_SIZE(mode_strings); i++)
-+	{
-+		if (mode_strings[i] != NULL && strcmp(str, mode_strings[i]) == 0)
-+		{
-+			*mode_ret = i;
-+			return;
-+		}
-+	}
-+	return;
++    for (size_t i = 0; i < ARRAY_SIZE(mode_strings); i++)
++    {
++        if (mode_strings[i] != NULL && strcmp(str, mode_strings[i]) == 0)
++        {
++            *mode_ret = i;
++            return;
++        }
++    }
++    return;
 +}
 +
 +/***************************************************************************
@@ -97,18 +325,18 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static int string_to_padding_flag(const char *str)
 +{
-+	if(str == NULL)
-+		return -1;
++    if(str == NULL)
++        return -1;
 +
-+	int padding = atoi(str);
-+	for (size_t i = 0; i < ARRAY_SIZE(padding_values); i++)
-+	{
-+		if (padding == padding_values[i])
-+		{
-+			return i;
-+		}
-+	}
-+	return -1;
++    int padding = atoi(str);
++    for (size_t i = 0; i < ARRAY_SIZE(padding_values); i++)
++    {
++        if (padding == padding_values[i])
++        {
++            return i;
++        }
++    }
++    return -1;
 +}
 +
 +/***************************************************************************
@@ -116,20 +344,20 @@ Index: git/ss_fscryptctl.c
 + * @param sessionId used to represent the session.
 + * @return file descriptor value upon success else returns -1 if the sessionId is invalid.
 + ***************************************************************************/
-+static int get_ioctl_fd(unsigned int sessionId)
++static int get_fileDesc(unsigned int sessionId)
 +{
-+	struct session_t *ptr = head_session;
++    struct session_t *ptr = head_session;
 +
-+	while(ptr != NULL)
-+	{
-+		if(ptr->session_id == sessionId)
-+		{
-+			return ptr->fd;
-+		}
-+		ptr = ptr->next;
-+	}
++    while(ptr != NULL)
++    {
++        if(ptr->session_id == sessionId)
++        {
++            return ptr->fd;
++        }
++        ptr = ptr->next;
++    }
 +
-+	return -1;
++    return -1;
 +}
 +
 +/***************************************************************************
@@ -139,22 +367,22 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static int is_session_exist(char *applicationPath,unsigned int *sessionId)
 +{
-+	struct session_t *ptr = head_session;
++    struct session_t *ptr = head_session;
 +
-+	if(sessionId == NULL || applicationPath == NULL)
-+		return -1;
++    if(sessionId == NULL || applicationPath == NULL)
++        return -1;
 +
-+	while(ptr != NULL)
-+	{
-+		if (strncmp(ptr->rootDir,applicationPath,strlen(ptr->rootDir))==0)
-+		{
-+			*sessionId = ptr->session_id;
-+			return 0;
-+		}
-+		ptr = ptr->next;
-+	}
++    while(ptr != NULL)
++    {
++        if (strncmp(ptr->rootDir,applicationPath,strlen(ptr->rootDir))==0)
++        {
++            *sessionId = ptr->session_id;
++            return 0;
++        }
++        ptr = ptr->next;
++    }
 +
-+	return -1;
++    return -1;
 +}
 +
 +/***************************************************************************
@@ -166,33 +394,33 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static int insert_session_info (int fd, char *rootDir, unsigned int sessionId)
 +{
-+	int len = 0;
++    int len = 0;
 +
-+	if(rootDir == NULL)
-+        	return -1;
++    if(rootDir == NULL)
++            return -1;
 +
-+	struct session_t *link = (struct session_t*) malloc(sizeof(struct session_t));
-+	if (link == NULL)
-+	{
-+		printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
-+		return -1;
-+	}
-+	link->rootDir = (char *) malloc(strlen(rootDir)+1);
-+	if (link->rootDir == NULL)
-+	{
-+		printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
-+		free(link);
-+		return -1;
-+	}
-+	link->fd = fd;
-+	len = strlen(rootDir);
-+	strncpy(link->rootDir,rootDir,len);
-+	link->rootDir[len++]='\0';
-+	link->session_id = sessionId;
-+	link->next = head_session;
-+	head_session = link;
++    struct session_t *link = (struct session_t*) malloc(sizeof(struct session_t));
++    if (link == NULL)
++    {
++        printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
++        return -1;
++    }
++    link->rootDir = (char *) malloc(strlen(rootDir)+1);
++    if (link->rootDir == NULL)
++    {
++        printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
++        free(link);
++        return -1;
++    }
++    link->fd = fd;
++    len = strlen(rootDir);
++    strncpy(link->rootDir,rootDir,len);
++    link->rootDir[len++]='\0';
++    link->session_id = sessionId;
++    link->next = head_session;
++    head_session = link;
 +
-+	return 0;
++    return 0;
 +}
 +
 +/***************************************************************************
@@ -202,40 +430,40 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static int free_session_info(unsigned int sessionId)
 +{
-+	struct session_t *current = head_session, *previous;
++    struct session_t *current = head_session, *previous;
 +
-+	if (head_session == NULL)
-+	{
-+		printf("%s:%d Error : Invalid  Session!!!\n",__FILE__,__LINE__);
-+		return -1;
-+	}
++    if (head_session == NULL)
++    {
++        printf("%s:%d Error : Invalid  Session!!!\n",__FILE__,__LINE__);
++        return -1;
++    }
 +
-+	if (current->session_id == sessionId)
-+	{
-+		head_session = current->next;
-+		close(current->fd);
-+		free(current->rootDir);
-+		free(current);
-+		return 0;
-+	}
++    if (current->session_id == sessionId)
++    {
++        head_session = current->next;
++        close(current->fd);
++        free(current->rootDir);
++        free(current);
++        return 0;
++    }
 +
-+	while (current != NULL && current->session_id != sessionId)
-+	{
-+		previous = current;
-+		current = current->next;
-+	}
++    while (current != NULL && current->session_id != sessionId)
++    {
++        previous = current;
++        current = current->next;
++    }
 +
-+	if (current == NULL)
-+	{
-+		printf("%s:%d Session info not found \n",__FILE__,__LINE__);
-+		return -1;
-+	}
-+	previous->next = current->next;
-+	close(current->fd);
-+	free(current->rootDir);
-+	free(current);
++    if (current == NULL)
++    {
++        printf("%s:%d Session info not found \n",__FILE__,__LINE__);
++        return -1;
++    }
++    previous->next = current->next;
++    close(current->fd);
++    free(current->rootDir);
++    free(current);
 +
-+	return 0;
++    return 0;
 +}
 +
 +/***************************************************************************
@@ -245,24 +473,24 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static void remove_last_slash_char(char *str)
 +{
-+	char *temp = NULL;
++    char *temp = NULL;
 +
-+	if(str == NULL)
-+	{
-+		return;
-+	}
++    if(str == NULL)
++    {
++        return;
++    }
 +
-+	temp = strrchr(str,'/');
++    temp = strrchr(str,'/');
 +
-+	if(temp == NULL)
-+	{
-+		return;
-+	}
++    if(temp == NULL)
++    {
++        return;
++    }
 +
-+	if (strlen(temp) == 1 && strlen(str) > 1)
-+	{
-+		str[strlen(str) -1] = '\0';
-+	}
++    if (strlen(temp) == 1 && strlen(str) > 1)
++    {
++        str[strlen(str) -1] = '\0';
++    }
 +}
 +
 +/***************************************************************************
@@ -272,18 +500,18 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static char *get_application_path(unsigned int sessionId)
 +{
-+	struct session_t *ptr = head_session;
++    struct session_t *ptr = head_session;
 +
-+	while(ptr != NULL)
-+	{
-+		if(ptr->session_id == sessionId)
-+		{
-+			return ptr->rootDir;
-+		}
-+		ptr = ptr->next;
-+	}
++    while(ptr != NULL)
++    {
++        if(ptr->session_id == sessionId)
++        {
++            return ptr->rootDir;
++        }
++        ptr = ptr->next;
++    }
 +
-+	return NULL;
++    return NULL;
 +}
 +
 +/***************************************************************************
@@ -294,51 +522,51 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static int fscrypt_removeKey(char *keyid , char *mountpoint)
 +{
-+	char *const argv1[]={"remove_key",keyid,mountpoint};
-+	return cmd_remove_key(3,argv1);
++    char *const argv1[]={"remove_key",keyid,mountpoint};
++    return cmd_remove_key(3,argv1);
 +}
 +
 +/***************************************************************************
 + * @brief API used to get the key identifier value.
 + * @param dirPath indicates application secure directory path.
-+ * @return FSCRYPT_SUCCESS upon success else returns a FSCRYPT_FAILURE.
++ * @return RDK_SS_ERROR_SUCCESS upon success else returns a RDK_SS_ERROR_FAILURE.
 + ***************************************************************************/
 +static unsigned int fscrypt_getPolicy(char *dirPath)
 +{
-+	char *mountpoint = NULL;
-+	char *temp_path = NULL;
-+	int len =0;
-+	char *const argv1[]={"get_policy",dirPath};
-+	int ret = EXIT_FAILURE;
++    char *mountpoint = NULL;
++    char *temp_path = NULL;
++    int len =0;
++    char *const argv1[]={"get_policy",dirPath};
++    int ret = EXIT_FAILURE;
 +
-+	if(dirPath == NULL)
-+  		return FSCRYPT_FAILURE;
++    if(dirPath == NULL)
++          return RDK_SS_ERROR_FAILURE;
 +
-+	ret = cmd_get_policy(2,argv1);
++    ret = cmd_get_policy(2,argv1);
 +
-+	if (ret == EXIT_SUCCESS)
-+	{
-+		mountpoint = (char *)malloc(strlen(dirPath));
-+		if (mountpoint == NULL)
-+		{
-+			printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
-+			return FSCRYPT_FAILURE;
-+		}
++    if (ret == EXIT_SUCCESS)
++    {
++        mountpoint = (char *)malloc(strlen(dirPath));
++        if (mountpoint == NULL)
++        {
++            printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
++            return RDK_SS_ERROR_FAILURE;
++        }
 +
-+		temp_path = strrchr(dirPath,'/');
-+		len = strlen(dirPath)-strlen(temp_path);
-+		strncpy(mountpoint, dirPath,len);
-+		mountpoint [len++] = '\0';
-+		ret = fscrypt_removeKey(identifier_hex,mountpoint);
-+		free(mountpoint);
-+	}
++        temp_path = strrchr(dirPath,'/');
++        len = strlen(dirPath)-strlen(temp_path);
++        strncpy(mountpoint, dirPath,len);
++        mountpoint [len++] = '\0';
++        ret = fscrypt_removeKey(identifier_hex,mountpoint);
++        free(mountpoint);
++    }
 +
-+	if (ret == EXIT_FAILURE)
-+	{
-+		return FSCRYPT_FAILURE;
-+	}
++    if (ret == EXIT_FAILURE)
++    {
++        return RDK_SS_ERROR_FAILURE;
++    }
 +
-+	return FSCRYPT_SUCCESS;
++    return RDK_SS_ERROR_SUCCESS;
 +}
 +
 +/***************************************************************************
@@ -347,43 +575,43 @@ Index: git/ss_fscryptctl.c
 + * @param sessionId indicates session info.
 + * @return appropriate error value.
 + ***************************************************************************/
-+static unsigned int get_errno_return_value( int errNo, unsigned int sessionId)
++static unsigned int convertErrnoToSSErrorCode( int errNo, unsigned int sessionId)
 +{
-+	unsigned int status = FSCRYPT_FAILURE;
-+	char *dirPath = NULL;
-+	int ret = -1;
++    unsigned int status = RDK_SS_ERROR_FAILURE;
++    char *dirPath = NULL;
++    int ret = -1;
 +
-+	if (errNo == ENOENT || errNo == EIO || errNo == EFAULT || errNo == EINVAL || errNo == ENODATA )
-+	{
-+		status = FSCRYPT_INVALID_PARARM;
-+	}
-+	else if( errNo == ENOMEM)
-+	{
-+		status = FSCRYPT_FAILURE;
-+	}
-+	else if (errNo == EFBIG)
-+	{
-+		status = FSCRYPT_NO_MEM;
-+	}
-+	else if (errNo == EBUSY)
-+	{
-+		dirPath = get_application_path(sessionId);
-+		if (dirPath != NULL)
-+		{
-+			status = fscrypt_getPolicy(dirPath);
-+		}
-+	}
-+	else if (errNo == ENOKEY)
-+	{
-+		ret = free_session_info(sessionId);
-+		if (ret < 0)
-+		{
-+			printf("%s:%d Free session info fail\n",__FILE__,__LINE__);
-+			return FSCRYPT_FAILURE;
-+		}
-+		status = FSCRYPT_SUCCESS;
-+	}
-+	return status;
++    if (errNo == ENOENT || errNo == EIO || errNo == EFAULT || errNo == EINVAL || errNo == ENODATA )
++    {
++        status = RDK_SS_ERROR_INVALID_INPUT;
++    }
++    else if( errNo == ENOMEM)
++    {
++        status = RDK_SS_ERROR_NOT_ENOUGH_MEMORY;
++    }
++    else if (errNo == EFBIG)
++    {
++        status = RDK_SS_ERROR_NOT_ENOUGH_MEMORY;
++    }
++    else if (errNo == EBUSY)
++    {
++        dirPath = get_application_path(sessionId);
++        if (dirPath != NULL)
++        {
++            status = fscrypt_getPolicy(dirPath);
++        }
++    }
++    else if (errNo == ENOKEY)
++    {
++        ret = free_session_info(sessionId);
++        if (ret < 0)
++        {
++            printf("%s:%d Free session info fail\n",__FILE__,__LINE__);
++            return RDK_SS_ERROR_FAILURE;
++        }
++        status = RDK_SS_ERROR_SUCCESS;
++    }
++    return status;
 +}
 +
 +/***************************************************************************
@@ -393,31 +621,31 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static int create_dir(char *dirPath)
 +{
-+	char *p = NULL;
-+	char *dPath = strdup(dirPath);
-+	int status = -1;
++    char *p = NULL;
++    char *dPath = strdup(dirPath);
++    int status = -1;
 +
-+	if(dirPath == NULL)
-+		return status;
++    if(dirPath == NULL)
++        return status;
 +
-+	for (p = dPath + 1; *p; p++)
-+	{
-+		if (*p == '/')
-+		{
-+			*p = '\0';
-+			if (access(dPath, F_OK) == -1)
-+			{
-+				status = mkdir(dPath, 0700);
-+				if((status < 0) && (status != -EEXIST))
-+				{
-+					return status;
-+				}
-+			}
-+			*p = '/';
-+		}
-+	}
-+	status = mkdir(dPath, 0700);
-+	return status;
++    for (p = dPath + 1; *p; p++)
++    {
++        if (*p == '/')
++        {
++            *p = '\0';
++            if (access(dPath, F_OK) == -1)
++            {
++                status = mkdir(dPath, 0700);
++                if((status < 0) && (status != -EEXIST))
++                {
++                    return status;
++                }
++            }
++            *p = '/';
++        }
++    }
++    status = mkdir(dPath, 0700);
++    return status;
 +}
 +
 +/***************************************************************************
@@ -427,49 +655,49 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +static int check_and_create_dir(char *dir)
 +{
-+	int status = -1;
++    int status = -1;
 +
-+	if (dir == NULL)
-+	{
-+		printf("%s:%d the dir is NULL\n", __FILE__,__LINE__);
-+		return status;
-+	}
-+	if (access(dir, F_OK) == 0)
-+	{
-+		return 0;
-+	}
-+	status = mkdir(dir, DIR_MODE);
-+	if (status < 0)
-+	{
-+		status = create_dir(dir);
-+	return status;
-+	}
-+	return status;
++    if (dir == NULL)
++    {
++        printf("%s:%d the dir is NULL\n", __FILE__,__LINE__);
++        return status;
++    }
++    if (access(dir, F_OK) == 0)
++    {
++        return 0;
++    }
++    status = mkdir(dir, DIR_MODE);
++    if (status < 0)
++    {
++        status = create_dir(dir);
++    return status;
++    }
++    return status;
 +}
 +
 +/***************************************************************************
 + * @brief API used to check the ownership capability.
 + * @param path indicates application secure directory path.
-+ * @return FSCRYPT_SUCCESS upon success else returns FSCRYPT_FAILURE.
++ * @return RDK_SS_ERROR_SUCCESS upon success else returns RDK_SS_ERROR_FAILURE.
 + ***************************************************************************/
 +static unsigned int check_ownership_capability(char *path)
 +{
-+	struct stat sb;
-+	uid_t process_euid;
-+	if(path == NULL)
-+		return FSCRYPT_FAILURE;
++    struct stat sb;
++    uid_t process_euid;
++    if(path == NULL)
++        return RDK_SS_ERROR_FAILURE;
 +
-+	if(stat(path, &sb) == -1)
-+	{
-+		return FSCRYPT_FAILURE;
-+	}
-+	process_euid = geteuid();
-+	if(process_euid != sb.st_uid)
-+	{
-+		printf("%s:%d Encryption directory accces is restricted to user\n",__FILE__,__LINE__);
-+		return FSCRYPT_FAILURE;
-+	}
-+	return FSCRYPT_SUCCESS;
++    if(stat(path, &sb) == -1)
++    {
++        return RDK_SS_ERROR_FAILURE;
++    }
++    process_euid = geteuid();
++    if(process_euid != sb.st_uid)
++    {
++        printf("%s:%d Encryption directory accces is restricted to user\n",__FILE__,__LINE__);
++        return RDK_SS_ERROR_FAILURE;
++    }
++    return RDK_SS_ERROR_SUCCESS;
 +}
 +
 +/***************************************************************************
@@ -480,364 +708,684 @@ Index: git/ss_fscryptctl.c
 + * @return 0 upon success else returns appropriate error value.
 + ***************************************************************************/
 +static int get_fscrypt_encryption_mode(unsigned char *contents_encryption_mode,
-+				unsigned char *filenames_encryption_mode, unsigned char *padding_flags )
++                unsigned char *filenames_encryption_mode, unsigned char *padding_flags )
 +{
-+	FILE *fp = NULL;
-+	char line[256] = {0};
++    FILE *fp = NULL;
++    char line[256] = {0};
 +
-+	if(contents_encryption_mode == NULL || filenames_encryption_mode == NULL || padding_flags == NULL)
-+		return -1;
++    if(contents_encryption_mode == NULL || filenames_encryption_mode == NULL || padding_flags == NULL)
++        return -1;
 +
-+	fp = fopen("/etc/fscrypt.conf","r");
++    fp = fopen("/etc/fscrypt.conf","r");
 +
-+	if (fp == NULL)
-+	{
-+		printf("%s:%d Unable to read fscrypt.conf file \n",__FILE__,__LINE__);
-+		return -1;
-+	}
++    if (fp == NULL)
++    {
++        printf("%s:%d Unable to read fscrypt.conf file \n",__FILE__,__LINE__);
++        return -1;
++    }
 +
-+	while( fgets(line, sizeof(line), fp))
-+	{
-+		line[strcspn(line, "\n")] = '\0';
-+		if(strncmp(FSCRYPT_PADDING,line,strlen(FSCRYPT_PADDING)) == 0)
-+		{
-+			char *s = strchr(line,':');
-+			s++;
-+			*padding_flags = string_to_padding_flag(s);
-+		}
-+		else if(strncmp(FSCRYPT_CONTENTS,line,strlen(FSCRYPT_CONTENTS)) == 0)
-+		{
-+			char *s = strchr(line,':');
-+			s++;
-+			string_to_mode(s, contents_encryption_mode);
-+		}
-+		else if (strncmp(FSCRYPT_FILENAMES,line,strlen(FSCRYPT_FILENAMES)) == 0)
-+		{
-+			char *s = strchr(line,':');
-+			s++;
-+			string_to_mode(s, filenames_encryption_mode);
-+		}
-+	}
-+	fclose(fp);
++    while( fgets(line, sizeof(line), fp))
++    {
++        line[strcspn(line, "\n")] = '\0';
++        if(strncmp(FSCRYPT_PADDING,line,strlen(FSCRYPT_PADDING)) == 0)
++        {
++            char *s = strchr(line,':');
++            s++;
++            *padding_flags = string_to_padding_flag(s);
++        }
++        else if(strncmp(FSCRYPT_CONTENTS,line,strlen(FSCRYPT_CONTENTS)) == 0)
++        {
++            char *s = strchr(line,':');
++            s++;
++            string_to_mode(s, contents_encryption_mode);
++        }
++        else if (strncmp(FSCRYPT_FILENAMES,line,strlen(FSCRYPT_FILENAMES)) == 0)
++        {
++            char *s = strchr(line,':');
++            s++;
++            string_to_mode(s, filenames_encryption_mode);
++        }
++    }
++    fclose(fp);
 +
-+	return 0;
++    return 0;
 +}
 +
 +/***************************************************************************
-+ * @brief API used to clear the session information.
-+ * @param sessionId is used to represent the session.
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ * @brief API used to get the secure storage supported function pointer. This function must be called before calling 
++ *        any other secure storage functions.
++ * @prerequisite              : None
++ * @in ppxSSFunctionStruct   : double pointer which holds the address of RDK_SS_FUNCTION_STRUCT.
++ *                              using this pointer, user can call the other SS supported functions ( rdk_ss_init,
++ *                              rdk_ss_openSession, rdk_ss_readData, rdk_ss_writeData, rdk_ss_closeSession,
++ *                              rdk_ss_deleteData and rdk_ss_terminate)
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_INVALID_INPUT if invalid input
++ *         RDK_SS_ERROR_FAILURE if any error
 + ***************************************************************************/
-+unsigned int fscrypt_closeSession (unsigned int *sessionId)
++RDK_SS_ERROR_ENUM rdk_ss_getFunction ( RDK_SS_FUNCTION_STRUCT** ppxSSFunctionStruct )
 +{
-+	int fd = -1;
-+	int ret = -1;
-+	struct fscrypt_close_session_arg closeSessionarg = {0};
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
 +
-+	if(sessionId == NULL)
-+	{
-+		printf("%s:%d Invalid Session Handle\n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
++    for(;;)
++    {
++        if(NULL == ppxSSFunctionStruct)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("ppxSSFunctionStruct is NULL\n");
++            break;
++        }
 +
-+	fd = get_ioctl_fd(*sessionId);
++        if(NULL == gsRdkSsFunction.rdk_ss_init)
++        {
++            gsRdkSsFunction.rdk_ss_init           = rdk_ss_init;
++            strncpy(gsRdkSsFunction.acSSVersionString, RDK_SS_VERSION, RDK_SS_VERSION_SIZE);
++            gsRdkSsFunction.rdk_ss_openSession    = rdk_ss_openSession;
++            gsRdkSsFunction.rdk_ss_readData       = rdk_ss_readData;
++            gsRdkSsFunction.rdk_ss_writeData      = rdk_ss_writeData;
++            gsRdkSsFunction.rdk_ss_closeSession   = rdk_ss_closeSession;
++            gsRdkSsFunction.rdk_ss_deleteData     = rdk_ss_deleteData;
++            gsRdkSsFunction.rdk_ss_terminate      = rdk_ss_terminate;
++        }
 +
-+	if(fd < 0)
-+	{
-+		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
++        *ppxSSFunctionStruct = &gsRdkSsFunction;
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
 +
-+	closeSessionarg.session_id = *sessionId;
-+
-+	ret = ioctl(fd, FS_IOC_CLOSE_SESSION, &closeSessionarg);
-+	if (ret != 0)
-+	{
-+		return get_errno_return_value(errno,*sessionId);
-+	}
-+
-+	ret = free_session_info(*sessionId);
-+
-+	if (ret < 0)
-+	{
-+		printf("%s:%d Free session info fail\n",__FILE__,__LINE__);
-+		return FSCRYPT_FAILURE;
-+	}
-+
-+	*sessionId = INVALID_SESSION_ID;
-+	return FSCRYPT_SUCCESS;
++    return eErrorCode;
 +}
 +
 +/***************************************************************************
-+ * @brief API used to read the file from encrypted directory.
-+ * @param sessionId is used to represent the session
-+ * @param domain indicates sub folder of the encrypted directory
-+ * @param key indicates file name
-+ * @param dataBuffer indicates data buffer for read the data
-+ * @param size indicates size of the file
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need.
++ *        This function should be called once after the device bootup.
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_FAILURE if any error 
 + ***************************************************************************/
-+unsigned int fscrypt_readData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int *size)
++RDK_SS_ERROR_ENUM rdk_ss_init ( void )
 +{
-+	struct fscrypt_data_arg arg = {0};
-+	int fd = -1;
-+	char *dirPath = NULL;
-+	unsigned int errorcode = FSCRYPT_FAILURE;
-+	int ret = -1;
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_SUCCESS;
 +
-+	if ((sessionId < RANDOM_SESSION_ID_LOWER_MIN || sessionId > RANDOM_SESSION_ID_UPPER_MAX) || dataBuffer == NULL || size == NULL || *size == 0 || key == NULL)
-+	{
-+		printf("%s:%d Invalid param\n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            gsbRdkSSInitialization = TRUE;
++        }
++        else
++        {
++            printf("Already Secure storage module initialized\n");
++        }
++        break;
++    }
 +
-+	remove_last_slash_char(domain);
-+
-+	arg.session_id = sessionId;
-+	arg.domain = domain;
-+	arg.key = key;
-+	arg.data = dataBuffer;
-+	arg.data_len = *size;
-+
-+	fd = get_ioctl_fd(sessionId);
-+
-+	if(fd < 0)
-+	{
-+		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
-+
-+	ret = ioctl(fd, FS_IOC_READ_ENCRYPTION_FILE_DATA, &arg);
-+	if (ret != 0 && ret != arg.data_len)
-+	{
-+		errorcode = get_errno_return_value(errno,sessionId);
-+		if (errorcode == FSCRYPT_NO_MEM)
-+		{
-+			*size = arg.data_len;
-+		}
-+		return errorcode;
-+	}
-+	return FSCRYPT_SUCCESS;
++    return eErrorCode;
 +}
 +
 +/***************************************************************************
-+ * @brief API used to write the file from encrypted directory.
-+ * @param sessionId is used to represent the session
-+ * @param domain indicates sub folder of the encrypted directory
-+ * @param key indicates file name
-+ * @param dataBuffer indicates data buffer to write the data
-+ * @param size indicates size of the file
-+ * @param fmode indicates file mode
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ * @brief API used to Terminate the Secure Storage functionalities and release the used resources
++ *        and memory. This function should be called once before the device shutdown.
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
 + ***************************************************************************/
-+unsigned int fscrypt_writeData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int size, int fmode)
++RDK_SS_ERROR_ENUM rdk_ss_terminate ( void )
 +{
-+	struct fscrypt_data_arg arg = {0};
-+	int fd = -1;
-+	char *dirPath = NULL;
-+	int ret = -1;
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_SUCCESS;
 +
-+	if ((sessionId < RANDOM_SESSION_ID_LOWER_MIN || sessionId > RANDOM_SESSION_ID_UPPER_MAX) || dataBuffer == NULL || size == 0 || key == NULL)
-+	{
-+		printf("%s:%d Invalid param\n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
++    for(;;)
++    {    
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
 +
-+	remove_last_slash_char(domain);
++        /* To DO: Need to handle the multi-instance use case */
 +
-+	arg.session_id = sessionId;
-+	arg.domain = domain;
-+	arg.key = key;
-+	arg.data = dataBuffer;
-+	arg.data_len = size;
-+	arg.file_mode = fmode;
++        if(gsbRdkSSInitialization)
++        {
++            gsbRdkSSInitialization = FALSE;
++        }
++        break;
++    }
 +
-+	fd = get_ioctl_fd(sessionId);
-+
-+	if(fd < 0)
-+	{
-+		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
-+
-+	ret = ioctl(fd, FS_IOC_WRITE_ENCRYPTION_FILE_DATA, &arg);
-+	if (ret !=0 )
-+	{
-+		return get_errno_return_value(errno,sessionId);
-+	}
-+	return FSCRYPT_SUCCESS;
++    return eErrorCode;
 +}
 +
 +/***************************************************************************
-+ * @brief API used to add the key in keyring and set the encryption policy.
-+ * @param masterKey indicates master key path or NULL if NULL, master key generated by kernel space and should be unique.
-+ * @param application_root_path indicates a user encrypted directory path and stored the information under this path.
-+ * @param sessionId is used to represent the session
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ * @brief API used to remove the session handle.
++ * @prerequisite       : rdk_ss_getFunction() call should be successful.
++ * @in/out pxSessionId : handle to indentify the session.
++ *                       it will be returned as 0 if the session closed successfully.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error 
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
 + ***************************************************************************/
-+unsigned int fscrypt_openSession (char *masterKey, char *application_root_path, unsigned int *sessionId)
++RDK_SS_ERROR_ENUM rdk_ss_closeSession (unsigned int *pxSessionId)
 +{
-+	unsigned char contents_encryption_mode;
-+	unsigned char filenames_encryption_mode;
-+	unsigned char padding_flags;
-+	struct fscrypt_open_session_arg openSessionarg = {0};
-+	int ret = -1;
-+	char *mountpoint = NULL;
-+	char *temp_path = NULL;
-+	int len = 0;
-+	unsigned int sessionID = 0;
-+	int fd = -1;
++    struct fscrypt_close_session_arg closeSessionarg = {0};
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
++    int fd  = -1;
++    int ret = -1;
 +
-+	if(application_root_path == NULL || sessionId == NULL)
-+		return FSCRYPT_FAILURE;
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
 +
-+	remove_last_slash_char(application_root_path);
++        if(NULL == pxSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxSessionId is NULL\n");
++            break;
++        }
 +
-+	ret = is_session_exist(application_root_path,&sessionID);
++        if(RDK_SS_SESSION_ID_RANGE_MIN > *pxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < *pxSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid uintxSessionId [%u]\n", *pxSessionId);
++            break;
++        }
 +
-+	if (ret == 0)
-+	{
-+		printf("Session[%u] already Exist!!!\n",sessionID);
-+		*sessionId = sessionID;
-+		return FSCRYPT_SUCCESS;
-+	}
++        fd = get_fileDesc(*pxSessionId);
++        if(fd < 0)
++        {
++            eErrorCode =  RDK_SS_ERROR_FAILURE;
++            printf("fd is not found for the given sessionId %u\n", *pxSessionId);
++            break;
++        }
 +
-+	ret = check_and_create_dir(application_root_path);
++        closeSessionarg.session_id = *pxSessionId;
 +
-+	if (ret < 0)
-+	{
-+		printf("%s:%d Invalid Application root path,errno[%d]\n",__FILE__,__LINE__,errno);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
++        ret = ioctl(fd, FS_IOC_CLOSE_SESSION, &closeSessionarg);
++        if (ret != 0)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno,*pxSessionId);
++            printf("[ioctl] close session call failed. sessionId %u eErrorCode %u\n", *pxSessionId, eErrorCode);
++            break;
++        }
 +
-+	if (check_ownership_capability(application_root_path)== FSCRYPT_FAILURE)
-+	{
-+		return FSCRYPT_FAILURE;
-+	}
++        ret = free_session_info(*pxSessionId);
++        if (ret < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("Failed to free the session info\n");
++            break;
++        }
 +
-+	ret = get_fscrypt_encryption_mode(&contents_encryption_mode, &filenames_encryption_mode, &padding_flags);
++        *pxSessionId = RDK_SS_INVALID_SESSION_ID;
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
 +
-+	if (ret < 0)
-+	{
-+		contents_encryption_mode = FSCRYPT_MODE_AES_256_XTS;
-+		filenames_encryption_mode = FSCRYPT_MODE_AES_256_CTS;
-+		padding_flags = FSCRYPT_POLICY_FLAGS_PAD_32;
-+	}
-+
-+	openSessionarg.master_key = masterKey;
-+	openSessionarg.root_dir = application_root_path;
-+	openSessionarg.policy.version = FSCRYPT_POLICY_V2;
-+	openSessionarg.policy.contents_encryption_mode = contents_encryption_mode;
-+	openSessionarg.policy.filenames_encryption_mode = filenames_encryption_mode;
-+	openSessionarg.policy.flags = padding_flags;
-+
-+	/*Secure directory mount path is called mountpoint
-+
-+	Ex: /opt/secure/netflix        ==> secure directory mount path (mountpoint)
-+	/opt/secure/netflix/secure_dir ==> secure storagepath (application_root_path)*/
-+
-+	mountpoint = (char *)malloc(strlen(application_root_path));
-+
-+	if (mountpoint == NULL)
-+	{
-+		printf("%s:%d Mem Alloc Fail\n",__FILE__,__LINE__);
-+		return FSCRYPT_FAILURE;
-+	}
-+
-+	temp_path = strrchr(application_root_path,'/');
-+
-+	if (temp_path == NULL)
-+	{
-+		printf("%s:%d Invalid path\n",__FILE__,__LINE__);
-+		free(mountpoint);
-+		return FSCRYPT_FAILURE;
-+	}
-+
-+	len = strlen(application_root_path)-strlen(temp_path);
-+	strncpy(mountpoint, application_root_path,len);
-+	mountpoint [len++] = '\0';
-+
-+	fd = open(mountpoint, O_RDONLY | O_CLOEXEC);
-+	if (fd < 0)
-+	{
-+		printf("%s:%d Mountpoint[%s] open Fail\n",__FILE__,__LINE__,mountpoint);
-+		free(mountpoint);
-+		return FSCRYPT_FAILURE;
-+	}
-+
-+	ret = ioctl(fd, FS_IOC_OPEN_SESSION, &openSessionarg);
-+
-+	if (ret != 0)
-+	{
-+		printf("%s:%d Open Session CMD fail\n",__FILE__,__LINE__);
-+		free(mountpoint);
-+		return get_errno_return_value(errno,openSessionarg.session_id);
-+	}
-+
-+	*sessionId = openSessionarg.session_id;
-+
-+	ret = insert_session_info(fd, application_root_path, *sessionId);
-+	if(ret != 0 )
-+	{
-+		printf("%s:%d insert_session_info API Failed\n",__FILE__,__LINE__);
-+		free(mountpoint);
-+        return FSCRYPT_FAILURE;
-+	}
-+
-+
-+	free(mountpoint);
-+
-+	return FSCRYPT_SUCCESS;
++    return eErrorCode;
 +}
 +
 +/***************************************************************************
-+ * @brief API used to delete the folder and file from encrypted directory.
-+ * @param sessionId is used to represent the session.
-+ * @param domain indicates sub folder of the encrypted directory
-+ * @param key indicates file name
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
++ * @brief API used to read the file from the encrypted directory.
++ * @prerequisite             : rdk_ss_getFunction() call should be successful.
++ * @in uintxSessionId        : handle to identify the secure storage session
++ * @in pxDomain              : relative path from the root directory, from where we have to read a file.
++ *                              If pxDomain NULL, will read the file in pxAppRootPath directory
++ *                              If pxDomain Valid, will read the file in the specified pxDomain directory
++ *                               Ex: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
++ *                                   sample1            ==> domain path (pxDomain)
++ *                                   youtube/secure_dir/sample1 ==> path to read the file if pxDomain valid
++ *                                   youtube/secure_dir         ==> path to read the file if pxDomain NULL
++ * @in pxKey                 : file name to read the data. it must be valid.
++ * @in/out pxDataBuffer      : buffer to copy data from file.
++ * @in/out pxDataBufferSize  : size of the given pxDataBuffer. It must be valid.
++ *                              If the pxDataBufferSize is more enough to actual file size, it will be updated with the actual file size.
++ *                              If the pxDataBufferSize is less than the actual file size, it will be updated with actual size.
++ *                                 In this case, user should call this API again with the buffer of updated pxDataBufferSize value.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error 
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ *         RDK_SS_ERROR_NOT_ENOUGH_MEMORY if given size is less the actual file size.
 + ***************************************************************************/
-+unsigned int fscrypt_deleteData (unsigned int sessionId, char *domain, char *key)
++RDK_SS_ERROR_ENUM rdk_ss_readData (unsigned int uintxSessionId,
++                                    char *pxDomain, char *pxKey,
++                                    unsigned char *pxDataBuffer,
++                                    unsigned int *pxDataBufferSize)
 +{
-+	struct fscrypt_delete_file_arg arg = {0};
-+	int fd = -1;
-+	int ret = -1;
++    struct fscrypt_data_arg arg     = {0};
++    RDK_SS_ERROR_ENUM eErrorCode    = RDK_SS_ERROR_FAILURE;
++    int fd     = -1;
++    int ret    = -1;
 +
-+	if(key == NULL)
-+		return FSCRYPT_INVALID_PARARM;
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
 +
-+	if (sessionId < RANDOM_SESSION_ID_LOWER_MIN || sessionId > RANDOM_SESSION_ID_UPPER_MAX)
-+	{
-+		printf("%s:%d Invalid param\n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
++        if(RDK_SS_SESSION_ID_RANGE_MIN > uintxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < uintxSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid uintxSessionId [%u]\n", uintxSessionId);
++            break;
++        }
 +
-+	remove_last_slash_char(domain);
++        if(NULL == pxDataBuffer)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxDataBuffer is NULL\n");
++            break;
++        }
 +
-+	arg.session_id = sessionId;
-+	arg.domain = domain;
-+	arg.key = key;
++        if(NULL == pxKey)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxKey is NULL\n");
++            break;
++        }
 +
-+	fd = get_ioctl_fd(sessionId);
-+	if(fd < 0)
-+	{
-+		printf("%s:%d Invalid Param \n",__FILE__,__LINE__);
-+		return FSCRYPT_INVALID_PARARM;
-+	}
++        if(NULL == pxDataBufferSize || 0 == *pxDataBufferSize)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxDataBufferSize is NULL OR *pxDataBufferSize is zero\n");
++            break;
++        }
 +
-+	ret = ioctl(fd, FS_IOC_DELETE_DATA, &arg);
-+	if (ret != 0)
-+	{
-+		return get_errno_return_value(errno,sessionId);
-+	}
-+	return FSCRYPT_SUCCESS;
++        remove_last_slash_char(pxDomain);
++
++        arg.session_id     = uintxSessionId;
++        arg.domain         = pxDomain;
++        arg.key            = pxKey;
++        arg.data           = pxDataBuffer;
++        arg.data_len       = *pxDataBufferSize;
++
++        fd = get_fileDesc(uintxSessionId);
++        if(fd < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("fd is not found for the given sessionId %u\n", uintxSessionId);
++            break;
++        }
++
++        ret = ioctl(fd, FS_IOC_READ_ENCRYPTION_FILE_DATA, &arg);
++        if (ret != 0)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno, uintxSessionId);
++            printf("[ioctl] read data call failed. sessionId %u eErrorCode %u\n", uintxSessionId, eErrorCode);
++            if (RDK_SS_ERROR_NOT_ENOUGH_MEMORY == eErrorCode && ret != arg.data_len)
++            {
++                *pxDataBufferSize = arg.data_len;
++                printf("Expected pxDataBufferSize is %u\n", arg.data_len);
++                break;
++            }
++        }
++
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++    return eErrorCode;
 +}
 +
++/***************************************************************************
++ * @brief API used to write the file data from the encrypted directory.
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ * @in uintxSessionId    : handle to identify the secure storage session
++ * @in pxDomain          : relative path from the root directory from where we have to write file.
++ *                          If pxDomain NULL, will write the file in pxAppRootPath directory
++ *                          If pxDomain Valid, will write the file in the specified pDomain directory
++ *                               Ex: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
++ *                                   sample1            ==> domain path (pxDomain)
++ *                                youtube/secure_dir/sample1 ==> path to write the file if pxDomain valid
++ *                                youtube/secure_dir         ==> path to write the file if pxDomain NULL
++ * @in pxKey             : file name to write the data. it must be valid.
++ * @in pxDataBuffer      : data buffer to write in file.
++ * @in xDataBufferSize   : size of the given pxDataBuffer.
++ * @in exFileMode        : Mode of file operation. It can be RDK_SS_FILE_MODE_WRITE or
++ *                         RDK_SS_FILE_MODE_APPEND
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_writeData (unsigned int uintxSessionId,
++                                    char *pxDomain,
++                                    char *pxKey,
++                                    unsigned char *pxDataBuffer,
++                                    unsigned int xDataBufferSize,
++                                    RDK_SS_FILE_MODE_ENUM exFileMode)
++{
++    struct fscrypt_data_arg arg     = {0};
++    RDK_SS_ERROR_ENUM eErrorCode    = RDK_SS_ERROR_FAILURE;
++    int fd     = -1;
++    int ret    = -1;
++
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
++
++        if(RDK_SS_SESSION_ID_RANGE_MIN > uintxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < uintxSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid uintxSessionId [%u]\n", uintxSessionId);
++            break;
++        }
++
++        if(NULL == pxDataBuffer)
++        {
++            printf("pxDataBuffer is NULL\n");
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            break;
++        }
++
++        if(NULL == pxKey)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxKey is NULL\n");
++            break;
++        }
++
++        if(0 == xDataBufferSize)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("xDataBufferSize is zero\n");
++            break;
++        }
++
++        if(RDK_SS_FILE_MODE_WRITE != exFileMode
++        && RDK_SS_FILE_MODE_APPEND != exFileMode)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("exFileMode [%u] is invalid \n", exFileMode);
++            break;
++        }
++
++        remove_last_slash_char(pxDomain);
++
++        arg.session_id     = uintxSessionId;
++        arg.domain         = pxDomain;
++        arg.key            = pxKey;
++        arg.data           = pxDataBuffer;
++        arg.data_len       = xDataBufferSize;
++        arg.file_mode      = exFileMode;
++
++        fd = get_fileDesc(uintxSessionId);
++        if(fd < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("fd is not found for the given sessionId %u\n", uintxSessionId);
++            break;
++        }
++
++        ret = ioctl(fd, FS_IOC_WRITE_ENCRYPTION_FILE_DATA, &arg);
++        if (0 != ret)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno,uintxSessionId);
++            printf("[ioctl] write data call failed. sessionId %u eErrorCode %u\n", uintxSessionId, eErrorCode);
++            break;
++        }
++
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++    return eErrorCode;
++}
++
++/***************************************************************************
++ * @brief API used to create the unique ciphering key and protect the pxAppRootPath folder in where will store the files
++ *        and return the pxSessionId as a handle.
++ * @prerequisite             : rdk_ss_getFunction() call should be successful.
++ * @in  acxMasterKey         : Array of 64 Byte Key.
++ *                              If acxMasterKey is valid, will be used to generate the key to protect the files
++ *                              If acxMasterKey is NULL, internally will generate the key to protect the files
++ * @in  pxAppRootPath        : directory path in which the user want to keep the files as encrypted.
++ *                             This path must have minimum one sub-folder to get valid mountpoint.
++ *                             youtube/secure_dir       -> Valid
++ *                             youtube/secure_dir/test1 -> Valid
++ *                             youtube                  -> Invalid
++ *                                  Ex1: youtube/secure_dir  ==> secure storagepath (pxAppRootPath)
++ *                                       youtube             ==> secure directory mount path (mountpoint)
++ *                                  Ex2: youtube/secure_dir/test1    ==> secure storagepath (pxAppRootPath)
++ *                                       youtube/secure_dir          ==> secure directory mount path (mountpoint)
++ * @out pxSessionId          : pointer to hold the secure storage session handle of given pxAppRootPath.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ *         RDK_SS_ERROR_MEM_ALLOCATION if memory allocation failed
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_openSession (char *acxMasterKey, char *pxAppRootPath, unsigned int *pxSessionId)
++{
++    struct fscrypt_open_session_arg openSessionarg = {0};
++    char *mountpoint     = NULL;
++    char *temp_path        = NULL;
++    unsigned int sessionId = 0;
++    int len    = 0;
++    int fd     = -1;
++    int ret    = -1;
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
++    unsigned char contents_encryption_mode;
++    unsigned char filenames_encryption_mode;
++    unsigned char padding_flags;
++
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
++
++        if(NULL == pxAppRootPath)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxAppRootPath is NULL\n");
++            break;
++        }
++
++        temp_path = strrchr(pxAppRootPath,'/');
++        if (NULL == temp_path)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxAppRootPath is invalid [%s]\n", pxAppRootPath);
++            break;
++        }
++
++        if(NULL == pxSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxSessionId is NULL\n");
++            break;
++        }
++        *pxSessionId = RDK_SS_INVALID_SESSION_ID;
++
++        remove_last_slash_char(pxAppRootPath);
++
++        ret = is_session_exist(pxAppRootPath,&sessionId);
++        if (ret == 0)
++        {
++            *pxSessionId = sessionId;
++            eErrorCode = RDK_SS_ERROR_SUCCESS;
++            printf("Session[%u] already Exist!!!\n",pxSessionId);
++            break;
++        }
++
++        ret = check_and_create_dir(pxAppRootPath);
++        if (ret < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("Path creation is falied for [%s] errorno[%u]\n", pxAppRootPath, errno);
++            break;
++        }
++
++        if (check_ownership_capability(pxAppRootPath)== RDK_SS_ERROR_FAILURE)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            break;
++        }
++
++        ret = get_fscrypt_encryption_mode(&contents_encryption_mode, &filenames_encryption_mode, &padding_flags);
++        if (ret < 0)
++        {
++            contents_encryption_mode  = FSCRYPT_MODE_AES_256_XTS;
++            filenames_encryption_mode = FSCRYPT_MODE_AES_256_CTS;
++            padding_flags = FSCRYPT_POLICY_FLAGS_PAD_32;
++        }
++
++        openSessionarg.policy.flags       = padding_flags;
++        memcpy(openSessionarg.master_key, acxMasterKey, RDK_SS_MASTER_KEY_SIZE);
++        openSessionarg.root_dir           = pxAppRootPath;
++        openSessionarg.policy.version     = FSCRYPT_POLICY_V2;
++        openSessionarg.policy.contents_encryption_mode     = contents_encryption_mode;
++        openSessionarg.policy.filenames_encryption_mode    = filenames_encryption_mode;
++
++        /* Secure directory mount path is called mountpoint
++        * Ex: /opt/secure/netflix/secure_dir ==> secure storagepath (pxAppRootPath)
++        *     /opt/secure/netflix            ==> secure directory mount path (mountpoint)
++        */
++
++        mountpoint = (char *)malloc(strlen(pxAppRootPath));
++        if (mountpoint == NULL)
++        {
++            eErrorCode = RDK_SS_ERROR_MEM_ALLOCATION;
++            printf("Memory alloc failed size [%u]\n",strlen(pxAppRootPath));
++            break;
++        }
++
++        len = strlen(pxAppRootPath)-strlen(temp_path);
++        strncpy(mountpoint, pxAppRootPath,len);
++        mountpoint [len++] = '\0';
++
++        fd = open(mountpoint, O_RDONLY | O_CLOEXEC);
++        if (fd < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("Path mount[%s] is Failure\n", mountpoint);
++            break;
++        }
++
++        ret = ioctl(fd, FS_IOC_OPEN_SESSION, &openSessionarg);
++        if (ret != 0)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno,openSessionarg.session_id);
++            printf("[ioctl] Open session call failed. retun value %u\n", ret);
++            break;
++        }
++
++        *pxSessionId = openSessionarg.session_id;
++
++        ret = insert_session_info(fd, pxAppRootPath, *pxSessionId);
++        if(ret != 0 )
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("Insert_session info is Failed. session id %u\n", openSessionarg.session_id);
++        }
++
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++
++    if(NULL != mountpoint)
++    {
++        free(mountpoint);
++        mountpoint = NULL;
++    }
++
++    return eErrorCode;
++}
++
++/***************************************************************************
++ * @brief API used to delete the directory/file from the root directory.
++ * @prerequisite          : rdk_ss_getFunction() call should be successful.
++ * @in uintxSessionId     : represent the session.
++ * @in pxDomain           : relative path from root directory.
++ *                          If pxDomain NULL and key valid, will search and delete the file from root directory
++ *                          If pxDomain and key both valid, will search and delete the file from specified directory
++ *                          If pxDomain valid and key NULL, will search and delete the file from specified directory
++ *                          If pxDomain and key both NULL, will return RDK_SS_ERROR_INVALID_INPUT error.
++ * @in pxKey              : name of the file.
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_deleteData (unsigned int uintxSessionId, char *pxDomain, char *pxKey)
++{
++    struct fscrypt_delete_file_arg arg = {0};
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
++    int fd     = -1;
++    int ret    = -1;
++
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
++
++        if(RDK_SS_SESSION_ID_RANGE_MIN > uintxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < uintxSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid uintxSessionId [%u]\n", uintxSessionId);
++            break;
++        }
++
++        if(NULL == pxKey)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pxKey is NULL\n");
++            break;
++        }
++
++        remove_last_slash_char(pxDomain);
++
++        arg.session_id     = uintxSessionId;
++        arg.domain         = pxDomain;
++        arg.key            = pxKey;
++
++        fd = get_fileDesc(uintxSessionId);
++        if(fd < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("fd is not found for the given sessionId %u\n", uintxSessionId);
++            break;
++        }
++
++        ret = ioctl(fd, FS_IOC_DELETE_DATA, &arg);
++        if (ret != 0)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno,uintxSessionId);
++            printf("[ioctl] delete data call failed. sessionId %u eErrorCode %u\n", uintxSessionId, eErrorCode);
++            break;
++        }
++
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++
++    return eErrorCode;
++}
 Index: git/ss_fscryptctl.h
 ===================================================================
 --- /dev/null
 +++ git/ss_fscryptctl.h
-@@ -0,0 +1,186 @@
+@@ -0,0 +1,137 @@
 +/*
 + * If not stated otherwise in this file or this component's Licenses.txt file the
 + * following copyright and licenses apply:
@@ -871,24 +1419,19 @@ Index: git/ss_fscryptctl.h
 +#include <fcntl.h>
 +#include <linux/ioctl.h>
 +#include <linux/types.h>
++#include "secure_storage.h"
 +
 +/* Session id range */
-+#define RANDOM_SESSION_ID_LOWER_MIN     1000
-+#define RANDOM_SESSION_ID_UPPER_MAX     100000
-+#define INVALID_SESSION_ID 0
-+
-+/* Error Codes */
-+#define FSCRYPT_SUCCESS 0x00000000
-+#define FSCRYPT_FAILURE 0x00000001
-+#define FSCRYPT_INVALID_PARARM 0x00000010
-+#define FSCRYPT_NO_MEM 0x00000011
++#define RDK_SS_SESSION_ID_RANGE_MIN     1000
++#define RDK_SS_SESSION_ID_RANGE_MAX     100000
++#define RDK_SS_INVALID_SESSION_ID       0
 +
 +/* Set Policy inputs */
-+#define FSCRYPT_PADDING  	"padding:"
-+#define FSCRYPT_CONTENTS 	"contents:"
-+#define FSCRYPT_FILENAMES	"filenames:"
-+#define FSCRYPT_KEY_IDENTIFIER_SIZE	16
-+#define FSCRYPT_POLICY_V2		2
++#define FSCRYPT_PADDING      "padding:"
++#define FSCRYPT_CONTENTS     "contents:"
++#define FSCRYPT_FILENAMES    "filenames:"
++#define FSCRYPT_KEY_IDENTIFIER_SIZE    16
++#define FSCRYPT_POLICY_V2        2
 +
 +/* Encryption Modes */
 +#define FSCRYPT_MODE_AES_256_XTS                1
@@ -901,126 +1444,82 @@ Index: git/ss_fscryptctl.h
 +#define FSCRYPT_MODE_AES_256_HCTR2              10
 +
 +/* Encryption policy flags */
-+#define FSCRYPT_POLICY_FLAGS_PAD_4			0x00
-+#define FSCRYPT_POLICY_FLAGS_PAD_8			0x01
-+#define FSCRYPT_POLICY_FLAGS_PAD_16			0x02
-+#define FSCRYPT_POLICY_FLAGS_PAD_32			0x03
-+#define FSCRYPT_POLICY_FLAGS_PAD_MASK		0x03
-+#define FSCRYPT_POLICY_FLAG_DIRECT_KEY		0x04
-+#define FSCRYPT_POLICY_FLAG_IV_INO_LBLK_64	0x08
-+#define FSCRYPT_POLICY_FLAG_IV_INO_LBLK_32	0x10
++#define FSCRYPT_POLICY_FLAGS_PAD_4             0x00
++#define FSCRYPT_POLICY_FLAGS_PAD_8             0x01
++#define FSCRYPT_POLICY_FLAGS_PAD_16            0x02
++#define FSCRYPT_POLICY_FLAGS_PAD_32            0x03
++#define FSCRYPT_POLICY_FLAGS_PAD_MASK          0x03
++#define FSCRYPT_POLICY_FLAG_DIRECT_KEY         0x04
++#define FSCRYPT_POLICY_FLAG_IV_INO_LBLK_64     0x08
++#define FSCRYPT_POLICY_FLAG_IV_INO_LBLK_32     0x10
 +
 +#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 +#define DIR_MODE    0700
 +
-+/* Write IOCTL call file mode*/
-+typedef enum {
-+	FSCRYPT_WRITE = 0,
-+	FSCRYPT_APPEND,
-+}fscrypt_file_mode;
++#ifndef TRUE
++#define TRUE        1
++#endif
++
++#ifndef FALSE
++#define FALSE        0
++#endif
++
++#define RDK_SS_VERSION     "1.0.0"
 +
 +/* Session information structure */
 +struct session_t {
-+	int fd;
-+	char *rootDir;
-+	unsigned int session_id;
-+	struct session_t *next;
++    int fd;
++    char *rootDir;
++    unsigned int session_id;
++    struct session_t *next;
 +};
 +
 +/* Policy structure */
 +struct fscrypt_policy_v2 {
-+	unsigned char version;
-+	unsigned char contents_encryption_mode;
-+	unsigned char filenames_encryption_mode;
-+	unsigned char flags;
-+	unsigned char __reserved[4];
-+	unsigned char master_key_identifier[FSCRYPT_KEY_IDENTIFIER_SIZE];
++    unsigned char version;
++    unsigned char contents_encryption_mode;
++    unsigned char filenames_encryption_mode;
++    unsigned char flags;
++    unsigned char __reserved[4];
++    unsigned char master_key_identifier[FSCRYPT_KEY_IDENTIFIER_SIZE];
 +};
 +
 +/* Struct passed to FS_IOC_OPEN_SESSION */
 +struct fscrypt_open_session_arg {
-+	char *master_key;
-+	char *root_dir;
-+	struct fscrypt_policy_v2 policy;
-+	unsigned int session_id;
++    char master_key[RDK_SS_MASTER_KEY_SIZE];
++    char *root_dir;
++    struct fscrypt_policy_v2 policy;
++    unsigned int session_id;
 +};
 +/* Struct passed to FS_IOC_CLOSE_SESSION */
 +struct fscrypt_close_session_arg {
-+	unsigned int session_id;
++    unsigned int session_id;
 +};
 +
 +/* Struct passed to FS_IOC_READ_ENCRYPTION_FILE_DATA/FS_IOC_WRITE_ENCRYPTION_FILE_DATA */
 +struct fscrypt_data_arg {
-+	unsigned char *domain;
-+	unsigned char *key;
-+	unsigned char *data;
-+	int data_len;
-+	fscrypt_file_mode file_mode;
-+	unsigned int session_id;
++    unsigned char *domain;
++    unsigned char *key;
++    unsigned char *data;
++    int data_len;
++    RDK_SS_FILE_MODE_ENUM file_mode;
++    unsigned int session_id;
 +};
 +
 +/* Struct passed to FS_IOC_DELETE_DATA */
 +struct fscrypt_delete_file_arg {
-+	unsigned char *domain;
-+	unsigned char *key;
-+	unsigned int session_id;
++    unsigned char *domain;
++    unsigned char *key;
++    unsigned int session_id;
 +};
 +
 +/* IOCTL commands */
-+#define FS_IOC_OPEN_SESSION						_IOWR('f', 28, struct fscrypt_open_session_arg)
-+#define FS_IOC_READ_ENCRYPTION_FILE_DATA		_IOWR('f', 29, struct fscrypt_data_arg)
-+#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA		_IOWR('f', 30, struct fscrypt_data_arg)
-+#define FS_IOC_CLOSE_SESSION					_IOWR('f', 31, struct fscrypt_close_session_arg)
-+#define FS_IOC_DELETE_DATA						_IOR('f', 32, struct fscrypt_delete_file_arg)
-+
-+/* Global Function protypes */
-+/***************************************************************************
-+ * @brief API used to add the key in keyring and set the encryption policy.
-+ * @param masterKey indicates master key path or NULL if NULL, master key generated by kernel space and should be unique.
-+ * @param application_root_path indicates a user encrypted directory path and stored the information under this path.
-+ * @param sessionId is used to represent the session
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
-+ ***************************************************************************/
-+unsigned int fscrypt_openSession (char *masterKey, char *application_root_path, unsigned int *sessionId);
-+
-+/***************************************************************************
-+ * @brief API used to read the file from encrypted directory.
-+ * @param sessionId is used to represent the session
-+ * @param domain indicates sub folder of the encrypted directory
-+ * @param key indicates file name
-+ * @param dataBuffer indicates data buffer for read the data
-+ * @param size indicates size of the file
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
-+ ***************************************************************************/
-+unsigned int fscrypt_readData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int *size);
-+
-+/***************************************************************************
-+ * @brief API used to write the file from encrypted directory.
-+ * @param sessionId is used to represent the session
-+ * @param domain indicates sub folder of the encrypted directory
-+ * @param key indicates file name
-+ * @param dataBuffer indicates data buffer to write the data
-+ * @param size indicates size of the file
-+ * @param fmode indicates file mode
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
-+ ***************************************************************************/
-+unsigned int fscrypt_writeData (unsigned int sessionId, char *domain, char *key, unsigned char *dataBuffer, unsigned int size, int fmode);
-+
-+/***************************************************************************
-+ * @brief API used to clear the session information.
-+ * @param sessionId is used to represent the session.
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
-+ ***************************************************************************/
-+unsigned int fscrypt_closeSession (unsigned int *sessionId);
-+
-+/***************************************************************************
-+ * @brief API used to delete the folder and file from encrypted directory.
-+ * @param sessionId is used to represent the session.
-+ * @param domain indicates sub folder of the encrypted directory
-+ * @param key indicates file name
-+ * @return FSCRYPT_SUCCESS upon success else returned FSCRYPT_FAILURE or error code.
-+ ***************************************************************************/
-+unsigned int fscrypt_deleteData (unsigned int sessionId, char *domain, char *key);
++#define FS_IOC_OPEN_SESSION                    _IOWR('f', 28, struct fscrypt_open_session_arg)
++#define FS_IOC_READ_ENCRYPTION_FILE_DATA       _IOWR('f', 29, struct fscrypt_data_arg)
++#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA      _IOWR('f', 30, struct fscrypt_data_arg)
++#define FS_IOC_CLOSE_SESSION                   _IOWR('f', 31, struct fscrypt_close_session_arg)
++#define FS_IOC_DELETE_DATA                     _IOR('f', 32, struct fscrypt_delete_file_arg)
 +
 +#endif /* _SS_FSCRYPTCTL_H */
++
 +
