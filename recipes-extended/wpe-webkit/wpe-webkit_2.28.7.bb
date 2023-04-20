@@ -32,8 +32,9 @@ SRC_URI += "file://2.28.6/1073.patch"
 SRC_URI += "file://2.28.7/1074.patch"
 SRC_URI += "file://2.28.6/1076.patch"
 SRC_URI += "file://2.28.6/1086.patch"
-SRC_URI += "file://2.28.7/1117.patch"
+SRC_URI += "file://2.28.6/1087.patch"
 SRC_URI += "file://2.28.7/1108.patch"
+SRC_URI += "file://2.28.7/1117.patch"
 SRC_URI += "file://2.28.7/1121.patch"
 
 # Comcast specific changes
