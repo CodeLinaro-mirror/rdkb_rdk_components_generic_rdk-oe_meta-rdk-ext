@@ -2,7 +2,7 @@ Index: git/secure_storage.h
 ===================================================================
 --- /dev/null
 +++ git/secure_storage.h
-@@ -0,0 +1,220 @@
+@@ -0,0 +1,299 @@
 +/*
 + * If not stated otherwise in this file or this component's Licenses.txt file the
 + * following copyright and licenses apply:
@@ -25,9 +25,11 @@ Index: git/secure_storage.h
 +#ifndef __SECURE_STORAGE_H
 +#define __SECURE_STORAGE_H
 +
++/************************** MACROS ********************************************/
 +#define RDK_SS_MASTER_KEY_SIZE    64
 +#define RDK_SS_VERSION_SIZE       20
 +
++/************************** Stucture & Enum ***********************************/
 +/* Secure Storage Error Codes */
 +typedef enum
 +{
@@ -45,24 +47,55 @@ Index: git/secure_storage.h
 +    RDK_SS_FILE_MODE_APPEND
 +}RDK_SS_FILE_MODE_ENUM;
 +
++typedef struct {
++    void* data;
++    unsigned int size;
++}TRdkStringData;
++
++typedef TRdkStringData TRdkBufferData;
++
++typedef struct {
++    TRdkStringData stDevicePath;
++}RDK_SS_INIT_INFO_STRUCT;
++
++typedef struct {
++    TRdkStringData stAppRootPath;
++    char acMasterKey[RDK_SS_MASTER_KEY_SIZE];
++    unsigned int   uintSessionId;
++}RDK_SS_OPENSESSION_INFO_STRUCT;
++
++typedef struct {
++    unsigned int   uintSessionId;
++    TRdkStringData stDomain;
++    TRdkStringData stKey;
++    TRdkBufferData stData;
++}RDK_SS_READ_DATA_INFO_STRUCT;
++
++typedef struct {
++    unsigned int   uintSessionId;
++    TRdkStringData stDomain;
++    TRdkStringData stKey;
++    TRdkBufferData stData;
++    RDK_SS_FILE_MODE_ENUM eFileMode
++}RDK_SS_WRITE_DATA_INFO_STRUCT;
++
++typedef struct {
++    unsigned int   uintSessionId;
++}RDK_SS_CLOSESESSION_INFO_STRUCT;
++
++typedef struct {
++    unsigned int   uintSessionId;
++    TRdkStringData stDomain;
++    TRdkStringData stKey;
++}RDK_SS_DELETE_DATA_INFO_STRUCT;
++
 +/* Secure Storage function pointers */
-+typedef RDK_SS_ERROR_ENUM (*fpRdkSSInit) ( void );
-+typedef RDK_SS_ERROR_ENUM (*fpRdkSSOpenSession) ( char acxMasterKey[RDK_SS_MASTER_KEY_SIZE],
-+                                             char *pxAppRootPath,
-+                                             unsigned int *pxSessionId );
-+typedef RDK_SS_ERROR_ENUM (*fpRdkSSReadData) ( unsigned int uintxSessionId,
-+                                          char *pxDomain,
-+                                          char *pxKey,
-+                                          unsigned char *pxDataBuffer,
-+                                          unsigned int *pxDataBufferSize );
-+typedef RDK_SS_ERROR_ENUM (*fpRdkSSWriteData) ( unsigned int uintSessionId,
-+                                           char *pxDomain,
-+                                           char *pxKey,
-+                                           unsigned char *pxDataBuffer,
-+                                           unsigned int xDataBufferSize,
-+                                           RDK_SS_FILE_MODE_ENUM exFileMode );
-+typedef RDK_SS_ERROR_ENUM (*fpRdkSSCloseSession) ( unsigned int *pxSessionId );
-+typedef RDK_SS_ERROR_ENUM (*fpRdkSSDeleteData) ( unsigned int uintxSessionId, char *pxDomain, char *pxKey );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSInit) ( RDK_SS_INIT_INFO_STRUCT *pstSSInitInfo );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSOpenSession) ( RDK_SS_OPENSESSION_INFO_STRUCT *pstSSOpenSessionIfo );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSReadData) ( RDK_SS_READ_DATA_INFO_STRUCT *pstSSReadDataInfo );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSWriteData) ( RDK_SS_WRITE_DATA_INFO_STRUCT *pstSSWriteDataInfo );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSCloseSession) ( RDK_SS_CLOSESESSION_INFO_STRUCT *pstSSCloseSessionInfo );
++typedef RDK_SS_ERROR_ENUM (*fpRdkSSDeleteData) ( RDK_SS_DELETE_DATA_INFO_STRUCT *pstSSDeleteDataInfo );
 +typedef RDK_SS_ERROR_ENUM (*fpRdkSSTerminate) ( void );
 +
 +/* Secure Storage structure which holds the version value and supported function pointer */
@@ -77,145 +110,191 @@ Index: git/secure_storage.h
 +    fpRdkSSTerminate     rdk_ss_terminate;
 +}RDK_SS_FUNCTION_STRUCT;
 +
-+/* Function protypes */
-+/***************************************************************************
-+ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need.
-+ *        This function should be called once after the device bootup.
-+ * @prerequisite : rdk_ss_getFunction() call should be successful.
-+ * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_FAILURE if any error
-+ ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_init ( void );
++/************************** Function Prototypes *******************************/
 +
 +/***************************************************************************
 + * @brief API used to get the secure storage supported function pointer. This function must be called before calling
 + *        any other secure storage functions.
-+ * @prerequisite        : None
-+ * @in ppxSSFunctionStruct   : double pointer which holds the address of RDK_SS_FUNCTION_STRUCT.
++ *
++ * @prerequisite             : None
++ *
++ * @out ppSSFunctionStruct   : double pointer which holds the address of RDK_SS_FUNCTION_STRUCT.
 + *                              using this pointer, user can call the other SS supported functions ( rdk_ss_init,
 + *                              rdk_ss_openSession, rdk_ss_readData, rdk_ss_writeData, rdk_ss_closeSession,
 + *                              rdk_ss_deleteData and rdk_ss_terminate)
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_INVALID_INPUT if invalid input
 + *         RDK_SS_ERROR_FAILURE if any error
 + ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_getFunction ( RDK_SS_FUNCTION_STRUCT** ppxSSFunctionStruct );
++
++RDK_SS_ERROR_ENUM rdk_ss_getFunction ( RDK_SS_FUNCTION_STRUCT** ppSSFunctionStruct );
 +
 +/***************************************************************************
-+ * @brief API used to create the unique ciphering key and protect the pxAppRootPath folder in where will store the files
-+ *        and return the pxSessionId as a handle.
++ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need.
++ *        This function should be called once after the device bootup.
++ *
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstSSInitInfo    : Address of SS Init Info structure which contains the below params,
++ *                        stDevicePath.data => Device Path name. Ex:- "/opt/secure"
++ *                        stDevicePath.size => size of the data
++ *
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_MEM_ALLOCATION if memory allocation failed
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_init ( RDK_SS_INIT_INFO_STRUCT *pstSSInitInfo );
++
++/***************************************************************************
++ * @brief API used to create the unique ciphering key and protect the stAppRootPath.
++ *        Returns the session handle as sessionId.
++ *
 + * @prerequisite             : rdk_ss_getFunction() call should be successful.
-+ * @in  acxMasterKey         : Array of 64 Byte Key.
-+ *                              If acxMasterKey is valid, will be used to generate the key to protect the files
-+ *                              If acxMasterKey is NULL, internally will generate the key to protect the files
-+ * @in  pxAppRootPath        : directory path in which the user want to keep the files as encrypted.
-+ *                             This path must have minimum one sub-folder to get valid mountpoint.
-+ *                             youtube/secure_dir       -> Valid
-+ *                             youtube/secure_dir/test1 -> Valid
-+ *                             youtube                  -> Invalid
-+ *                               Ex1: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
-+ *                                    youtube             ==> secure directory mount path (mountpoint)
-+ *                               Ex2: youtube/secure_dir/test1    ==> secure storagepath (pxAppRootPath)
-+ *                                    youtube/secure_dir          ==> secure directory mount path (mountpoint)
-+ * @out pxSessionId          : pointer to hold the secure storage session handle of given pxAppRootPath.
++ *
++ * @in pstSSOpenSessionIfo   : Address of SS Open Session Info structure which contains below params,
++ * @in  acMasterKey          : Array of 64 Byte Key.
++ *                              If acMasterKey is valid, will generate the ciphering key using acMasterKey
++ *                              If acMasterKey is NULL, internally will generate the unique ciphering key
++ * @in  stAppRootPath        : directory path in which the user want to keep the files as encrypted.
++ *                              stAppRootPath.data => Application directory path
++ *                                Ex:-
++ *                                  youtube                  -> Valid
++ *                                  youtube/secure_dir       -> Valid
++ *                                  youtube/secure_dir/test1 -> Valid
++ *                              stAppRootPath.size => size of the data
++ *
++ * @out uintSessionId        : returns the secure storage session id
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
 + *         RDK_SS_ERROR_FAILURE if any error
 + *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
 + *         RDK_SS_ERROR_MEM_ALLOCATION if memory allocation failed
 + ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_openSession ( char acxMasterKey[ RDK_SS_MASTER_KEY_SIZE ], char *pxAppRootPath, unsigned int *pxSessionId );
++RDK_SS_ERROR_ENUM rdk_ss_openSession ( RDK_SS_OPENSESSION_INFO_STRUCT *pstSSOpenSessionIfo );
++
++/***************************************************************************
++ * @brief API used to write the data into the encrypted directory.
++ *
++ * @prerequisite             : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstSSWriteDataInfo    : Address of SS WriteData Session Info structure which contains below params,
++ * @in uintSessionId         : secure storage session id
++ *
++ * @in stDomain              : Relative path from app root directory.
++ *                              If stDomain.data == NULL, will write the data into stAppRootPath directory
++ *                              If stDomain.data != NULL, will write the data into the specified directory
++ *                                Ex: youtube             ==> secure storage path (stAppRootPath)
++ *                                    sample1             ==> domain path (stDomain)
++ *                                    youtube/sample1     ==> path to write the data if stDomain valid
++ *                                    youtube             ==> path to write the data if stDomain NULL
++ *                             stDomain.size -> size of the data
++ * @in stKey                 : file name to write the data. It must be valid.
++ *                             stKey.data -> file name.
++ *                             stKey.size -> size of the data
++ *
++ * @in/out stData            : buffer data to write into file. It must be valid.
++ *                           : stData.data -> buffer to write into file.
++ *                             stData.size -> size of the data
++ *
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_writeData ( RDK_SS_WRITE_DATA_INFO_STRUCT *pstSSWriteDataInfo );
 +
 +/***************************************************************************
 + * @brief API used to read the file from the encrypted directory.
++ *
 + * @prerequisite             : rdk_ss_getFunction() call should be successful.
-+ * @in uintxSessionId        : handle to identify the secure storage session
-+ * @in pxDomain              : relative path from the root directory, from where we have to read a file.
-+ *                              If pxDomain NULL, will read the file in pxAppRootPath directory
-+ *                              If pxDomain Valid, will read the file in the specified pxDomain directory
-+ *                                Ex: youtube/secure_dir  ==> secure storagepath (pxAppRootPath)
-+ *                                    sample1             ==> domain path (pxDomain)
-+ *                                    youtube/secure_dir/sample1 ==> path to read the file if pxDomain valid
-+ *                                    youtube/secure_dir         ==> path to read the file if pxDomain NULL
-+ * @in pxKey                 : file name to read the data. it must be valid.
-+ * @in/out pxDataBuffer      : buffer to copy data from file.
-+ * @in/out pxDataBufferSize  : size of the given pxDataBuffer. It must be valid.
-+ *                              If the pxDataBufferSize is more enough to actual file size, it will be updated with the actual file size.
-+ *                              If the pxDataBufferSize is less than the actual file size, it will be updated with actual size.
-+ *                                 In this case, user should call this API again with the buffer of updated pxDataBufferSize value.
++ *
++ * @in pstSSReadDataInfo     : Address of SS ReadData Session Info structure which contains below params,
++ * @in uintSessionId         : secure storage session id
++ *
++ * @in stDomain              : Relative path from the stAppRootPath directory.
++ *                              If stDomain.data == NULL, will read the file from stAppRootPath directory
++ *                              If stDomain.data != NULL, will read the file from the specified directory
++ *                                Ex: youtube             ==> secure storage path (stAppRootPath)
++ *                                    sample1             ==> domain path (stDomain)
++ *                                    youtube/sample1     ==> path to read the file if stDomain valid
++ *                                    youtube             ==> path to read the file if stDomain NULL
++ *                              stDomain.size -> size of the data
++ *
++ * @in stKey                 : File name to read. It must be valid.
++ *                             stKey.data -> file name.
++ *                             stKey.size -> size of the data
++ *
++ * @in/out stData            : Buffer to copy the data from file.
++ *                           : stData.data => buffer to copy data.
++ *                             stData.size => size of the data
++ *                               In below cases, fileSize will be return in stData.size.
++ *                                 1. If stData.size >= fileSize
++ *                                 2. If stData.size < fileSize
++ *                                 3. If stData.data == NULL & stData.size == 0
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
 + *         RDK_SS_ERROR_FAILURE if any error
 + *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
-+ *         RDK_SS_ERROR_NOT_ENOUGH_MEMORY if given size is less the actual file size.
++ *         RDK_SS_ERROR_NOT_ENOUGH_MEMORY if the given buffer does not have enough memory to read file.
 + ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_readData ( unsigned int uintxSessionId,
-+                                       char *pxDomain,
-+                                       char *pxKey,
-+                                       unsigned char *pxDataBuffer,
-+                                       unsigned int *pxDataBufferSize );
-+
-+/***************************************************************************
-+ * @brief API used to write the file data from the encrypted directory.
-+ * @prerequisite : rdk_ss_getFunction() call should be successful.
-+ * @in uintxSessionId    : handle to identify the secure storage session
-+ * @in pxDomain          : relative path from the root directory from where we have to write file.
-+ *                          If pxDomain NULL, will write the file in pxAppRootPath directory
-+ *                          If pxDomain Valid, will write the file in the specified pDomain directory
-+ *                            Ex: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
-+ *                                sample1            ==> domain path (pxDomain)
-+ *                                youtube/secure_dir/sample1 ==> path to write the file if pxDomain valid
-+ *                                youtube/secure_dir         ==> path to write the file if pxDomain NULL
-+ * @in pxKey             : file name to write the data. it must be valid.
-+ * @in pxDataBuffer      : data buffer to write in file.
-+ * @in xDataBufferSize   : size of the given pxDataBuffer.
-+ * @in exFileMode        : Mode of file operation. It can be RDK_SS_FILE_MODE_WRITE or
-+ *                         RDK_SS_FILE_MODE_APPEND
-+ * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
-+ *         RDK_SS_ERROR_FAILURE if any error
-+ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
-+ ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_writeData ( unsigned int uintxSessionId,
-+                                        char *pxDomain,
-+                                        char *pxKey,
-+                                        unsigned char *pxDataBuffer,
-+                                        unsigned int xDataBufferSize,
-+                                        RDK_SS_FILE_MODE_ENUM exFileMode );
-+
-+/***************************************************************************
-+ * @brief API used to remove the session handle.
-+ * @prerequisite       : rdk_ss_getFunction() call should be successful.
-+ * @in/out pxSessionId : handle to indentify the session.
-+ *                       it will be returned as 0 if the session closed successfully.
-+ * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
-+ *         RDK_SS_ERROR_FAILURE if any error
-+ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
-+ ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_closeSession ( unsigned int *pxSessionId );
++RDK_SS_ERROR_ENUM rdk_ss_readData ( RDK_SS_READ_DATA_INFO_STRUCT *pstSSReadDataInfo );
 +
 +/***************************************************************************
 + * @brief API used to delete the directory/file from the root directory.
-+ * @prerequisite          : rdk_ss_getFunction() call should be successful.
-+ * @in uintxSessionId     : represent the session.
-+ * @in pxDomain           : relative path from root directory.
-+ *                          If pxDomain NULL and key valid, will search and delete the file from root directory
-+ *                          If pxDomain and key both valid, will search and delete the file from specified directory
-+ *                          If pxDomain valid and key NULL, will search and delete the file from specified directory
-+ *                          If pxDomain and key both NULL, will return RDK_SS_ERROR_INVALID_INPUT error.
-+ * @in pxKey              : name of the file.
++ *
++ * @prerequisite            : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstSSDeleteDataInfo  : Address of SS Delete data Info structure which contains below params,
++ * @in uintxSessionId       : secure storage session id
++ *
++ * @in stDomain             : relative path from app root directory.
++ *                              If stDomain.data == NULL, will delete the file data from stAppRootPath directory
++ *                              If stDomain.data != NULL, will delete the file data from the specified directory
++ *                                Ex: youtube             ==> secure storage path (stAppRootPath)
++ *                                    sample1             ==> domain path (stDomain)
++ *                                    youtube/sample1     ==> path to delete the file data if stDomain valid
++ *                                    youtube             ==> path to delete the file data if stDomain NULL
++ *                             stDomain.size => size of the data
++ *
++ * @in stKey                : file name to delete the data. it must be valid.
++ *                            stKey.data -> file name.
++ *                            stKey.size -> size of the data
++ *                              If stDomain.data == NULL & stKey.data != NULL, will delete the file from stAppRootPath
++ *                              If stDomain.data != NULL & stKey.data != NULL, will delete the file from specified directory
++ *                              If stDomain.data != NULL & stKey.data == NULL, will delete the file from specified directory
++ *                              If stDomain.data == NULL & stKey.data == NULL, will return RDK_SS_ERROR_INVALID_INPUT error
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
 + *         RDK_SS_ERROR_FAILURE if any error
 + *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
 + ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_deleteData ( unsigned int uintxSessionId, char *pxDomain, char *pxKey );
++RDK_SS_ERROR_ENUM rdk_ss_deleteData ( RDK_SS_DELETE_DATA_INFO_STRUCT *pstSSDeleteDataInfo );
 +
 +/***************************************************************************
-+ * @brief API used to Terminate the Secure Storage functionalities and release the used resources
-+ *        and memory. This function should be called once before the device shutdown.
++ * @brief API used to remove the opened session.
++ *
++ * @prerequisite              : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstSSCloseSessionInfo  : Address of SS Close Session Info structure which contains below params,
++ * @in/out uintSessionId      : secure storage session id
++ *                              it will be return as 0 if the session closed successfully.
++ *
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_closeSession ( RDK_SS_CLOSESESSION_INFO_STRUCT *pstSSCloseSessionInfo );
++
++/***************************************************************************
++ * @brief API used to cleanup the SS initialization function. This function should be called once before the device shutdown.
++ *
 + * @prerequisite : rdk_ss_getFunction() call should be successful.
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
 + *         RDK_SS_ERROR_FAILURE if any error
@@ -223,11 +302,12 @@ Index: git/secure_storage.h
 +RDK_SS_ERROR_ENUM rdk_ss_terminate ( void );
 +
 +#endif /* __SECURE_STORAGE_H */
+\ No newline at end of file
 Index: git/ss_fscryptctl.c
 ===================================================================
 --- /dev/null
 +++ git/ss_fscryptctl.c
-@@ -0,0 +1,1153 @@
+@@ -0,0 +1,1410 @@
 + /*
 + * If not stated otherwise in this file or this component's Licenses.txt file the
 + * following copyright and licenses apply:
@@ -250,8 +330,9 @@ Index: git/ss_fscryptctl.c
 +/* Include files */
 +#include "ss_fscryptctl.h"
 +
-+static RDK_SS_FUNCTION_STRUCT gsRdkSsFunction;
++static RDK_SS_FUNCTION_STRUCT gsstRdkSsFunction;
 +static unsigned char gsbRdkSSInitialization;
++static TRdkStringData gsstSSDevicePath;
 +
 +/* Human-readable strings for encryption modes, indexed by the encryption mode */
 +static const char *const mode_strings[] = {
@@ -374,7 +455,7 @@ Index: git/ss_fscryptctl.c
 +
 +    while(ptr != NULL)
 +    {
-+        if (strncmp(ptr->rootDir,applicationPath,strlen(ptr->rootDir))==0)
++        if (strncmp(ptr->rootDir,applicationPath,strlen(applicationPath))==0)
 +        {
 +            *sessionId = ptr->session_id;
 +            return 0;
@@ -751,14 +832,18 @@ Index: git/ss_fscryptctl.c
 +    return 0;
 +}
 +
++/************************** Global Functions *********************************/
 +/***************************************************************************
-+ * @brief API used to get the secure storage supported function pointer. This function must be called before calling 
++ * @brief API used to get the secure storage supported function pointer. This function must be called before calling
 + *        any other secure storage functions.
-+ * @prerequisite              : None
-+ * @in ppxSSFunctionStruct   : double pointer which holds the address of RDK_SS_FUNCTION_STRUCT.
++ *
++ * @prerequisite             : None
++ *
++ * @out ppSSFunctionStruct   : double pointer which holds the address of RDK_SS_FUNCTION_STRUCT.
 + *                              using this pointer, user can call the other SS supported functions ( rdk_ss_init,
 + *                              rdk_ss_openSession, rdk_ss_readData, rdk_ss_writeData, rdk_ss_closeSession,
 + *                              rdk_ss_deleteData and rdk_ss_terminate)
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_INVALID_INPUT if invalid input
 + *         RDK_SS_ERROR_FAILURE if any error
@@ -776,19 +861,19 @@ Index: git/ss_fscryptctl.c
 +            break;
 +        }
 +
-+        if(NULL == gsRdkSsFunction.rdk_ss_init)
++        if(0 != memcmp(gsstRdkSsFunction.acSSVersionString, RDK_SS_VERSION, RDK_SS_VERSION_SIZE))
 +        {
-+            gsRdkSsFunction.rdk_ss_init           = rdk_ss_init;
-+            strncpy(gsRdkSsFunction.acSSVersionString, RDK_SS_VERSION, RDK_SS_VERSION_SIZE);
-+            gsRdkSsFunction.rdk_ss_openSession    = rdk_ss_openSession;
-+            gsRdkSsFunction.rdk_ss_readData       = rdk_ss_readData;
-+            gsRdkSsFunction.rdk_ss_writeData      = rdk_ss_writeData;
-+            gsRdkSsFunction.rdk_ss_closeSession   = rdk_ss_closeSession;
-+            gsRdkSsFunction.rdk_ss_deleteData     = rdk_ss_deleteData;
-+            gsRdkSsFunction.rdk_ss_terminate      = rdk_ss_terminate;
++            gsstRdkSsFunction.rdk_ss_init           = rdk_ss_init;
++            memcpy(gsstRdkSsFunction.acSSVersionString, RDK_SS_VERSION, RDK_SS_VERSION_SIZE);
++            gsstRdkSsFunction.rdk_ss_openSession    = rdk_ss_openSession;
++            gsstRdkSsFunction.rdk_ss_readData       = rdk_ss_readData;
++            gsstRdkSsFunction.rdk_ss_writeData      = rdk_ss_writeData;
++            gsstRdkSsFunction.rdk_ss_closeSession   = rdk_ss_closeSession;
++            gsstRdkSsFunction.rdk_ss_deleteData     = rdk_ss_deleteData;
++            gsstRdkSsFunction.rdk_ss_terminate      = rdk_ss_terminate;
 +        }
 +
-+        *ppxSSFunctionStruct = &gsRdkSsFunction;
++        *ppxSSFunctionStruct = &gsstRdkSsFunction;
 +        eErrorCode = RDK_SS_ERROR_SUCCESS;
 +        break;
 +    }
@@ -799,130 +884,59 @@ Index: git/ss_fscryptctl.c
 +/***************************************************************************
 + * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need.
 + *        This function should be called once after the device bootup.
++ *
 + * @prerequisite : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstxSSInitInfo   : Address of SS Init Info structure which contains the below params,
++ *                        stDevicePath.data => Device Path name. Ex:- "/opt/secure"
++ *                        stDevicePath.size => size of the data
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_FAILURE if any error 
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_MEM_ALLOCATION if memory allocation failed
 + ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_init ( void )
++RDK_SS_ERROR_ENUM rdk_ss_init ( RDK_SS_INIT_INFO_STRUCT *pstxSSInitInfo )
 +{
-+    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_SUCCESS;
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
 +
 +    for(;;)
 +    {
++        if(NULL == pstxSSInitInfo)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pstxSSInitInfo is NULL\n");
++        }
++
++        if(NULL == pstxSSInitInfo->stDevicePath.data ||
++           0 == pstxSSInitInfo->stDevicePath.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDevicePath.data is NULL or stDevicePath.size is 0\n");
++            break;
++        }
++
++        if(gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_SUCCESS;
++            printf("Already Secure storage module initialized!!!\n");
++            break;
++        }
++
++        gsstSSDevicePath.data = (char*)malloc(pstxSSInitInfo->stDevicePath.size);
++        if(NULL == gsstSSDevicePath.data)
++        {
++            eErrorCode = RDK_SS_ERROR_MEM_ALLOCATION;
++            printf("Device Path memory alloc failed\n");
++            break;
++        }
++
++        gsstSSDevicePath.size = pstxSSInitInfo->stDevicePath.size;
++        memcpy(gsstSSDevicePath.data, pstxSSInitInfo->stDevicePath.data, gsstSSDevicePath.size);
++
 +        if(!gsbRdkSSInitialization)
 +        {
 +            gsbRdkSSInitialization = TRUE;
 +        }
-+        else
-+        {
-+            printf("Already Secure storage module initialized\n");
-+        }
-+        break;
-+    }
-+
-+    return eErrorCode;
-+}
-+
-+/***************************************************************************
-+ * @brief API used to Terminate the Secure Storage functionalities and release the used resources
-+ *        and memory. This function should be called once before the device shutdown.
-+ * @prerequisite : rdk_ss_getFunction() call should be successful.
-+ * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
-+ *         RDK_SS_ERROR_FAILURE if any error
-+ ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_terminate ( void )
-+{
-+    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_SUCCESS;
-+
-+    for(;;)
-+    {    
-+        if(!gsbRdkSSInitialization)
-+        {
-+            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
-+            printf("Please call Secure Stroage init function before calling this function");
-+            break;
-+        }
-+
-+        /* To DO: Need to handle the multi-instance use case */
-+
-+        if(gsbRdkSSInitialization)
-+        {
-+            gsbRdkSSInitialization = FALSE;
-+        }
-+        break;
-+    }
-+
-+    return eErrorCode;
-+}
-+
-+/***************************************************************************
-+ * @brief API used to remove the session handle.
-+ * @prerequisite       : rdk_ss_getFunction() call should be successful.
-+ * @in/out pxSessionId : handle to indentify the session.
-+ *                       it will be returned as 0 if the session closed successfully.
-+ * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
-+ *         RDK_SS_ERROR_FAILURE if any error 
-+ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
-+ ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_closeSession (unsigned int *pxSessionId)
-+{
-+    struct fscrypt_close_session_arg closeSessionarg = {0};
-+    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
-+    int fd  = -1;
-+    int ret = -1;
-+
-+    for(;;)
-+    {
-+        if(!gsbRdkSSInitialization)
-+        {
-+            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
-+            printf("Please call Secure Stroage init function before calling this function");
-+            break;
-+        }
-+
-+        if(NULL == pxSessionId)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxSessionId is NULL\n");
-+            break;
-+        }
-+
-+        if(RDK_SS_SESSION_ID_RANGE_MIN > *pxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < *pxSessionId)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("Invalid uintxSessionId [%u]\n", *pxSessionId);
-+            break;
-+        }
-+
-+        fd = get_fileDesc(*pxSessionId);
-+        if(fd < 0)
-+        {
-+            eErrorCode =  RDK_SS_ERROR_FAILURE;
-+            printf("fd is not found for the given sessionId %u\n", *pxSessionId);
-+            break;
-+        }
-+
-+        closeSessionarg.session_id = *pxSessionId;
-+
-+        ret = ioctl(fd, FS_IOC_CLOSE_SESSION, &closeSessionarg);
-+        if (ret != 0)
-+        {
-+            eErrorCode = convertErrnoToSSErrorCode(errno,*pxSessionId);
-+            printf("[ioctl] close session call failed. sessionId %u eErrorCode %u\n", *pxSessionId, eErrorCode);
-+            break;
-+        }
-+
-+        ret = free_session_info(*pxSessionId);
-+        if (ret < 0)
-+        {
-+            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("Failed to free the session info\n");
-+            break;
-+        }
-+
-+        *pxSessionId = RDK_SS_INVALID_SESSION_ID;
 +        eErrorCode = RDK_SS_ERROR_SUCCESS;
 +        break;
 +    }
@@ -931,248 +945,36 @@ Index: git/ss_fscryptctl.c
 +}
 +
 +/***************************************************************************
-+ * @brief API used to read the file from the encrypted directory.
++ * @brief API used to create the unique ciphering key and protect the stAppRootPath.
++ *        Returns the session handle as sessionId.
++ *
 + * @prerequisite             : rdk_ss_getFunction() call should be successful.
-+ * @in uintxSessionId        : handle to identify the secure storage session
-+ * @in pxDomain              : relative path from the root directory, from where we have to read a file.
-+ *                              If pxDomain NULL, will read the file in pxAppRootPath directory
-+ *                              If pxDomain Valid, will read the file in the specified pxDomain directory
-+ *                               Ex: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
-+ *                                   sample1            ==> domain path (pxDomain)
-+ *                                   youtube/secure_dir/sample1 ==> path to read the file if pxDomain valid
-+ *                                   youtube/secure_dir         ==> path to read the file if pxDomain NULL
-+ * @in pxKey                 : file name to read the data. it must be valid.
-+ * @in/out pxDataBuffer      : buffer to copy data from file.
-+ * @in/out pxDataBufferSize  : size of the given pxDataBuffer. It must be valid.
-+ *                              If the pxDataBufferSize is more enough to actual file size, it will be updated with the actual file size.
-+ *                              If the pxDataBufferSize is less than the actual file size, it will be updated with actual size.
-+ *                                 In this case, user should call this API again with the buffer of updated pxDataBufferSize value.
-+ * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
-+ *         RDK_SS_ERROR_FAILURE if any error 
-+ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
-+ *         RDK_SS_ERROR_NOT_ENOUGH_MEMORY if given size is less the actual file size.
-+ ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_readData (unsigned int uintxSessionId,
-+                                    char *pxDomain, char *pxKey,
-+                                    unsigned char *pxDataBuffer,
-+                                    unsigned int *pxDataBufferSize)
-+{
-+    struct fscrypt_data_arg arg     = {0};
-+    RDK_SS_ERROR_ENUM eErrorCode    = RDK_SS_ERROR_FAILURE;
-+    int fd     = -1;
-+    int ret    = -1;
-+
-+    for(;;)
-+    {
-+        if(!gsbRdkSSInitialization)
-+        {
-+            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
-+            printf("Please call Secure Stroage init function before calling this function");
-+            break;
-+        }
-+
-+        if(RDK_SS_SESSION_ID_RANGE_MIN > uintxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < uintxSessionId)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("Invalid uintxSessionId [%u]\n", uintxSessionId);
-+            break;
-+        }
-+
-+        if(NULL == pxDataBuffer)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxDataBuffer is NULL\n");
-+            break;
-+        }
-+
-+        if(NULL == pxKey)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxKey is NULL\n");
-+            break;
-+        }
-+
-+        if(NULL == pxDataBufferSize || 0 == *pxDataBufferSize)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxDataBufferSize is NULL OR *pxDataBufferSize is zero\n");
-+            break;
-+        }
-+
-+        remove_last_slash_char(pxDomain);
-+
-+        arg.session_id     = uintxSessionId;
-+        arg.domain         = pxDomain;
-+        arg.key            = pxKey;
-+        arg.data           = pxDataBuffer;
-+        arg.data_len       = *pxDataBufferSize;
-+
-+        fd = get_fileDesc(uintxSessionId);
-+        if(fd < 0)
-+        {
-+            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("fd is not found for the given sessionId %u\n", uintxSessionId);
-+            break;
-+        }
-+
-+        ret = ioctl(fd, FS_IOC_READ_ENCRYPTION_FILE_DATA, &arg);
-+        if (ret != 0)
-+        {
-+            eErrorCode = convertErrnoToSSErrorCode(errno, uintxSessionId);
-+            printf("[ioctl] read data call failed. sessionId %u eErrorCode %u\n", uintxSessionId, eErrorCode);
-+            if (RDK_SS_ERROR_NOT_ENOUGH_MEMORY == eErrorCode && ret != arg.data_len)
-+            {
-+                *pxDataBufferSize = arg.data_len;
-+                printf("Expected pxDataBufferSize is %u\n", arg.data_len);
-+                break;
-+            }
-+        }
-+
-+        eErrorCode = RDK_SS_ERROR_SUCCESS;
-+        break;
-+    }
-+    return eErrorCode;
-+}
-+
-+/***************************************************************************
-+ * @brief API used to write the file data from the encrypted directory.
-+ * @prerequisite : rdk_ss_getFunction() call should be successful.
-+ * @in uintxSessionId    : handle to identify the secure storage session
-+ * @in pxDomain          : relative path from the root directory from where we have to write file.
-+ *                          If pxDomain NULL, will write the file in pxAppRootPath directory
-+ *                          If pxDomain Valid, will write the file in the specified pDomain directory
-+ *                               Ex: youtube/secure_dir ==> secure storagepath (pxAppRootPath)
-+ *                                   sample1            ==> domain path (pxDomain)
-+ *                                youtube/secure_dir/sample1 ==> path to write the file if pxDomain valid
-+ *                                youtube/secure_dir         ==> path to write the file if pxDomain NULL
-+ * @in pxKey             : file name to write the data. it must be valid.
-+ * @in pxDataBuffer      : data buffer to write in file.
-+ * @in xDataBufferSize   : size of the given pxDataBuffer.
-+ * @in exFileMode        : Mode of file operation. It can be RDK_SS_FILE_MODE_WRITE or
-+ *                         RDK_SS_FILE_MODE_APPEND
-+ * @return RDK_SS_ERROR_SUCCESS if no error
-+ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
-+ *         RDK_SS_ERROR_FAILURE if any error
-+ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
-+ ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_writeData (unsigned int uintxSessionId,
-+                                    char *pxDomain,
-+                                    char *pxKey,
-+                                    unsigned char *pxDataBuffer,
-+                                    unsigned int xDataBufferSize,
-+                                    RDK_SS_FILE_MODE_ENUM exFileMode)
-+{
-+    struct fscrypt_data_arg arg     = {0};
-+    RDK_SS_ERROR_ENUM eErrorCode    = RDK_SS_ERROR_FAILURE;
-+    int fd     = -1;
-+    int ret    = -1;
-+
-+    for(;;)
-+    {
-+        if(!gsbRdkSSInitialization)
-+        {
-+            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
-+            printf("Please call Secure Stroage init function before calling this function");
-+            break;
-+        }
-+
-+        if(RDK_SS_SESSION_ID_RANGE_MIN > uintxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < uintxSessionId)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("Invalid uintxSessionId [%u]\n", uintxSessionId);
-+            break;
-+        }
-+
-+        if(NULL == pxDataBuffer)
-+        {
-+            printf("pxDataBuffer is NULL\n");
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            break;
-+        }
-+
-+        if(NULL == pxKey)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxKey is NULL\n");
-+            break;
-+        }
-+
-+        if(0 == xDataBufferSize)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("xDataBufferSize is zero\n");
-+            break;
-+        }
-+
-+        if(RDK_SS_FILE_MODE_WRITE != exFileMode
-+        && RDK_SS_FILE_MODE_APPEND != exFileMode)
-+        {
-+            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("exFileMode [%u] is invalid \n", exFileMode);
-+            break;
-+        }
-+
-+        remove_last_slash_char(pxDomain);
-+
-+        arg.session_id     = uintxSessionId;
-+        arg.domain         = pxDomain;
-+        arg.key            = pxKey;
-+        arg.data           = pxDataBuffer;
-+        arg.data_len       = xDataBufferSize;
-+        arg.file_mode      = exFileMode;
-+
-+        fd = get_fileDesc(uintxSessionId);
-+        if(fd < 0)
-+        {
-+            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("fd is not found for the given sessionId %u\n", uintxSessionId);
-+            break;
-+        }
-+
-+        ret = ioctl(fd, FS_IOC_WRITE_ENCRYPTION_FILE_DATA, &arg);
-+        if (0 != ret)
-+        {
-+            eErrorCode = convertErrnoToSSErrorCode(errno,uintxSessionId);
-+            printf("[ioctl] write data call failed. sessionId %u eErrorCode %u\n", uintxSessionId, eErrorCode);
-+            break;
-+        }
-+
-+        eErrorCode = RDK_SS_ERROR_SUCCESS;
-+        break;
-+    }
-+    return eErrorCode;
-+}
-+
-+/***************************************************************************
-+ * @brief API used to create the unique ciphering key and protect the pxAppRootPath folder in where will store the files
-+ *        and return the pxSessionId as a handle.
-+ * @prerequisite             : rdk_ss_getFunction() call should be successful.
-+ * @in  acxMasterKey         : Array of 64 Byte Key.
-+ *                              If acxMasterKey is valid, will be used to generate the key to protect the files
-+ *                              If acxMasterKey is NULL, internally will generate the key to protect the files
-+ * @in  pxAppRootPath        : directory path in which the user want to keep the files as encrypted.
-+ *                             This path must have minimum one sub-folder to get valid mountpoint.
-+ *                             youtube/secure_dir       -> Valid
-+ *                             youtube/secure_dir/test1 -> Valid
-+ *                             youtube                  -> Invalid
-+ *                                  Ex1: youtube/secure_dir  ==> secure storagepath (pxAppRootPath)
-+ *                                       youtube             ==> secure directory mount path (mountpoint)
-+ *                                  Ex2: youtube/secure_dir/test1    ==> secure storagepath (pxAppRootPath)
-+ *                                       youtube/secure_dir          ==> secure directory mount path (mountpoint)
-+ * @out pxSessionId          : pointer to hold the secure storage session handle of given pxAppRootPath.
++ *
++ * @in pstxSSOpenSessionIfo  : Address of SS Open Session Info structure which contains below params,
++ * @in  acMasterKey          : Array of 64 Byte Key.
++ *                              If acMasterKey is valid, will generate the ciphering key using acMasterKey
++ *                              If acMasterKey is NULL, internally will generate the unique ciphering key
++ * @in  stAppRootPath        : directory path in which the user want to keep the files as encrypted.
++ *                              stAppRootPath.data => Application directory path
++ *                                Ex:-
++ *                                  youtube                  -> Valid
++ *                                  youtube/secure_dir       -> Valid
++ *                                  youtube/secure_dir/test1 -> Valid
++ *                              stAppRootPath.size => size of the data
++ *
++ * @out uintSessionId        : returns the secure storage session id
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
 + *         RDK_SS_ERROR_FAILURE if any error
 + *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
 + *         RDK_SS_ERROR_MEM_ALLOCATION if memory allocation failed
 + ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_openSession (char *acxMasterKey, char *pxAppRootPath, unsigned int *pxSessionId)
++RDK_SS_ERROR_ENUM rdk_ss_openSession ( RDK_SS_OPENSESSION_INFO_STRUCT *pstxSSOpenSessionIfo )
 +{
 +    struct fscrypt_open_session_arg openSessionarg = {0};
-+    char *mountpoint     = NULL;
++    char *rootPath         = NULL;
 +    char *temp_path        = NULL;
-+    unsigned int sessionId = 0;
 +    int len    = 0;
 +    int fd     = -1;
 +    int ret    = -1;
@@ -1180,6 +982,14 @@ Index: git/ss_fscryptctl.c
 +    unsigned char contents_encryption_mode;
 +    unsigned char filenames_encryption_mode;
 +    unsigned char padding_flags;
++    char acNullMasterKey[RDK_SS_MASTER_KEY_SIZE] = {0};
++    char *pAppRelativePath = NULL;
++    char *pAppAbsolutePath = NULL;
++    unsigned int appAbsolutePathLen = 0;
++    char isMasterKeyAvailable       = TRUE;
++    char  acProcessUserId[15]   = "user_id"; /* need to replace with actual uid data */
++    int   index  = 0;
++
 +
 +    for(;;)
 +    {
@@ -1190,49 +1000,88 @@ Index: git/ss_fscryptctl.c
 +            break;
 +        }
 +
-+        if(NULL == pxAppRootPath)
++        if(NULL == pstxSSOpenSessionIfo)
 +        {
 +            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxAppRootPath is NULL\n");
++            printf("pstxSSOpenSessionIfo is NULL\n");
 +            break;
 +        }
 +
-+        temp_path = strrchr(pxAppRootPath,'/');
-+        if (NULL == temp_path)
++        if(NULL == pstxSSOpenSessionIfo->stAppRootPath.data ||
++           0 == pstxSSOpenSessionIfo->stAppRootPath.size)
 +        {
 +            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxAppRootPath is invalid [%s]\n", pxAppRootPath);
++            printf("stAppRootPath.data is NULL OR stAppRootPath.size is 0\n");
 +            break;
 +        }
 +
-+        if(NULL == pxSessionId)
++        /* path should not contains '.' character */
++        if (NULL != strrchr(pstxSSOpenSessionIfo->stAppRootPath.data,'.'))
 +        {
 +            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxSessionId is NULL\n");
++            printf("stAppRootPath is invalid\n");
 +            break;
 +        }
-+        *pxSessionId = RDK_SS_INVALID_SESSION_ID;
 +
-+        remove_last_slash_char(pxAppRootPath);
++        if(0 == memcmp(pstxSSOpenSessionIfo->acMasterKey, acNullMasterKey, RDK_SS_MASTER_KEY_SIZE))
++        {
++            isMasterKeyAvailable = FALSE;
++            printf("MasterKey doesn't given by user\n");
++            /* should not break here as we internally will generate unique masterKey */
++        }
 +
-+        ret = is_session_exist(pxAppRootPath,&sessionId);
++        pstxSSOpenSessionIfo->uintSessionId = RDK_SS_INVALID_SESSION_ID;
++        pAppRelativePath = pstxSSOpenSessionIfo->stAppRootPath.data;
++
++        remove_last_slash_char(pAppRelativePath);
++
++        appAbsolutePathLen = gsstSSDevicePath.size
++                             + strlen(acProcessUserId) + 1
++                             + pstxSSOpenSessionIfo->stAppRootPath.size + 1 ;
++
++        pAppAbsolutePath = (char*)malloc(appAbsolutePathLen);
++        if(NULL == pAppAbsolutePath)
++        {
++            eErrorCode = RDK_SS_ERROR_MEM_ALLOCATION;
++            printf("App path memory allocation failed\n");
++            break;
++        }
++
++        /* make a app absolute path = device path + process uid + app relative path */
++        memcpy(pAppAbsolutePath, gsstSSDevicePath.data, gsstSSDevicePath.size);
++        index = gsstSSDevicePath.size;
++        pAppAbsolutePath[index++] = '/';
++
++        memcpy(pAppAbsolutePath + index,
++               acProcessUserId,
++               strlen(acProcessUserId));
++        index += strlen(acProcessUserId);
++
++        pAppAbsolutePath[index++] = '/';
++
++        memcpy(pAppAbsolutePath + index,
++               pAppRelativePath,
++               pstxSSOpenSessionIfo->stAppRootPath.size);
++        index += pstxSSOpenSessionIfo->stAppRootPath.size;
++        pAppAbsolutePath[index] = '\0';
++
++        ret = is_session_exist(pAppAbsolutePath, &pstxSSOpenSessionIfo->uintSessionId);
 +        if (ret == 0)
 +        {
-+            *pxSessionId = sessionId;
 +            eErrorCode = RDK_SS_ERROR_SUCCESS;
-+            printf("Session[%u] already Exist!!!\n",pxSessionId);
++            printf("Session[%u] already Exist!!!\n", pstxSSOpenSessionIfo->uintSessionId);
 +            break;
 +        }
 +
-+        ret = check_and_create_dir(pxAppRootPath);
++        ret = check_and_create_dir(pAppAbsolutePath);
 +        if (ret < 0)
 +        {
 +            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("Path creation is falied for [%s] errorno[%u]\n", pxAppRootPath, errno);
++            printf("Path creation is falied for [%s] errorno[%u]\n", pAppAbsolutePath, errno);
 +            break;
 +        }
 +
-+        if (check_ownership_capability(pxAppRootPath)== RDK_SS_ERROR_FAILURE)
++        if (check_ownership_capability(pAppAbsolutePath)== RDK_SS_ERROR_FAILURE)
 +        {
 +            eErrorCode = RDK_SS_ERROR_FAILURE;
 +            break;
@@ -1246,63 +1095,365 @@ Index: git/ss_fscryptctl.c
 +            padding_flags = FSCRYPT_POLICY_FLAGS_PAD_32;
 +        }
 +
++        if(isMasterKeyAvailable)
++        {
++            memcpy(openSessionarg.master_key, pstxSSOpenSessionIfo->acMasterKey, RDK_SS_MASTER_KEY_SIZE);
++            openSessionarg.is_master_key_available = TRUE;
++        }
++
 +        openSessionarg.policy.flags       = padding_flags;
-+        memcpy(openSessionarg.master_key, acxMasterKey, RDK_SS_MASTER_KEY_SIZE);
-+        openSessionarg.root_dir           = pxAppRootPath;
++        openSessionarg.root_dir           = pAppAbsolutePath;
 +        openSessionarg.policy.version     = FSCRYPT_POLICY_V2;
 +        openSessionarg.policy.contents_encryption_mode     = contents_encryption_mode;
 +        openSessionarg.policy.filenames_encryption_mode    = filenames_encryption_mode;
 +
-+        /* Secure directory mount path is called mountpoint
-+        * Ex: /opt/secure/netflix/secure_dir ==> secure storagepath (pxAppRootPath)
-+        *     /opt/secure/netflix            ==> secure directory mount path (mountpoint)
-+        */
-+
-+        mountpoint = (char *)malloc(strlen(pxAppRootPath));
-+        if (mountpoint == NULL)
++        temp_path = strrchr(pAppAbsolutePath,'/');
++        if(NULL == temp_path)
 +        {
-+            eErrorCode = RDK_SS_ERROR_MEM_ALLOCATION;
-+            printf("Memory alloc failed size [%u]\n",strlen(pxAppRootPath));
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("root path validation failed. [%s]\n", pAppAbsolutePath);
 +            break;
 +        }
 +
-+        len = strlen(pxAppRootPath)-strlen(temp_path);
-+        strncpy(mountpoint, pxAppRootPath,len);
-+        mountpoint [len++] = '\0';
++        len = appAbsolutePathLen-strlen(temp_path);
++        rootPath = (char *)malloc(len);
++        if (rootPath == NULL)
++        {
++            eErrorCode = RDK_SS_ERROR_MEM_ALLOCATION;
++            printf("Memory alloc failed size [%u]\n", appAbsolutePathLen);
++            break;
++        }
 +
-+        fd = open(mountpoint, O_RDONLY | O_CLOEXEC);
++        strncpy(rootPath, pAppAbsolutePath, len);
++        rootPath [len] = '\0';
++        fd = open(rootPath, O_RDONLY | O_CLOEXEC);
 +        if (fd < 0)
 +        {
 +            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("Path mount[%s] is Failure\n", mountpoint);
++            printf("App root path[%s] open Failure\n", rootPath);
 +            break;
 +        }
 +
 +        ret = ioctl(fd, FS_IOC_OPEN_SESSION, &openSessionarg);
 +        if (ret != 0)
 +        {
-+            eErrorCode = convertErrnoToSSErrorCode(errno,openSessionarg.session_id);
++            eErrorCode = convertErrnoToSSErrorCode(errno, openSessionarg.session_id);
 +            printf("[ioctl] Open session call failed. retun value %u\n", ret);
 +            break;
 +        }
 +
-+        *pxSessionId = openSessionarg.session_id;
++        pstxSSOpenSessionIfo->uintSessionId = openSessionarg.session_id;
++        ret = insert_session_info(fd, pAppAbsolutePath, pstxSSOpenSessionIfo->uintSessionId);
 +
-+        ret = insert_session_info(fd, pxAppRootPath, *pxSessionId);
 +        if(ret != 0 )
 +        {
 +            eErrorCode = RDK_SS_ERROR_FAILURE;
 +            printf("Insert_session info is Failed. session id %u\n", openSessionarg.session_id);
 +        }
-+
 +        eErrorCode = RDK_SS_ERROR_SUCCESS;
 +        break;
 +    }
 +
-+    if(NULL != mountpoint)
++    if(NULL != rootPath)
 +    {
-+        free(mountpoint);
-+        mountpoint = NULL;
++        free(rootPath);
++        rootPath = NULL;
++    }
++    return eErrorCode;
++}
++
++/***************************************************************************
++ * @brief API used to write the data into the encrypted directory.
++ *
++ * @prerequisite             : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstxSSWriteDataInfo   : Address of SS WriteData Session Info structure which contains below params,
++ * @in uintSessionId         : secure storage session id
++ *
++ * @in stDomain              : Relative path from app root directory.
++ *                              If stDomain.data == NULL, will write the data into stAppRootPath directory
++ *                              If stDomain.data != NULL, will write the data into the specified directory
++ *                                Ex: youtube             ==> secure storage path (stAppRootPath)
++ *                                    sample1             ==> domain path (stDomain)
++ *                                    youtube/sample1     ==> path to write the data if stDomain valid
++ *                                    youtube             ==> path to write the data if stDomain NULL
++ *                             stDomain.size -> size of the data
++ * @in stKey                 : file name to write the data. It must be valid.
++ *                             stKey.data -> file name.
++ *                             stKey.size -> size of the data
++ *
++ * @in/out stData            : buffer data to write into file. It must be valid.
++ *                           : stData.data -> buffer to write into file.
++ *                             stData.size -> size of the data
++ *
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_writeData ( RDK_SS_WRITE_DATA_INFO_STRUCT *pstxSSWriteDataInfo )
++{
++    struct fscrypt_write_data_arg arg     = {0};
++    RDK_SS_ERROR_ENUM eErrorCode    = RDK_SS_ERROR_FAILURE;
++    int fd     = -1;
++    int ret    = -1;
++
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
++
++        if(NULL == pstxSSWriteDataInfo)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pstxSSWriteDataInfo is NULL\n");
++            break;
++        }
++
++        if(RDK_SS_SESSION_ID_RANGE_MIN > pstxSSWriteDataInfo->uintSessionId
++           || RDK_SS_SESSION_ID_RANGE_MAX < pstxSSWriteDataInfo->uintSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid uintSessionId [%u]\n", pstxSSWriteDataInfo->uintSessionId);
++            break;
++        }
++
++        if(NULL == pstxSSWriteDataInfo->stKey.data
++           || 0 == pstxSSWriteDataInfo->stKey.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stKey.data is NULL OR stKey.size is 0\n");
++            break;
++        }
++
++        if(NULL == pstxSSWriteDataInfo->stData.data
++           || 0 == pstxSSWriteDataInfo->stData.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stData.data is NULL OR stData.size is 0\n");
++            break;
++        }
++
++        if(RDK_SS_FILE_MODE_WRITE != pstxSSWriteDataInfo->eFileMode
++        && RDK_SS_FILE_MODE_APPEND != pstxSSWriteDataInfo->eFileMode)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid eFileMode [%u]\n", pstxSSWriteDataInfo->eFileMode);
++            break;
++        }
++
++        if(NULL == pstxSSWriteDataInfo->stDomain.data
++           && 0 != pstxSSWriteDataInfo->stDomain.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDomain.data is NULL but stDomain.size is non-zero\n");
++            break;
++        }
++
++        if(NULL != pstxSSWriteDataInfo->stDomain.data
++           && 0 == pstxSSWriteDataInfo->stDomain.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDomain.data is valid but stDomain.size is 0\n");
++            break;
++        }
++
++        if(NULL != pstxSSWriteDataInfo->stDomain.data)
++        {
++            remove_last_slash_char(pstxSSWriteDataInfo->stDomain.data);
++        }
++
++        arg.session_id      = pstxSSWriteDataInfo->uintSessionId;
++        arg.stDomain.data   = pstxSSWriteDataInfo->stDomain.data;
++        arg.stDomain.size   = pstxSSWriteDataInfo->stDomain.size;
++
++        arg.stKey.data      = pstxSSWriteDataInfo->stKey.data;
++        arg.stKey.size      = pstxSSWriteDataInfo->stKey.size;
++
++        arg.stData.data     = pstxSSWriteDataInfo->stData.data;
++        arg.stData.size     = pstxSSWriteDataInfo->stData.size;
++        arg.file_mode       = pstxSSWriteDataInfo->eFileMode;
++
++        fd = get_fileDesc(pstxSSWriteDataInfo->uintSessionId);
++        if(fd < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("fd is not found for the given sessionId %u\n", pstxSSWriteDataInfo->uintSessionId);
++            break;
++        }
++
++        ret = ioctl(fd, FS_IOC_WRITE_ENCRYPTION_FILE_DATA, &arg);
++        if (0 != ret)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno, pstxSSWriteDataInfo->uintSessionId);
++            printf("[ioctl] write data call failed. sessionId %u eErrorCode %u\n",
++                                   pstxSSWriteDataInfo->uintSessionId,
++                                   eErrorCode);
++            break;
++        }
++
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++    return eErrorCode;
++}
++
++/***************************************************************************
++ * @brief API used to read the file from the encrypted directory.
++ *
++ * @prerequisite             : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstxSSReadDataInfo    : Address of SS ReadData Session Info structure which contains below params,
++ * @in uintSessionId         : secure storage session id
++ *
++ * @in stDomain              : Relative path from the stAppRootPath directory.
++ *                              If stDomain.data == NULL, will read the file from stAppRootPath directory
++ *                              If stDomain.data != NULL, will read the file from the specified directory
++ *                                Ex: youtube             ==> secure storage path (stAppRootPath)
++ *                                    sample1             ==> domain path (stDomain)
++ *                                    youtube/sample1     ==> path to read the file if stDomain valid
++ *                                    youtube             ==> path to read the file if stDomain NULL
++ *                              stDomain.size -> size of the data
++ *
++ * @in stKey                 : File name to read. It must be valid.
++ *                             stKey.data -> file name.
++ *                             stKey.size -> size of the data
++ *
++ * @in/out stData            : Buffer to copy the data from file.
++ *                           : stData.data => buffer to copy data.
++ *                             stData.size => size of the data
++ *                               In below cases, fileSize will be return in stData.size.
++ *                                 1. If stData.size >= fileSize
++ *                                 2. If stData.size < fileSize
++ *                                 3. If stData.data == NULL & stData.size == 0
++ *
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ *         RDK_SS_ERROR_NOT_ENOUGH_MEMORY if the given buffer does not have enough memory to read file.
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_readData ( RDK_SS_READ_DATA_INFO_STRUCT *pstxSSReadDataInfo )
++{
++    struct fscrypt_read_data_arg arg     = {0};
++    RDK_SS_ERROR_ENUM eErrorCode    = RDK_SS_ERROR_FAILURE;
++    int fd     = -1;
++    int ret    = -1;
++
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
++
++        if(NULL == pstxSSReadDataInfo)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pstxSSReadDataInfo is NULL\n");
++            break;
++        }
++
++        if(RDK_SS_SESSION_ID_RANGE_MIN > pstxSSReadDataInfo->uintSessionId
++           || RDK_SS_SESSION_ID_RANGE_MAX < pstxSSReadDataInfo->uintSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid uintSessionId [%u]\n", pstxSSReadDataInfo->uintSessionId);
++            break;
++        }
++
++        if(NULL == pstxSSReadDataInfo->stKey.data
++           || 0 == pstxSSReadDataInfo->stKey.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stKey.data is NULL OR stKey.size is 0\n");
++            break;
++        }
++
++        if(NULL != pstxSSReadDataInfo->stDomain.data
++           && 0 == pstxSSReadDataInfo->stDomain.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDomain.data is valid but stDomain.size is 0\n");
++            break;
++        }
++
++        if(NULL == pstxSSReadDataInfo->stDomain.data
++           && 0 != pstxSSReadDataInfo->stDomain.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDomain.data is NULL but stDomain.size is valid\n");
++            break;
++        }
++
++        if(NULL != pstxSSReadDataInfo->stData.data
++           && 0 == pstxSSReadDataInfo->stData.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stData.data is valid but stData.size is 0\n");
++            break;
++        }
++
++        if(NULL == pstxSSReadDataInfo->stData.data
++           && 0 != pstxSSReadDataInfo->stData.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stData.data is NULL but stData.size is valid\n");
++            break;
++        }
++
++        if(NULL == pstxSSReadDataInfo->stData.data
++           && 0 == pstxSSReadDataInfo->stData.size)
++        {
++            printf("stData.data is NULL and stData.size is 0\n");
++            /* no need to break here as this is the valid case
++             * We should return the required file size in stData.size.
++             */
++        }
++
++        if(NULL != pstxSSReadDataInfo->stDomain.data)
++        {
++            remove_last_slash_char(pstxSSReadDataInfo->stDomain.data);
++        }
++
++        arg.session_id      = pstxSSReadDataInfo->uintSessionId;
++        arg.stDomain.data   = pstxSSReadDataInfo->stDomain.data;
++        arg.stDomain.size   = pstxSSReadDataInfo->stDomain.size;
++
++        arg.stKey.data      = pstxSSReadDataInfo->stKey.data;
++        arg.stKey.size      = pstxSSReadDataInfo->stKey.size;
++
++        arg.stData.data     = pstxSSReadDataInfo->stData.data;
++        arg.stData.size     = pstxSSReadDataInfo->stData.size;
++
++        fd = get_fileDesc(pstxSSReadDataInfo->uintSessionId);
++        if(fd < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("fd is not found for the given sessionId %u\n", pstxSSReadDataInfo->uintSessionId);
++            break;
++        }
++
++        ret = ioctl(fd, FS_IOC_READ_ENCRYPTION_FILE_DATA, &arg);
++        if (ret != 0)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno, pstxSSReadDataInfo->uintSessionId);
++            printf("[ioctl] read data call failed. sessionId %u eErrorCode %u\n", pstxSSReadDataInfo->uintSessionId, eErrorCode);
++            if (RDK_SS_ERROR_NOT_ENOUGH_MEMORY == eErrorCode && ret != arg.stData.size)
++            {
++                pstxSSReadDataInfo->stData.size = arg.stData.size;
++                printf("Expected stData.size is %u\n", arg.stData.size);
++                break;
++            }
++        }
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
 +    }
 +
 +    return eErrorCode;
@@ -1310,20 +1461,35 @@ Index: git/ss_fscryptctl.c
 +
 +/***************************************************************************
 + * @brief API used to delete the directory/file from the root directory.
-+ * @prerequisite          : rdk_ss_getFunction() call should be successful.
-+ * @in uintxSessionId     : represent the session.
-+ * @in pxDomain           : relative path from root directory.
-+ *                          If pxDomain NULL and key valid, will search and delete the file from root directory
-+ *                          If pxDomain and key both valid, will search and delete the file from specified directory
-+ *                          If pxDomain valid and key NULL, will search and delete the file from specified directory
-+ *                          If pxDomain and key both NULL, will return RDK_SS_ERROR_INVALID_INPUT error.
-+ * @in pxKey              : name of the file.
++ *
++ * @prerequisite            : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstxSSDeleteDataInfo : Address of SS Delete data Info structure which contains below params,
++ * @in uintxSessionId       : secure storage session id
++ *
++ * @in stDomain             : relative path from app root directory.
++ *                              If stDomain.data == NULL, will delete the file data from stAppRootPath directory
++ *                              If stDomain.data != NULL, will delete the file data from the specified directory
++ *                                Ex: youtube             ==> secure storage path (stAppRootPath)
++ *                                    sample1             ==> domain path (stDomain)
++ *                                    youtube/sample1     ==> path to delete the file data if stDomain valid
++ *                                    youtube             ==> path to delete the file data if stDomain NULL
++ *                             stDomain.size => size of the data
++ *
++ * @in stKey                : file name to delete the data. it must be valid.
++ *                            stKey.data -> file name.
++ *                            stKey.size -> size of the data
++ *                              If stDomain.data == NULL & stKey.data != NULL, will delete the file from stAppRootPath
++ *                              If stDomain.data != NULL & stKey.data != NULL, will delete the file from specified directory
++ *                              If stDomain.data != NULL & stKey.data == NULL, will delete the file from specified directory
++ *                              If stDomain.data == NULL & stKey.data == NULL, will return RDK_SS_ERROR_INVALID_INPUT error
++ *
 + * @return RDK_SS_ERROR_SUCCESS if no error
 + *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
 + *         RDK_SS_ERROR_FAILURE if any error
 + *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
 + ***************************************************************************/
-+RDK_SS_ERROR_ENUM rdk_ss_deleteData (unsigned int uintxSessionId, char *pxDomain, char *pxKey)
++RDK_SS_ERROR_ENUM rdk_ss_deleteData (RDK_SS_DELETE_DATA_INFO_STRUCT *pstxSSDeleteDataInfo)
 +{
 +    struct fscrypt_delete_file_arg arg = {0};
 +    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
@@ -1339,42 +1505,213 @@ Index: git/ss_fscryptctl.c
 +            break;
 +        }
 +
-+        if(RDK_SS_SESSION_ID_RANGE_MIN > uintxSessionId || RDK_SS_SESSION_ID_RANGE_MAX < uintxSessionId)
++        if(NULL == pstxSSDeleteDataInfo)
 +        {
 +            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("Invalid uintxSessionId [%u]\n", uintxSessionId);
++            printf("pstxSSDeleteDataInfo is NULL\n");
 +            break;
 +        }
 +
-+        if(NULL == pxKey)
++        if(RDK_SS_SESSION_ID_RANGE_MIN > pstxSSDeleteDataInfo->uintSessionId
++           || RDK_SS_SESSION_ID_RANGE_MAX < pstxSSDeleteDataInfo->uintSessionId)
 +        {
 +            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
-+            printf("pxKey is NULL\n");
++            printf("Invalid uintSessionId [%u]\n", pstxSSDeleteDataInfo->uintSessionId);
 +            break;
 +        }
 +
-+        remove_last_slash_char(pxDomain);
++        if(NULL == pstxSSDeleteDataInfo->stDomain.data
++           && NULL == pstxSSDeleteDataInfo->stKey.data)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDomain.data & stKey.data both are NULL\n");
++            break;
++        }
 +
-+        arg.session_id     = uintxSessionId;
-+        arg.domain         = pxDomain;
-+        arg.key            = pxKey;
++        if(NULL != pstxSSDeleteDataInfo->stDomain.data
++           && 0 == pstxSSDeleteDataInfo->stDomain.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDomain.data is valid but stDomain.size is 0\n");
++            break;
++        }
 +
-+        fd = get_fileDesc(uintxSessionId);
++        if(NULL == pstxSSDeleteDataInfo->stDomain.data
++           && 0 != pstxSSDeleteDataInfo->stDomain.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stDomain.data is NULL but stDomain.size is valid\n");
++            break;
++        }
++
++        if(NULL != pstxSSDeleteDataInfo->stKey.data
++           && 0 == pstxSSDeleteDataInfo->stKey.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stKey.data is valid but stKey.size is 0\n");
++            break;
++        }
++
++        if(NULL == pstxSSDeleteDataInfo->stKey.data
++           && 0 != pstxSSDeleteDataInfo->stKey.size)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("stKey.data is NULL but stKey.size is valid\n");
++            break;
++        }
++
++        if(NULL != pstxSSDeleteDataInfo->stDomain.data)
++        {
++            remove_last_slash_char(pstxSSDeleteDataInfo->stDomain.data);
++        }
++
++        arg.session_id      = pstxSSDeleteDataInfo->uintSessionId;
++        arg.stDomain.data   = pstxSSDeleteDataInfo->stDomain.data;
++        arg.stDomain.size   = pstxSSDeleteDataInfo->stDomain.size;
++
++        arg.stKey.data      = pstxSSDeleteDataInfo->stKey.data;
++        arg.stKey.size      = pstxSSDeleteDataInfo->stKey.size;
++
++        fd = get_fileDesc(pstxSSDeleteDataInfo->uintSessionId);
 +        if(fd < 0)
 +        {
 +            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("fd is not found for the given sessionId %u\n", uintxSessionId);
++            printf("fd is not found for the given sessionId %u\n", pstxSSDeleteDataInfo->uintSessionId);
 +            break;
 +        }
 +
 +        ret = ioctl(fd, FS_IOC_DELETE_DATA, &arg);
 +        if (ret != 0)
 +        {
-+            eErrorCode = convertErrnoToSSErrorCode(errno,uintxSessionId);
-+            printf("[ioctl] delete data call failed. sessionId %u eErrorCode %u\n", uintxSessionId, eErrorCode);
++            eErrorCode = convertErrnoToSSErrorCode(errno,pstxSSDeleteDataInfo->uintSessionId);
++            printf("[ioctl] delete data call failed. sessionId %u eErrorCode %u\n",
++                                            pstxSSDeleteDataInfo->uintSessionId,
++                                            eErrorCode);
 +            break;
 +        }
 +
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++
++    return eErrorCode;
++}
++
++/***************************************************************************
++ * @brief API used to remove the opened session.
++ *
++ * @prerequisite              : rdk_ss_getFunction() call should be successful.
++ *
++ * @in pstxSSCloseSessionInfo : Address of SS Close Session Info structure which contains below params,
++ * @in/out uintSessionId      : secure storage session id
++ *                              it will be return as 0 if the session closed successfully.
++ *
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ *         RDK_SS_ERROR_INVALID_INPUT if the input params are invalid
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_closeSession (RDK_SS_CLOSESESSION_INFO_STRUCT *pstxSSCloseSessionInfo)
++{
++    struct fscrypt_close_session_arg closeSessionarg = {0};
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
++    int fd  = -1;
++    int ret = -1;
++
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
++
++        if(NULL == pstxSSCloseSessionInfo)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("pstxSSCloseSessionInfo is NULL\n");
++            break;
++        }
++
++        if(RDK_SS_SESSION_ID_RANGE_MIN > pstxSSCloseSessionInfo->uintSessionId
++            || RDK_SS_SESSION_ID_RANGE_MAX < pstxSSCloseSessionInfo->uintSessionId)
++        {
++            eErrorCode = RDK_SS_ERROR_INVALID_INPUT;
++            printf("Invalid uintxSessionId [%u]\n", pstxSSCloseSessionInfo->uintSessionId);
++            break;
++        }
++
++        fd = get_fileDesc(pstxSSCloseSessionInfo->uintSessionId);
++        if(fd < 0)
++        {
++            eErrorCode =  RDK_SS_ERROR_FAILURE;
++            printf("fd is not found for the given sessionId %u\n", pstxSSCloseSessionInfo->uintSessionId);
++            break;
++        }
++
++        closeSessionarg.session_id = pstxSSCloseSessionInfo->uintSessionId;
++
++        ret = ioctl(fd, FS_IOC_CLOSE_SESSION, &closeSessionarg);
++        if (ret != 0)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno,pstxSSCloseSessionInfo->uintSessionId);
++            printf("[ioctl] close session call failed. sessionId %u eErrorCode %u\n",
++                                            pstxSSCloseSessionInfo->uintSessionId,
++                                            eErrorCode);
++            break;
++        }
++
++        ret = free_session_info(pstxSSCloseSessionInfo->uintSessionId);
++        if (ret < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("Failed to free the session info\n");
++            break;
++        }
++
++        pstxSSCloseSessionInfo->uintSessionId = RDK_SS_INVALID_SESSION_ID;
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++
++    return eErrorCode;
++}
++
++/***************************************************************************
++ * @brief API used to cleanup the SS initialization function. This function should be called once before the device shutdown.
++ *
++ * @prerequisite : rdk_ss_getFunction() call should be successful.
++ *
++ * @return RDK_SS_ERROR_SUCCESS if no error
++ *         RDK_SS_ERROR_NO_MODULE_INIT if rdk_ss_init not called before calling this function
++ *         RDK_SS_ERROR_FAILURE if any error
++ ***************************************************************************/
++RDK_SS_ERROR_ENUM rdk_ss_terminate ( void )
++{
++    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
++
++    for(;;)
++    {
++        if(!gsbRdkSSInitialization)
++        {
++            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
++            printf("Please call Secure Stroage init function before calling this function");
++            break;
++        }
++
++        if(NULL != gsstSSDevicePath.data)
++        {
++            free(gsstSSDevicePath.data);
++            gsstSSDevicePath.data = NULL;
++            gsstSSDevicePath.size = 0;
++        }
++        /* To DO: Need to handle the multi-instance use case */
++
++        if(gsbRdkSSInitialization)
++        {
++            gsbRdkSSInitialization = FALSE;
++        }
 +        eErrorCode = RDK_SS_ERROR_SUCCESS;
 +        break;
 +    }
@@ -1385,7 +1722,7 @@ Index: git/ss_fscryptctl.h
 ===================================================================
 --- /dev/null
 +++ git/ss_fscryptctl.h
-@@ -0,0 +1,137 @@
+@@ -0,0 +1,144 @@
 +/*
 + * If not stated otherwise in this file or this component's Licenses.txt file the
 + * following copyright and licenses apply:
@@ -1487,6 +1824,7 @@ Index: git/ss_fscryptctl.h
 +/* Struct passed to FS_IOC_OPEN_SESSION */
 +struct fscrypt_open_session_arg {
 +    char master_key[RDK_SS_MASTER_KEY_SIZE];
++    char is_master_key_available;
 +    char *root_dir;
 +    struct fscrypt_policy_v2 policy;
 +    unsigned int session_id;
@@ -1496,30 +1834,36 @@ Index: git/ss_fscryptctl.h
 +    unsigned int session_id;
 +};
 +
-+/* Struct passed to FS_IOC_READ_ENCRYPTION_FILE_DATA/FS_IOC_WRITE_ENCRYPTION_FILE_DATA */
-+struct fscrypt_data_arg {
-+    unsigned char *domain;
-+    unsigned char *key;
-+    unsigned char *data;
-+    int data_len;
++
++/* Struct passed to FS_IOC_READ_ENCRYPTION_FILE_DATA */
++struct fscrypt_read_data_arg {
++    TRdkStringData stDomain;
++    TRdkStringData stKey;
++    TRdkBufferData stData;
++    unsigned int session_id;
++};
++
++/* Struct passed to FS_IOC_WRITE_ENCRYPTION_FILE_DATA */
++struct fscrypt_write_data_arg {
++    TRdkStringData stDomain;
++    TRdkStringData stKey;
++    TRdkBufferData stData;
 +    RDK_SS_FILE_MODE_ENUM file_mode;
 +    unsigned int session_id;
 +};
 +
 +/* Struct passed to FS_IOC_DELETE_DATA */
 +struct fscrypt_delete_file_arg {
-+    unsigned char *domain;
-+    unsigned char *key;
++    TRdkStringData stDomain;
++    TRdkStringData stKey;
 +    unsigned int session_id;
 +};
 +
 +/* IOCTL commands */
 +#define FS_IOC_OPEN_SESSION                    _IOWR('f', 28, struct fscrypt_open_session_arg)
-+#define FS_IOC_READ_ENCRYPTION_FILE_DATA       _IOWR('f', 29, struct fscrypt_data_arg)
-+#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA      _IOWR('f', 30, struct fscrypt_data_arg)
++#define FS_IOC_READ_ENCRYPTION_FILE_DATA       _IOWR('f', 29, struct fscrypt_read_data_arg)
++#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA      _IOWR('f', 30, struct fscrypt_write_data_arg)
 +#define FS_IOC_CLOSE_SESSION                   _IOWR('f', 31, struct fscrypt_close_session_arg)
 +#define FS_IOC_DELETE_DATA                     _IOR('f', 32, struct fscrypt_delete_file_arg)
 +
 +#endif /* _SS_FSCRYPTCTL_H */
-+
-+
