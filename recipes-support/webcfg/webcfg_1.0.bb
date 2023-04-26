@@ -58,8 +58,14 @@ SRC_URI_append += " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin', 'fi
 SRC_URI_append += " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin', 'file://partners_defaults_webcfg_video.json', '', d)}"
 
 do_install_append_broadband() {
+
     if ${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", "true", "false", d)}
     then
+      if ${@bb.utils.contains("DISTRO_FEATURES", "gateway_manager", "false", "true", d)}
+      then
+        sed -z 's/"name": "gwfailover",\n[[:blank:]]*"bitposition": 1,\n[[:blank:]]*"support": true,/"name": "gwfailover",\n"bitposition": 1,\n"support": false,/g' ${WORKDIR}/webconfig_metadata.json > ${WORKDIR}/out.txt
+        mv ${WORKDIR}/out.txt ${WORKDIR}/webconfig_metadata.json
+      fi
       install -d ${D}/usr/ccsp/webconfig
       install -d ${D}/etc
       touch ${D}/etc/WEBCONFIG_ENABLE
