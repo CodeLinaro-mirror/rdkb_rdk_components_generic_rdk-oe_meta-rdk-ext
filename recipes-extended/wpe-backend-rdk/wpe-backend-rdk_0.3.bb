@@ -16,6 +16,7 @@ SRC_URI = "${BASE_URI}"
 SRC_URI += "file://comcast-Naive-gamepad-support.patch"
 SRC_URI += "file://0001-Fix-browser-crash-when-the-compositor-is-not-created.patch"
 SRC_URI += "file://0010-Add-headless-backend.patch"
+SRC_URI += "file://0001-Send-SIGHUP-if-compositor-is-terminated.patch"
 
 S = "${WORKDIR}/git"
 
