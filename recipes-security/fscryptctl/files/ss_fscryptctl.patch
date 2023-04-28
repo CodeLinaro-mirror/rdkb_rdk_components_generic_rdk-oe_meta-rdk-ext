@@ -1862,8 +1862,8 @@ Index: git/ss_fscryptctl.h
 +/* IOCTL commands */
 +#define FS_IOC_OPEN_SESSION                    _IOWR('f', 28, struct fscrypt_open_session_arg)
 +#define FS_IOC_READ_ENCRYPTION_FILE_DATA       _IOWR('f', 29, struct fscrypt_read_data_arg)
-+#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA      _IOWR('f', 30, struct fscrypt_write_data_arg)
-+#define FS_IOC_CLOSE_SESSION                   _IOWR('f', 31, struct fscrypt_close_session_arg)
-+#define FS_IOC_DELETE_DATA                     _IOR('f', 32, struct fscrypt_delete_file_arg)
++#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA      _IOW('f', 30, struct fscrypt_write_data_arg)
++#define FS_IOC_CLOSE_SESSION                   _IOW('f', 31, struct fscrypt_close_session_arg)
++#define FS_IOC_DELETE_DATA                     _IOW('f', 32, struct fscrypt_delete_file_arg)
 +
 +#endif /* _SS_FSCRYPTCTL_H */
