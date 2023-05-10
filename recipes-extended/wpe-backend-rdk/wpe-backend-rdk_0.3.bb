@@ -8,14 +8,13 @@ DEPENDS += "libwpe glib-2.0"
 
 PV = "0.3+git${SRCPV}"
 
-# Revision date: Jan 25 2023
-SRCREV = "495d11b9dadb21b00d3cadfd9c0fb3df40a9255e"
+# Revision date: Apr 28 2023
+SRCREV = "0b0562680e251a3fbf2ae202c89b7c9acfc1d01a"
 BASE_URI ?= "git://github.com/WebPlatformForEmbedded/WPEBackend-rdk.git;protocol=http;branch=master"
 SRC_URI = "${BASE_URI}"
 
 SRC_URI += "file://comcast-Naive-gamepad-support.patch"
 SRC_URI += "file://0001-Fix-browser-crash-when-the-compositor-is-not-created.patch"
-SRC_URI += "file://0010-Add-headless-backend.patch"
 SRC_URI += "file://0001-Send-SIGHUP-if-compositor-is-terminated.patch"
 
 S = "${WORKDIR}/git"
