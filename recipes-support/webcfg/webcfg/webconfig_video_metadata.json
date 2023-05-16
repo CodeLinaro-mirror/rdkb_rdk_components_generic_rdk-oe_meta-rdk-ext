@@ -181,6 +181,34 @@
                             ]
                }
              ],
+        "hisense-v2" : [
+              {
+                 "group_id": 1,
+	             "subdocs": [
+                               {
+                                  "name": "telemetry",
+                                  "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0",
+                                  "secondary_doc": true
+                               }
+                            ]
+               }
+             ],
+        "pioneer-uhd" : [
+              {
+                 "group_id": 1,
+	             "subdocs": [
+                               {
+                                  "name": "telemetry",
+                                  "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0",
+                                  "secondary_doc": true
+                               }
+                            ]
+               }
+             ],
         "platco-cad15" : [
               {
                  "group_id": 1,
