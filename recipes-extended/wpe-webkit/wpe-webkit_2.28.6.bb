@@ -36,6 +36,7 @@ SRC_URI += "file://2.28.6/1072.patch"
 SRC_URI += "file://2.28.6/1073.patch"
 SRC_URI += "file://2.28.6/1074.patch"
 SRC_URI += "file://2.28.6/1076.patch"
+SRC_URI += "file://2.28.6/1086.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.28/comcast-XRE-15382-libwebrtc-fake-encoder.patch"
@@ -78,7 +79,6 @@ SRC_URI += "file://2.28/comcast-DELIA-60706-Allow-seeking-during-PAUSED-to-PLAYI
 SRC_URI += "file://2.28.6/comcast-DELIA-60613-WebRTC-streaming-fails-with-test-app.patch"
 SRC_URI += "file://2.28/comcast-DELIA-60227-Malloc-Heap-Breakdown.patch"
 SRC_URI += "file://2.28.4/comcast-RDK-40312-Headless-mode-support.patch"
-SRC_URI += "file://2.28.6/comcast-DELIA-61287-Disable-WebAnimations-interface.patch"
 
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
 PACKAGECONFIG[encryptedmedia]    = "-DENABLE_ENCRYPTED_MEDIA=ON,-DENABLE_ENCRYPTED_MEDIA=OFF,"
