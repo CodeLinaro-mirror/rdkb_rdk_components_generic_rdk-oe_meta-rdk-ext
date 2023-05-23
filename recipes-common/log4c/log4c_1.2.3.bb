@@ -11,6 +11,7 @@ SRC_URI[sha256sum] = "dcb5e0d9dd3a7a51b91dcd0fe00145521e681f1454f3c3eba159b3a932
 SRC_URI_append = " \
 	file://04log4c_sizewin.patch \
 	file://03log4c_rollingfileapender.patch \
+	file://memory-leak-fix-log4c.patch \
 "
 
 PACKAGECONFIG ??= ""
