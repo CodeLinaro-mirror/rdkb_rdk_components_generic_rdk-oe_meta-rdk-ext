@@ -84,6 +84,7 @@ SRC_URI += "file://2.28.7/comcast-DELIA-62248-Fix-AppleTV-format-error.patch"
 SRC_URI += "file://2.28.7/comast-XIONE-12615-Perform-instant-rate-change-using-custom-event.patch"
 SRC_URI += "file://2.28.7/comcast-BCOM-6804-No-Decoder-available-errors-during.patch"
 SRC_URI += "file://2.28.7/comcast-DELIA-61357-Moderate-Memory-Pressure-logs.patch"
+SRC_URI += "file://2.28.7/comcast-XIONE-12272-configure-video-resource-usage-w.patch"
 
 PACKAGECONFIG[cssshapes]         = "-DENABLE_CSS_SHAPES=ON,-DENABLE_CSS_SHAPES=OFF,"
 PACKAGECONFIG[fetchapi]          = "-DENABLE_FETCH_API=ON,-DENABLE_FETCH_API=OFF,"
