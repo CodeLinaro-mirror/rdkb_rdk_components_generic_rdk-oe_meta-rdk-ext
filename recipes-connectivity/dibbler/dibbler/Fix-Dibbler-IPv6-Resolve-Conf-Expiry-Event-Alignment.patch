@@ -30,8 +30,8 @@ Index: git/ClntTransMgr/ClntTransMgr.cpp
 @@ -247,6 +247,7 @@ void TClntTransMgr::removeExpired() {
  		      << " from IA " << ptrIA->getIAID()
  		      << " has been removed from addrDB." << LogEnd;
++            notifyExpiredInfo(params, ptrAddr->get(), IATYPE_IA);
          }
-+		notifyExpiredInfo(params, ptrAddr->get(), IATYPE_IA);
  
  	// if there are no more addresses in this IA, declare it freed
  	if (!ptrIA->countAddr()) {
@@ -47,17 +47,17 @@ Index: git/ClntTransMgr/ClntTransMgr.cpp
 @@ -288,6 +291,7 @@ void TClntTransMgr::removeExpired() {
  		      << " from IA " << ptrIA->getIAID()
  		      << " has been removed from addrDB." << LogEnd;
++            notifyExpiredInfo(params, ptrAddr->get(), IATYPE_TA);
          }
-+		notifyExpiredInfo(params, ptrAddr->get(), IATYPE_TA);
  
  	// if there are no more addresses in this IA, declare it freed
  	if (!ptrIA->countAddr()) {
 @@ -333,7 +337,7 @@ void TClntTransMgr::removeExpired() {
  		      << " from IA_PD " << ptrPD->getIAID()
  		      << " has been removed from addrDB." << LogEnd;
++            notifyExpiredInfo(params, ptrPrefix->get(), IATYPE_PD, ptrPrefix->getLength());
          }
 -
-+        notifyExpiredInfo(params, ptrPrefix->get(), IATYPE_PD, ptrPrefix->getLength());
  	// if there are no more addresses in this IA, declare it freed
  	if (!ptrPD->countPrefix()) {
  	    Log(Debug) << "The IA_PD (with IAID=" << ptrPD->getIAID() << ") has expired. " << LogEnd;
