@@ -21,7 +21,7 @@ EXTRANATIVEPATH += " chrpath-native"
 
 S = "${WORKDIR}/git"
 
-inherit cmake pkgconfig perlnative ${@bb.utils.contains("DISTRO_FEATURES", "kirkstone", "python3native", "pythonnative", d)}
+inherit cmake pkgconfig perlnative ${@bb.utils.contains("DISTRO_FEATURES", "kirkstone", "python3native", "pythonnative", d)} add-version
 
 WPE_BACKEND ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'westeros', '', d)}"
 
@@ -162,3 +162,9 @@ RDEPS_WEBAUDIO += "${RDEPS_EXTRA}"
 
 RRECOMMENDS_${PN} += "ca-certificates"
 PACKAGE_DEBUG_SPLIT_STYLE = "debug-without-src"
+
+# Ensure we'll get the recipe version and SRCRV into the versions.txt file part of the build image
+do_add_version () {
+    echo "WPE_WEBKIT_VERSION=${PV}" > ${EXTRA_VERSIONS_PATH}/${PN}.txt
+}
+
