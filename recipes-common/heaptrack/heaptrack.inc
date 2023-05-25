@@ -13,7 +13,7 @@ S = "${WORKDIR}/git"
 
 inherit cmake
 
-EXTRA_OECMAKE += " -DHEAPTRACK_BUILD_GUI=OFF"
+EXTRA_OECMAKE += " -DHEAPTRACK_BUILD_GUI=ON -DHEAPTRACK_BUILD_PRINT=ON"
 FILES_${PN} += "/usr/bin"
 FILES_${PN} += "/usr/lib"
 FILES_${PN}-dbg += "/usr/lib/heaptrack/libexec/.debug"
