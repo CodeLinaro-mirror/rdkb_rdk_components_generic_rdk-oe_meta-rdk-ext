@@ -16,7 +16,18 @@ SRC_URI = "git://github.com/google/fscryptctl.git"
 S = "${WORKDIR}/git"
 
 SRC_URI += "file://firstboot.service \
-            file://Makefile.patch "
+            file://Makefile.patch \
+            file://fscryptctl_so_creation.patch \
+            file://ss_fscryptctl.patch \
+            file://fscrypt.conf "
+
+PACKAGES = "${PN} ${PN}-dev ${PN}-dbg ${PN}-staticdev"
+
+RDEPENDS_${PN}-staticdev = ""
+RDEPENDS_${PN}-dev = ""
+RDEPENDS_${PN}-dbg = ""
+
+TARGET_CFLAGS += " -fpic"
 
 inherit systemd
 
@@ -29,11 +40,21 @@ RRECOMMENDS_${PN} += "\
 "
 do_install_append () {
     install -d ${D}${bindir}
+    install -d ${D}${libdir}
+    install -d ${D}${includedir}
     install -m 0755 fscryptctl ${D}${bindir}
+    install -m 0755 libfscryptctl.so  ${D}${libdir}/
+    install -m 0644 secure_storage.h ${D}${includedir}/
     install -d ${D}${systemd_unitdir}/system ${D}${sysconfdir}
     install -m 0644 ${WORKDIR}/firstboot.service ${D}${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/fscrypt.conf ${D}${sysconfdir}
 }
 
 SYSTEMD_SERVICE_${PN}  = "firstboot.service"
 
 FILES_${PN} += "${systemd_unitdir}/system/firstboot.service"
+FILES_${PN} += "${libdir}/libfscryptctl.so"
+FILES_${PN} += "${sysconfdir}/fscrypt.conf"
+FILES_${PN} += "${includedir}/secure_storage.h"
+
+INSANE_SKIP_${PN} = "ldflags"
