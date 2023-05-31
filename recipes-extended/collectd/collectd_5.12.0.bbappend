@@ -1,6 +1,5 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI += " \
-        file://collectd.conf \
         file://update-mac-address.sh \
        "
 
@@ -24,9 +23,7 @@ EXTRA_OECONF += " \
 "
 
 do_install_append(){
-    install -D -m 0644 ${WORKDIR}/collectd.conf ${D}${systemd_unitdir}/system/collectd.service.d/collectd.conf
     install -D -m 755 ${WORKDIR}/update-mac-address.sh  ${D}${base_libdir}/rdk/update-mac-address.sh
 }
 
-FILES_${PN} += "${systemd_unitdir}/system/collectd.service.d/collectd.conf"
 FILES_${PN} += "${base_libdir}/rdk/update-mac-address.sh"
