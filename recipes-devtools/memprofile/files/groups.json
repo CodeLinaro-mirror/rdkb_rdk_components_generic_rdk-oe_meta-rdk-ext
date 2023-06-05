@@ -1,0 +1,157 @@
+{
+  "containers": [
+    {
+      "group": "EntUI",
+      "containers": [
+        "com.sky.as.apps_com.bskyb.epgui"
+      ]
+    },
+    {
+      "group": "Apps",
+      "containers": [
+        "com.sky.as.apps_(?!com.bskyb.epgui).*"
+      ]
+    }
+  ],
+  "processes": [
+    {
+      "group": "Sky - AI",
+      "processes": [
+        "^appsservice.*"
+      ]
+    },
+    {
+      "group": "Sky - AS",
+      "processes": [
+        "^(AS|as).*",
+        "SkyMwConfigManager",
+        "VoiceSearchDaemon",
+        "skymwlocalstore"
+      ]
+    },
+    {
+      "group": "RDK - IARM Managers",
+      "processes": [
+        "audiocapturemgr",
+        "btMgrBus",
+        "CecDaemonMain",
+        "controlMgr",
+        "dsMgrMain",
+        "deepSleepMgrMain",
+        "IARMDaemonMain",
+        "irMgrMain",
+        "mfrMgrMain",
+        "pwrMgrMain",
+        "pwrMgrMain2",
+        "pwrstate_notifier",
+        "storageMgrMain",
+        "sysMgrMain",
+        "netsrvmgr"
+      ]
+    },
+    {
+      "group": "Logging",
+      "processes": [
+        "syslog-ng",
+        "ethanlog-cat",
+        "systemd-journald"
+      ]
+    },
+    {
+      "group": "RDK - Platform",
+      "processes": [
+        "^WPEFramework",
+        "parodus",
+        "rbus_session_mgr",
+        "remotedebugger",
+        "rtrouted",
+        "shipd",
+        "sysTimeMgr",
+        "telemetry2_0",
+        "tr69hostif",
+        "webconfig",
+        "dropbear",
+        "lighttpd",
+        "DobbyDaemon",
+        "logbackup",
+        "Packager",
+        "org.rdk.TextToSpeech",
+        "rebootSTB.sh",
+        "authservice",
+        "WPEHost",
+        "xcal-device",
+        "dca"
+      ]
+    },
+    {
+      "group": "SoC",
+      "processes": [
+        "hdcp_rx22",
+        "panelDataDaemon",
+        "pqservice",
+        "servicemanager",
+        "tee-supplicant",
+        "tvservice",
+        "boops",
+        "ledmgr"
+      ]
+    },
+    {
+      "group": "Networking",
+      "processes": [
+        "nlmon",
+        "rdnssd",
+        "wpa_supplicant",
+        "udhcpc",
+        "dnsmasq",
+        "systemd-networkd",
+        "avahi-daemon.*",
+        "ipIfaceMonitor.sh",
+        "startIpGw.sh",
+        "dibbler-client"
+      ]
+    },
+    {
+      "group": "Bluetooth",
+      "processes": [
+        "hciattach",
+        "bluetoothd",
+        "BleRcuDaemon"
+      ]
+    },
+    {
+      "group": "A/V",
+      "processes": [
+        "audio_server",
+        "ermgr",
+        "fogcli",
+        "subttxrend-app",
+        "MediaRite",
+        "gdial-server",
+        "SystemAudioPlayer",
+        "Watermark",
+        "OCDM",
+        "nxserver",
+        "audioserver"
+      ]
+    },
+    {
+      "group": "JSPP",
+      "processes": [
+        "JSPP|jspp",
+        "WPEWebProcess",
+        "WPENetworkProcess"
+      ]
+    },
+    {
+      "group": "Linux Core OS",
+      "processes": [
+        "crond",
+        "dbus-daemon",
+        "init",
+        "systemd-udevd",
+        "systemd-timesyncd"
+      ]
+    }
+  ]
+}
