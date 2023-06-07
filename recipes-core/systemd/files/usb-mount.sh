@@ -191,16 +191,6 @@ do_mount()
     sendMountChangedEvent
     log_msg "Successfully Mounted the Device"
     log_msg "**** Mounted ${DEVICE} at ${MOUNT_POINT} ****"
-    # Calling RDM Script for signature validation & update App
-    # manager configuration against packages present
-    if [ -f /etc/rdm/downloadUSBPackage.sh ];then
-          sh /etc/rdm/downloadUSBPackage.sh ${MOUNT_POINT}
-    else
-          log_msg "Execution Script Not Found [/etc/rdm/downloadUSBPackage.sh ]"
-    fi
-    if [ $? -ne 0 ]; then
-         log_msg "Validation/extraction for package resides ${MOUNT_POINT} Failed"
-    fi
 }
 
 do_unmount()
