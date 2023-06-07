@@ -1,4 +1,4 @@
-From 95c95e33e02b34bc3c63bddcc7d5285ce5dbaba2 Mon Sep 17 00:00:00 2001
+From ff31f516b3f44fdcf3cbdf68c18e0f36082e723d Mon Sep 17 00:00:00 2001
 From: Eugene Mutavchi <Ievgen_Mutavchi@comcast.com>
 Date: Wed, 19 Apr 2023 12:43:48 +0000
 Subject: [PATCH] MSE: limit the number of samples stored in SourceBuffer
@@ -13,12 +13,14 @@ https://www.youtube.com/tv#/watch?v=6ATfcsAFFNE&list=RD-WLgxoa4BeU
 This change allows at least one pass of eviction algorithm if number
 of samples is greater than 10K. Which should be enough to allow
 storing ~2-3 minutes of audio or video if size limit doesn't kick in.
+
+%% original patch: 1074.patch
 ---
- Source/WebCore/Modules/mediasource/SourceBuffer.cpp | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ Source/WebCore/Modules/mediasource/SourceBuffer.cpp | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/Source/WebCore/Modules/mediasource/SourceBuffer.cpp b/Source/WebCore/Modules/mediasource/SourceBuffer.cpp
-index 7b1dd5bcf012..91b5b39b9d3b 100644
+index 7b1dd5bcf012..0c8504b0de04 100644
 --- a/Source/WebCore/Modules/mediasource/SourceBuffer.cpp
 +++ b/Source/WebCore/Modules/mediasource/SourceBuffer.cpp
 @@ -962,10 +962,18 @@ void SourceBuffer::evictCodedFrames(size_t newDataSize)
@@ -41,6 +43,16 @@ index 7b1dd5bcf012..91b5b39b9d3b 100644
          return;
  
      size_t maximumBufferSize = this->maximumBufferSize();
+@@ -1006,7 +1014,8 @@ void SourceBuffer::evictCodedFrames(size_t newDataSize)
+         removeCodedFrames(rangeStart, std::min(rangeEnd, maximumRangeEnd));
+         if (extraMemoryCost() + newDataSize < maximumBufferSize) {
+             m_bufferFull = false;
+-            break;
++            if (!hasTooManySamples())
++                break;
+         }
+ 
+         rangeStart += thirtySeconds;
 -- 
-2.25.1
+2.17.1
 
