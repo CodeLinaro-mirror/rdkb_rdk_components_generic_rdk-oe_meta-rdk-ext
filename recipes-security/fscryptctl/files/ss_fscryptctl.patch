@@ -38,7 +38,8 @@ Index: git/secure_storage.h
 +    RDK_SS_ERROR_INVALID_INPUT,
 +    RDK_SS_ERROR_NO_MODULE_INIT,
 +    RDK_SS_ERROR_MEM_ALLOCATION,
-+    RDK_SS_ERROR_NOT_ENOUGH_MEMORY
++    RDK_SS_ERROR_NOT_ENOUGH_MEMORY,
++    RDK_SS_ERROR_PATH_NOT_EXIST
 +}RDK_SS_ERROR_ENUM;
 +
 +/* Secure Storage file mode operation */
@@ -131,8 +132,7 @@ Index: git/secure_storage.h
 +RDK_SS_ERROR_ENUM rdk_ss_getFunction ( RDK_SS_FUNCTION_STRUCT** ppSSFunctionStruct );
 +
 +/***************************************************************************
-+ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need,
-+ *        And also passing Address of SS Init Info structure to  kernel space with IOCTL call.
++ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need.
 + *        This function should be called once after the device bootup.
 + *
 + * @prerequisite : rdk_ss_getFunction() call should be successful.
@@ -292,7 +292,7 @@ Index: git/secure_storage.h
 +RDK_SS_ERROR_ENUM rdk_ss_closeSession ( RDK_SS_CLOSESESSION_INFO_STRUCT *pstSSCloseSessionInfo );
 +
 +/***************************************************************************
-+ * @brief API used to cleanup the SS initialization function, communicating to kernel with IOCTL call without any argument.
++ * @brief API used to cleanup the SS initialization function.
 + *        This function should be called once before the device shutdown.
 + *
 + * @prerequisite : rdk_ss_getFunction() call should be successful.
@@ -309,7 +309,7 @@ Index: git/ss_fscryptctl.c
 ===================================================================
 --- /dev/null
 +++ git/ss_fscryptctl.c
-@@ -0,0 +1,1411 @@
+@@ -0,0 +1,1406 @@
 + /*
 + * If not stated otherwise in this file or this component's Licenses.txt file the
 + * following copyright and licenses apply:
@@ -455,7 +455,8 @@ Index: git/ss_fscryptctl.c
 +
 +    while(ptr != NULL)
 +    {
-+        if (strncmp(ptr->rootDir,applicationPath,strlen(applicationPath))==0)
++        if (strncmp(ptr->rootDir,applicationPath,strlen(applicationPath))==0
++        && strlen(ptr->rootDir) == strlen(applicationPath))
 +        {
 +            *sessionId = ptr->session_id;
 +            return 0;
@@ -696,7 +697,7 @@ Index: git/ss_fscryptctl.c
 +}
 +
 +/***************************************************************************
-+ * @brief API used to check the ownership capability against euid, read, write access, and file exist.
++ * @brief API used to check the ownership capability against group id, euid, read, write access, and file exist.
 + * @param dir indicates directory path.
 + * @return 0 upon success else returns appropriate error value.
 + ***************************************************************************/
@@ -712,11 +713,11 @@ Index: git/ss_fscryptctl.c
 +    ret = faccessat(AT_FDCWD,dir,W_OK | R_OK | F_OK, AT_EACCESS);
 +    if (ret == -1) {
 +        if (errno == EACCES) {
-+            printf("File [%s] is not executable by the effective user ID, errorno[%u]\n",dir, errno);
++            printf("Directory [%s] access denied, errorno[%u]\n",dir, errno);
 +            status = RDK_SS_ERROR_FAILURE;
 +        } else if (errno == ENOENT) {
-+            printf("Secure folder [%s] not exist, creating secure folder from kernel space\n", dir);
-+            return status;  
++            printf("Directory [%s] doesn't exist\n", dir);
++            status = RDK_SS_ERROR_PATH_NOT_EXIST;  
 +        } else {
 +            perror("faccessat");
 +            status = RDK_SS_ERROR_FAILURE;
@@ -826,8 +827,7 @@ Index: git/ss_fscryptctl.c
 +}
 +
 +/***************************************************************************
-+ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need,
-+ *          And also passing Address of SS Init Info structure to  kernel space with IOCTL call.
++ * @brief API used to Initialize the Secure Storage functionalities and allocate required resource and/or memory if need.
 + *          This function should be called once after the device bootup.
 + *
 + * @prerequisite : rdk_ss_getFunction() call should be successful.
@@ -842,6 +842,7 @@ Index: git/ss_fscryptctl.c
 + ***************************************************************************/
 +RDK_SS_ERROR_ENUM rdk_ss_init ( RDK_SS_INIT_INFO_STRUCT *pstxSSInitInfo )
 +{
++    struct fscrypt_init_info_arg Initarg = {0};
 +    RDK_SS_ERROR_ENUM eErrorCode = RDK_SS_ERROR_FAILURE;
 +    int fd  = -1;
 +    int ret = -1;
@@ -861,11 +862,27 @@ Index: git/ss_fscryptctl.c
 +            printf("stDevicePath.data is NULL or stDevicePath.size is 0\n");
 +            break;
 +        }
-+
 +        if(gsbRdkSSInitialization)
 +        {
 +            eErrorCode = RDK_SS_ERROR_SUCCESS;
 +            printf("Already Secure storage module initialized!!!\n");
++            break;
++        }
++        Initarg.stDevicePath.data = pstxSSInitInfo->stDevicePath.data;
++        Initarg.stDevicePath.size = pstxSSInitInfo->stDevicePath.size;
++        fd = open(Initarg.stDevicePath.data, O_RDONLY | O_CLOEXEC);
++        if (fd < 0)
++        {
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            printf("Device path[%s] open Failure\n",pstxSSInitInfo->stDevicePath.data);
++            break;
++        }
++
++        ret = ioctl(fd, FS_IOC_SS_INIT, &Initarg);
++        if (ret != 0)
++        {
++            eErrorCode = convertErrnoToSSErrorCode(errno, RDK_SS_INVALID_SESSION_ID);
++            printf("[ioctl] Secure storage init call failed. retun value %u ,eErrorCode :%u\n", ret,eErrorCode);
 +            break;
 +        }
 +
@@ -879,41 +896,9 @@ Index: git/ss_fscryptctl.c
 +
 +        gsstSSDevicePath.size = pstxSSInitInfo->stDevicePath.size;
 +        memcpy(gsstSSDevicePath.data, pstxSSInitInfo->stDevicePath.data, gsstSSDevicePath.size);
-+
-+        fd = open(pstxSSInitInfo->stDevicePath.data, O_RDONLY | O_CLOEXEC);
-+        if (fd < 0)
-+        {
-+            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("Device path[%s] open Failure\n",pstxSSInitInfo->stDevicePath.data);
-+            if(NULL != gsstSSDevicePath.data)
-+            {
-+                free(gsstSSDevicePath.data);
-+                gsstSSDevicePath.data = NULL;
-+                gsstSSDevicePath.size = 0;
-+            }
-+            break;
-+        }
-+        ret = ioctl(fd, FS_IOC_SS_INIT,pstxSSInitInfo);
-+        if (ret != 0)
-+        {
-+            eErrorCode = convertErrnoToSSErrorCode(errno, RDK_SS_INVALID_SESSION_ID);
-+            printf("[ioctl] Secure storage init call failed. retun value %u ,errno :%d\n", ret,errno);
-+            if(NULL != gsstSSDevicePath.data)
-+            {
-+                free(gsstSSDevicePath.data);
-+                gsstSSDevicePath.data = NULL;
-+                gsstSSDevicePath.size = 0;
-+            }
-+            break;
-+        }
 +        if (close(fd) < 0) {
 +            perror("close");
-+            if(NULL != gsstSSDevicePath.data)
-+            {
-+                free(gsstSSDevicePath.data);
-+                gsstSSDevicePath.data = NULL;
-+                gsstSSDevicePath.size = 0;
-+            }
++            eErrorCode = RDK_SS_ERROR_FAILURE;
 +            break;
 +        }
 +        if(!gsbRdkSSInitialization)
@@ -922,6 +907,15 @@ Index: git/ss_fscryptctl.c
 +        }
 +        eErrorCode = RDK_SS_ERROR_SUCCESS;
 +        break;
++    }
++    if (eErrorCode != RDK_SS_ERROR_SUCCESS)
++    {
++        if(NULL != gsstSSDevicePath.data)
++        {
++            free(gsstSSDevicePath.data);
++            gsstSSDevicePath.data = NULL;
++            gsstSSDevicePath.size = 0;
++        }
 +    }
 +    return eErrorCode;
 +}
@@ -971,6 +965,7 @@ Index: git/ss_fscryptctl.c
 +    char  acProcessUserId[15]   = "user_id"; /* need to replace with actual uid data */
 +    int   AppAbsolutePath_index  = 0;
 +    int   AppRelativePath_index  = 0;
++    int status = RDK_SS_ERROR_SUCCESS;
 +
 +
 +    for(;;)
@@ -1078,11 +1073,11 @@ Index: git/ss_fscryptctl.c
 +            printf("Session[%u] already Exist!!!\n", pstxSSOpenSessionIfo->uintSessionId);
 +            break;
 +        }
-+
-+        if (check_ownership_capability(pAppAbsolutePath)== RDK_SS_ERROR_FAILURE)
++        status = check_ownership_capability(pAppAbsolutePath);
++        if ((status != RDK_SS_ERROR_SUCCESS) && (status != RDK_SS_ERROR_PATH_NOT_EXIST))
 +        {
 +            eErrorCode = RDK_SS_ERROR_FAILURE;
-+            printf("ownership capability is falied for [%s] errorno[%u]\n", pAppAbsolutePath, errno);
++            printf("ownership capability is falied for [%s] eErrorCode :[%u]\n", pAppAbsolutePath, eErrorCode);
 +            break;
 +        }
 +
@@ -1101,7 +1096,7 @@ Index: git/ss_fscryptctl.c
 +        }
 +
 +        openSessionarg.policy.flags       = padding_flags;
-+        openSessionarg.root_dir           = pAppRelativePath;;
++        openSessionarg.root_dir           = pAppRelativePath;
 +        openSessionarg.policy.version     = FSCRYPT_POLICY_V2;
 +        openSessionarg.policy.contents_encryption_mode     = contents_encryption_mode;
 +        openSessionarg.policy.filenames_encryption_mode    = filenames_encryption_mode;
@@ -1117,7 +1112,7 @@ Index: git/ss_fscryptctl.c
 +        if (ret != 0)
 +        {
 +            eErrorCode = convertErrnoToSSErrorCode(errno, openSessionarg.session_id);
-+            printf("[ioctl] Open session call failed. retun value %u ,errno :%d\n", ret,errno);
++            printf("[ioctl] Open session call failed. retun value %u ,eErrorCode :%u\n", ret, eErrorCode);
 +            break;
 +        }
 +        pstxSSOpenSessionIfo->uintSessionId = openSessionarg.session_id;
@@ -1661,7 +1656,7 @@ Index: git/ss_fscryptctl.c
 +}
 +
 +/***************************************************************************
-+ * @brief API used to cleanup the SS initialization function, communicating to kernel with IOCTL call without any argument.
++ * @brief API used to cleanup the SS initialization function.
 + *          This function should be called once before the device shutdown.
 + *
 + * @prerequisite : rdk_ss_getFunction() call should be successful.
@@ -1681,7 +1676,7 @@ Index: git/ss_fscryptctl.c
 +        if(!gsbRdkSSInitialization)
 +        {
 +            eErrorCode = RDK_SS_ERROR_NO_MODULE_INIT;
-+            printf("Please call Secure Stroage init function before calling this function");
++            printf("Please call Secure Stroage init function before calling this function\n");
 +            break;
 +        }
 +
@@ -1696,27 +1691,27 @@ Index: git/ss_fscryptctl.c
 +        if (ret != 0)
 +        {
 +            eErrorCode = convertErrnoToSSErrorCode(errno, RDK_SS_INVALID_SESSION_ID);
-+            printf("[ioctl] Secure storage terminate call failed. retun value %u ,errno :%d\n", ret,errno);
++            printf("[ioctl] Secure storage terminate call failed. retun value %u ,eErrorCode :%u\n", ret,eErrorCode);
 +            break;
 +        }
-+
++        /* To DO: Need to handle the multi-instance use case */
++        if (close(fd) < 0) {
++            perror("close");
++            eErrorCode = RDK_SS_ERROR_FAILURE;
++            break;
++        }
++        eErrorCode = RDK_SS_ERROR_SUCCESS;
++        break;
++    }
++    if(eErrorCode == RDK_SS_ERROR_SUCCESS)
++    {
++        gsbRdkSSInitialization = FALSE;
 +        if(NULL != gsstSSDevicePath.data)
 +        {
 +            free(gsstSSDevicePath.data);
 +            gsstSSDevicePath.data = NULL;
 +            gsstSSDevicePath.size = 0;
 +        }
-+        /* To DO: Need to handle the multi-instance use case */
-+        if (close(fd) < 0) {
-+            perror("close");
-+            break;
-+        }
-+        if(gsbRdkSSInitialization)
-+        {
-+            gsbRdkSSInitialization = FALSE;
-+        }
-+        eErrorCode = RDK_SS_ERROR_SUCCESS;
-+        break;
 +    }
 +
 +    return eErrorCode;
@@ -1725,7 +1720,7 @@ Index: git/ss_fscryptctl.h
 ===================================================================
 --- /dev/null
 +++ git/ss_fscryptctl.h
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,151 @@
 +/*
 + * If not stated otherwise in this file or this component's Licenses.txt file the
 + * following copyright and licenses apply:
@@ -1824,6 +1819,11 @@ Index: git/ss_fscryptctl.h
 +    unsigned char master_key_identifier[FSCRYPT_KEY_IDENTIFIER_SIZE];
 +};
 +
++/* Struct passed to FS_IOC_SS_INIT */
++struct fscrypt_init_info_arg{
++    TRdkStringData stDevicePath;
++};
++
 +/* Struct passed to FS_IOC_OPEN_SESSION */
 +struct fscrypt_open_session_arg {
 +    char master_key[RDK_SS_MASTER_KEY_SIZE];
@@ -1868,7 +1868,7 @@ Index: git/ss_fscryptctl.h
 +#define FS_IOC_WRITE_ENCRYPTION_FILE_DATA      _IOW('f', 30, struct fscrypt_write_data_arg)
 +#define FS_IOC_CLOSE_SESSION                   _IOW('f', 31, struct fscrypt_close_session_arg)
 +#define FS_IOC_DELETE_DATA                     _IOW('f', 32, struct fscrypt_delete_file_arg)
-+#define FS_IOC_SS_INIT                         _IOW('f', 33, RDK_SS_INIT_INFO_STRUCT)
++#define FS_IOC_SS_INIT                         _IOW('f', 33, struct fscrypt_init_info_arg)
 +#define FS_IOC_SS_TERMINATE                    _IO('f', 34)
 +
 +#endif /* _SS_FSCRYPTCTL_H */
