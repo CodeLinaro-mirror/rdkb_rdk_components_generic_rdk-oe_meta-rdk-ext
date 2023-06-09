@@ -41,6 +41,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-035-avrcp-transport-volume-change.patch \
     file://bluez-5.48-036-changes_to_fix_crash_during_BT_SIG_tests.patch \
     file://bluez-5.48-037-bluetooth_avdtp_a2dp_abort.patch \
+    file://bluez-5.48-039-bluetooth_a2dp_ref_negative_abort.patch \
 	"
 
 ## Disabled SkyQ Patches
