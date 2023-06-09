@@ -165,6 +165,6 @@ PACKAGE_DEBUG_SPLIT_STYLE = "debug-without-src"
 
 # Ensure we'll get the recipe version and SRCRV into the versions.txt file part of the build image
 do_add_version () {
-    echo "WPE_WEBKIT_VERSION=${PV}" > ${EXTRA_VERSIONS_PATH}/${PN}.txt
+    echo "WPE_WEBKIT_VERSION=${PV}-${PR}" > ${EXTRA_VERSIONS_PATH}/${PN}.txt
 }
 
