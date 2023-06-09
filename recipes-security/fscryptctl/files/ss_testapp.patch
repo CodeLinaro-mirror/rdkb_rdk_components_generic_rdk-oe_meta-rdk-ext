@@ -1,0 +1,340 @@
+Index: git/Makefile
+===================================================================
+--- git.orig/Makefile
++++ git/Makefile
+@@ -60,6 +60,17 @@ $(OBJ): %.o: %.c $(HDRS)
+ 
+ libfscryptctl.so: $(OBJ)
+ 	$(CC) -shared -o $@ $^
++
++# Build the ss_testapp binary
++
++test/ss_testapp: libfscryptctl.so test/ss_testapp.o
++	$(CC) -o $@ $(CFLAGS) -L. -lfscryptctl $+
++
++test/ss_testapp.o: test/ss_testapp.c
++	$(CC) -o $@ -c $(CPPFLAGS) $(CFLAGS) $<
++
++
++
+ ##############################################################################
+ 
+ # Build the manual page
+@@ -135,7 +146,7 @@ test-all:
+ 
+ # Installation, uninstallation, and cleanup targets
+ 
+-all:fscryptctl libfscryptctl.so #fscryptctl.1
++all:fscryptctl libfscryptctl.so test/ss_testapp #fscryptctl.1
+ 
+ .PHONY: all install install-bin install-man uninstall clean
+ 
+@@ -143,6 +154,11 @@ install-bin: fscryptctl
+ 	install -d $(DESTDIR)$(BINDIR)
+ 	install -m755 $< $(DESTDIR)$(BINDIR)
+ 
++install-bin: test/ss_testapp
++	install -d $(DESTDIR)$(BINDIR)
++	install -m755 $< $(DESTDIR)$(BINDIR)
++	
++
+ #install-man: fscryptctl.1
+ #	install -d $(DESTDIR)$(MANDIR)/man1
+ #	install -m644 $< $(DESTDIR)$(MANDIR)/man1
+@@ -151,10 +167,11 @@ install:install-bin install-man
+ 
+ uninstall:
+ 	rm -f $(DESTDIR)$(BINDIR)/fscryptctl
++	rm -f $(DESTDIR)$(BINDIR)/test/ss_testapp
+ #	rm -f $(DESTDIR)$(MANDIR)/man1/fscryptctl.1
+ 
+ clean:
+-	rm -f fscryptctl fscryptctl.1 *.o *.pyc *.so
++	rm -f fscryptctl fscryptctl.1 test/ss_testapp  test/*.o *.o *.pyc *.so
+ 	rm -rf __pycache__
+ 	rm -rf .pytest_cache
+ 
+Index: git/test/ss_testapp.c
+===================================================================
+--- /dev/null
++++ git/test/ss_testapp.c
+@@ -0,0 +1,279 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <errno.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/time.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include "../secure_storage.h"
++
++//#define ENABLE_FSCRYPT_PERFORMANCE_PROFILING
++
++#ifdef ENABLE_FSCRYPT_PERFORMANCE_PROFILING
++unsigned int fileSize = 0;
++unsigned char *str = NULL;
++#endif
++
++int main(int argc,char *const argv[])
++{
++	int ch;
++	unsigned char *dataBuffer = NULL;
++	unsigned int fileSize = 100*1024;
++	char *str = "This is for fscrypt write and read data testing";
++	char *writeAppendData = "This is fscrypt append data testing";
++
++	#ifdef ENABLE_FSCRYPT_PERFORMANCE_PROFILING
++	char path[256]={'\0'};
++	FILE *fp =NULL;
++	#endif
++
++	RDK_SS_FUNCTION_STRUCT *pSSFunctionStruct = NULL;
++	RDK_SS_INIT_INFO_STRUCT         stSSInitInfo         = {0};
++	RDK_SS_OPENSESSION_INFO_STRUCT  stSSOpenSessionIfo   = {0};
++	RDK_SS_WRITE_DATA_INFO_STRUCT   stSSWriteDataInfo    = {0};
++	RDK_SS_READ_DATA_INFO_STRUCT    stSSReadDataInfo     = {0};
++	RDK_SS_DELETE_DATA_INFO_STRUCT  stSSDeleteDataInfo   = {0};
++	RDK_SS_CLOSESESSION_INFO_STRUCT stSSCloseSessionInfo = {0};
++	
++	stSSInitInfo.stDevicePath.data = "/opt/secure";
++	stSSInitInfo.stDevicePath.size = strlen(stSSInitInfo.stDevicePath.data);
++
++	rdk_ss_getFunction(&pSSFunctionStruct);
++	pSSFunctionStruct->rdk_ss_init(&stSSInitInfo);
++
++	do
++	{	
++		char masterkey[64]={'\0'};
++		char application_path[64]={'\0'};
++		unsigned char domain_name[64]={'\0'};
++		unsigned char key_name[64]={'\0'};
++		unsigned int status = 1;
++		int mode = 0;
++		int isDomainAvailable = 0;
++
++		printf("\n\tFSCRYPT DEMO APP");
++		printf("\n------------------------------");
++		printf("\n1:Open session");
++		printf("\n2:Read data");
++		printf("\n3:Write data");
++		printf("\n4:close session ");
++		printf("\n5:Print session info");
++		printf("\n7:Exit");
++		printf("\n6:Delete data");
++		printf("\n------------------------------\n");
++		printf("\nEnter your choice: ");
++		scanf("%d",&ch);
++		switch(ch)
++		{
++		case 1:
++			memset(&stSSOpenSessionIfo, 0, sizeof(stSSOpenSessionIfo));
++			printf("Enter 64 byte Master key: ");
++			scanf("%s",masterkey);
++
++			if(0 != strcmp(masterkey,"NULL"))
++			{
++				memcpy(stSSOpenSessionIfo.acMasterKey, masterkey, strlen(masterkey));
++			}
++
++			printf("Enter application encrypt secure dir path: ");
++			scanf("%s",application_path);
++			
++			if(strcmp(application_path,"NULL") == 0)
++			{
++				printf("\n application path should be valid\n");
++				break;
++			}
++			
++			stSSOpenSessionIfo.stAppRootPath.data = application_path;
++			stSSOpenSessionIfo.stAppRootPath.size = strlen(application_path);
++			
++			status = pSSFunctionStruct->rdk_ss_openSession(&stSSOpenSessionIfo);
++			
++			printf("\nstatus:%u - session id:%u\n",status, stSSOpenSessionIfo.uintSessionId);
++		break;
++		case 2:
++			memset(&stSSReadDataInfo, 0, sizeof(stSSReadDataInfo));
++			printf("Enter domain name: ");
++			scanf("%s",domain_name);
++			
++			if(0 != strcmp(domain_name,"NULL"))
++			{
++				stSSReadDataInfo.stDomain.data = domain_name;
++				stSSReadDataInfo.stDomain.size = strlen(domain_name);
++			}
++			
++			printf("Enter key name: ");
++			scanf("%s",key_name);
++			if(0 != strcmp(key_name,"NULL"))
++			{
++				stSSReadDataInfo.stKey.data = key_name;
++				stSSReadDataInfo.stKey.size = strlen(key_name);
++			}
++			else
++			{
++				printf("\n Key name should be valid\n");
++				break;
++			}
++			
++			printf("Enter session Id: ");
++			scanf("%u",&stSSReadDataInfo.uintSessionId);
++			
++			#ifdef ENABLE_FSCRYPT_PERFORMANCE_PROFILING
++			printf("Enter the file size: ");
++			scanf("%u",&fileSize);
++			#endif
++
++			dataBuffer = (unsigned char *)malloc(fileSize);
++			if (dataBuffer == NULL)
++			{
++				printf("Mem alloc Fail\n");
++				return 0;
++			}
++			
++			stSSReadDataInfo.stData.data = dataBuffer;
++			stSSReadDataInfo.stData.size = fileSize;
++			
++			status = pSSFunctionStruct->rdk_ss_readData(&stSSReadDataInfo);
++            		printf("\nrdk_ss_readData Status[%u]\n",status);
++			
++			if(RDK_SS_ERROR_SUCCESS == status)
++			{
++				printf("readData[%s]\n", stSSReadDataInfo.stData.data);
++			}
++			free(dataBuffer);
++		break;
++		case 3:
++			memset(&stSSWriteDataInfo, 0, sizeof(stSSWriteDataInfo));
++			printf("Enter domain name: ");
++			scanf("%s",domain_name);
++			
++			if(0 != strcmp(domain_name,"NULL"))
++			{
++				stSSWriteDataInfo.stDomain.data = domain_name;
++				stSSWriteDataInfo.stDomain.size = strlen(domain_name);
++			}
++			
++			printf("Enter key name: ");
++			scanf("%s",key_name);
++			if(0 != strcmp(key_name,"NULL"))
++			{
++				stSSWriteDataInfo.stKey.data = key_name;
++				stSSWriteDataInfo.stKey.size = strlen(key_name);
++			}
++			else
++			{
++				printf("\n Key name should be valid\n");
++				break;
++			}
++			
++			printf("Enter session Id: ");
++			scanf("%u",&stSSWriteDataInfo.uintSessionId);
++			
++			#ifdef ENABLE_FSCRYPT_PERFORMANCE_PROFILING
++			printf("Enter file path: ");
++			scanf("%s",path);
++			printf("Enter the file size: ");
++			scanf("%u",&fileSize);
++			
++			str = (unsigned char *)malloc(fileSize);
++			if (str == NULL)
++			{
++				printf("Mem alloc Fail\n");
++				return 0;
++			}
++			fp = fopen(path,"r");
++			if (fp == NULL)
++			{
++				printf("fopen fail\n");
++				free(str);
++				return 0;
++			}
++			fread(str,fileSize,1,fp);
++			fclose(fp);
++			#endif
++
++			printf("Enter File mode: 0 for write, 1 for append: \n");
++			scanf("%d",&mode);
++			if(mode == 0)
++			{
++				stSSWriteDataInfo.stData.data = str;
++				stSSWriteDataInfo.stData.size = strlen(str);
++				stSSWriteDataInfo.eFileMode = RDK_SS_FILE_MODE_WRITE;
++			}
++			else if(mode == 1)
++			{
++				stSSWriteDataInfo.stData.data = writeAppendData;
++				stSSWriteDataInfo.stData.size = strlen(writeAppendData);
++				stSSWriteDataInfo.eFileMode = RDK_SS_FILE_MODE_APPEND;
++			}
++			else
++			{
++				printf("\nfile mode should be 0 (or) 1");
++				break;
++			}
++		
++			status = pSSFunctionStruct->rdk_ss_writeData(&stSSWriteDataInfo);
++			printf("\nrdk_ss_writeData Status[%u]\n",status);
++		break;
++		case 4:
++			printf("Enter session Id: ");
++			scanf("%u",&stSSCloseSessionInfo.uintSessionId);
++			status = pSSFunctionStruct->rdk_ss_closeSession(&stSSCloseSessionInfo);
++			printf("\nrdk_ss_closeSession Status[%u] \n",status);
++		break;
++		case 5:
++				//printList();
++		break;
++		case 6:
++			memset(&stSSDeleteDataInfo, 0, sizeof(stSSDeleteDataInfo));
++			printf("Enter domain name: ");
++			scanf("%s",domain_name);
++			
++			if(0 != strcmp(domain_name,"NULL"))
++			{
++				stSSDeleteDataInfo.stDomain.data = domain_name;
++				stSSDeleteDataInfo.stDomain.size = strlen(domain_name);
++				isDomainAvailable = 1;
++			}
++			else
++			{
++				isDomainAvailable = 0;
++			}
++			
++			printf("Enter key name: ");
++			scanf("%s",key_name);
++			if(0 != strcmp(key_name,"NULL"))
++			{
++				stSSDeleteDataInfo.stKey.data = key_name;
++				stSSDeleteDataInfo.stKey.size = strlen(key_name);
++			}
++			else
++			{
++				if(0 == isDomainAvailable)
++				{
++					printf("\n Domain (or) Key name should be valid\n");
++					break;
++				}
++			}
++			
++			printf("Enter session Id: ");
++			scanf("%u",&stSSDeleteDataInfo.uintSessionId);
++		
++			status = pSSFunctionStruct->rdk_ss_deleteData(&stSSDeleteDataInfo);
++			printf("\nrdk_ss_deleteData status[%u]\n",status);
++		break;
++		case 7:
++			pSSFunctionStruct->rdk_ss_terminate();
++			exit(0);
++		break;
++		default:
++			printf("Invalid Input. Please Enter valid Input.\n\n ");
++		break;
++		}
++	}while(ch!=7);
++
++	return 0;
++}

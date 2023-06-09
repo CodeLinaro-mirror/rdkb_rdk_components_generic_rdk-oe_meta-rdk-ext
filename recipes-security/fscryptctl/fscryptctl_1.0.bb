@@ -19,7 +19,9 @@ SRC_URI += "file://firstboot.service \
             file://Makefile.patch \
             file://fscryptctl_so_creation.patch \
             file://ss_fscryptctl.patch \
-            file://fscrypt.conf "
+            file://fscrypt.conf \
+            file://ss_testapp.patch \
+"
 
 PACKAGES = "${PN} ${PN}-dev ${PN}-dbg ${PN}-staticdev"
 
@@ -43,6 +45,7 @@ do_install_append () {
     install -d ${D}${libdir}
     install -d ${D}${includedir}
     install -m 0755 fscryptctl ${D}${bindir}
+    install -m 0755 test/ss_testapp ${D}${bindir}
     install -m 0755 libfscryptctl.so  ${D}${libdir}/
     install -m 0644 secure_storage.h ${D}${includedir}/
     install -d ${D}${systemd_unitdir}/system ${D}${sysconfdir}
