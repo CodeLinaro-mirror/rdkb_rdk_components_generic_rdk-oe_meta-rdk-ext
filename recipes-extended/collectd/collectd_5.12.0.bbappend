@@ -1,7 +1,4 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-SRC_URI += " \
-        file://update-mac-address.sh \
-       "
 
 PACKAGECONFIG[mysql] = "--with-libmysql,--with-libmysql=no,mysql5,"
 PACKAGECONFIG[gcrypt] = "--with-libgcrypt=${STAGING_BINDIR_CROSS}/libgcrypt-config,--with-libgcrypt=no,libgcrypt,"
@@ -21,9 +18,3 @@ EXTRA_OECONF := " \
 EXTRA_OECONF += " \
 		--enable-mqtt \
 "
-
-do_install_append(){
-    install -D -m 755 ${WORKDIR}/update-mac-address.sh  ${D}${base_libdir}/rdk/update-mac-address.sh
-}
-
-FILES_${PN} += "${base_libdir}/rdk/update-mac-address.sh"
