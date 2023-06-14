@@ -11,11 +11,20 @@ CFLAGS += " -DNO_INOTIFY"
 SRC_URI += "file://dnsmasqLauncher.sh"
 SRC_URI_append_broadband += "file://dnsmasq_syslog_quiet.patch"
 
-inherit syslog-ng-config-gen
+inherit syslog-ng-config-gen logrotate
 SYSLOG-NG_FILTER = "dnsmasq"
 SYSLOG-NG_SERVICE_dnsmasq = "dnsmasq.service"
 SYSLOG-NG_DESTINATION_dnsmasq = "dnsmasq.log"
 SYSLOG-NG_LOGRATE_dnsmasq = "low"
+
+LOGROTATE_NAME="dnsmasq"
+LOGROTATE_LOGNAME_dnsmasq="dnsmasq.log"
+#HDD_ENABLE
+LOGROTATE_SIZE_dnsmasq="1572864"
+LOGROTATE_ROTATION_dnsmasq="3"
+#HDD_DISABLE
+LOGROTATE_SIZE_MEM_dnsmasq="1572864"
+LOGROTATE_ROTATION_MEM_dnsmasq="3"
 
 do_install_append() {
      install -d ${D}${base_libdir}/rdk
