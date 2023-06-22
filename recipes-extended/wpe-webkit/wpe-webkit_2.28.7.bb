@@ -21,7 +21,6 @@ BASE_URI ?= "git://github.com/WebPlatformForEmbedded/WPEWebKit.git;protocol=http
 SRC_URI = "${BASE_URI}"
 
 # Drop after a PR is approved or different fix is available in wpe-2.28 branch
-SRC_URI += "file://2.28/868.patch"
 SRC_URI += "file://2.28/989.patch"
 SRC_URI += "file://2.28.3/996.patch"
 SRC_URI += "file://2.28.3/1005.patch"
@@ -72,6 +71,7 @@ SRC_URI += "file://2.28.4/comcast-DELIA-60055-Analyze-higher-CPU-usage.patch"
 SRC_URI += "file://2.28/comcast-DELIA-60706-Allow-seeking-during-PAUSED-to-PLAYING.patch"
 SRC_URI += "file://2.28.6/comcast-DELIA-60613-WebRTC-streaming-fails-with-test-app.patch"
 SRC_URI += "file://2.28/comcast-DELIA-60227-Malloc-Heap-Breakdown.patch"
+SRC_URI += "file://2.28.7/comcast-DELIA-62248-Fix-AppleTV-format-error.patch"
 
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
 PACKAGECONFIG[encryptedmedia]    = "-DENABLE_ENCRYPTED_MEDIA=ON,-DENABLE_ENCRYPTED_MEDIA=OFF,"
