@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r1"
+PR  = "r2"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -74,6 +74,7 @@ SRC_URI += "file://2.28/comcast-DELIA-60706-Allow-seeking-during-PAUSED-to-PLAYI
 SRC_URI += "file://2.28.6/comcast-DELIA-60613-WebRTC-streaming-fails-with-test-app.patch"
 SRC_URI += "file://2.28/comcast-DELIA-60227-Malloc-Heap-Breakdown.patch"
 SRC_URI += "file://2.28.7/comcast-DELIA-62248-Fix-AppleTV-format-error.patch"
+SRC_URI += "file://2.28.7/comast-XIONE-12615-Perform-instant-rate-change-using-custom-event.patch"
 
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
 PACKAGECONFIG[encryptedmedia]    = "-DENABLE_ENCRYPTED_MEDIA=ON,-DENABLE_ENCRYPTED_MEDIA=OFF,"
