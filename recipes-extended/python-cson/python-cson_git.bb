@@ -15,7 +15,7 @@ S = "${WORKDIR}/git"
 RDEPENDS_${PN}_class-native = ""
 DEPENDS_append_class-native = " python-native "
 
-inherit setuptools
+inherit ${@bb.utils.contains("DISTRO_FEATURES", "kirkstone", "setuptools3", "setuptools", d)}
 
 BBCLASSEXTEND = "native"
 
