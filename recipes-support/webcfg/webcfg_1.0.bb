@@ -8,7 +8,7 @@ DEPENDS = "cjson trower-base64 msgpack-c cimplog wdmp-c curl wrp-c"
 DEPENDS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " rbus cpeabs", " ", d)}"
 DEPENDS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'aker', ' nanomsg libparodus ', '', d)}"
 
-SRCREV = "eb455fc3e875a487c33d84233a3a363a1f3c9c49"
+SRCREV = "7aef938139823450f6977a04183f9d031173ad72"
 SRC_URI = "git://github.com/xmidt-org/webcfg.git"
 
 RDEPENDS_${PN} += "util-linux-uuidgen"
@@ -27,6 +27,8 @@ EXTRA_OECMAKE += " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin', '-DW
 
 EXTRA_OECMAKE += " ${@bb.utils.contains('DISTRO_FEATURES', 'aker', '-DFEATURE_SUPPORT_AKER=true', '', d)}"
 
+EXTRA_OECMAKE += " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin mqttCM', '-DFEATURE_SUPPORT_MQTTCM=true', '', d)}"
+
 LDFLAGS += "-lcjson -lmsgpackc -ltrower-base64 -lwdmp-c -lcimplog -lcurl -lwrp-c"
 
 LDFLAGS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " -lrbus -lcpeabs ", " ", d)}"
@@ -36,6 +38,8 @@ LDFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'aker', ' -llibparodu
 CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'multipartUtility', '-DMULTIPART_UTILITY', '', d)}"
 
 CFLAGS_append = " ${@bb.utils.contains("DISTRO_FEATURES", "WanFailOverSupportEnable", " -DWAN_FAILOVER_SUPPORTED ", " ", d)} "
+
+CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin mqttCM', '-DFEATURE_SUPPORT_MQTTCM', '', d)}"
 
 CFLAGS_append = " \
         -DBUILD_YOCTO \
