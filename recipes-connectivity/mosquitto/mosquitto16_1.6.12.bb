@@ -5,8 +5,8 @@ SECTION = "console/network"
 LICENSE = "EPL-1.0 | EDL-1.0"
 LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=62ddc846179e908dc0c8efec4a42ef20"
 
-DEPENDS = "openssl util-linux python c-ares"
-
+DEPENDS = "openssl util-linux c-ares"
+DEPENDS += "${@bb.utils.contains_any('DISTRO_FEATURES', 'kirkstone', ' python3', ' python', d)}"
 PR = "r0"
 
 # Don't autoname this library package, just use the PN.
