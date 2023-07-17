@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r2"
+PR  = "r3"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -32,6 +32,7 @@ SRC_URI += "file://2.28.6/1073.patch"
 SRC_URI += "file://2.28.7/1074.patch"
 SRC_URI += "file://2.28.6/1076.patch"
 SRC_URI += "file://2.28.6/1086.patch"
+SRC_URI += "file://2.28.7/1117.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.28/comcast-XRE-15382-libwebrtc-fake-encoder.patch"
@@ -53,7 +54,7 @@ SRC_URI += "file://2.28/comcast-RDKTV-380-disable-privileges-loss.patch"
 SRC_URI += "file://2.28/comcast-RDK-28954-add-securedump-location.patch"
 SRC_URI += "file://2.28/comcast-RDKTV-17737-play-pause-mapping.patch"
 SRC_URI += "file://2.28/comcast-XRE-15382-XIONE-4595-RDKTV-17736-HDR-DV-conf.patch"
-SRC_URI += "file://2.28/comcast-RDK-37080-disable-reenqueing-of-audio-sample.patch"
+SRC_URI += "file://2.28.7/comcast-RDK-37080-DELIA-62337-disable-reenqueing-of-.patch"
 SRC_URI += "file://2.28/comcast-RDKTV-17281-RDKTV-17781-Workaround-for-AppleTV-rende.patch"
 SRC_URI += "file://2.28/comcast-RDK-37379-Mute-release-logging.patch"
 SRC_URI += "file://2.28/comcast-DELIA-57173-WebRTC-disable-VAD-by-default.patch"
