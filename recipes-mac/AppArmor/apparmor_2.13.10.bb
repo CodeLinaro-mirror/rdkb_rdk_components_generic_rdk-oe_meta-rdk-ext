@@ -15,7 +15,6 @@ DEPENDS = "bison-native apr gettext-native coreutils-native linux-libc-headers"
 
 SRC_URI = " \
     git://gitlab.com/apparmor/apparmor.git;protocol=https;branch=apparmor-2.13 \
-    file://disable_perl_h_check.patch \
     file://crosscompile_perl_bindings.patch \
     file://apparmor.rc \
     file://functions \
@@ -23,11 +22,9 @@ SRC_URI = " \
     file://apparmor.service \
     file://0001-Makefile.am-suppress-perllocal.pod.patch \
     file://run-ptest \
-    file://0001-regression-tests-Don-t-build-syscall_sysctl-if-missi.patch \
-    file://0001-tests-regression-fix-failure-on-older-versions-of-Ma.patch \
-    "
+"
 
-SRCREV = "df0ac742f7a1146181d8734d03334494f2015134"
+SRCREV = "b1d7dcab241f35e54ae6a32649eae51cf04553f3"
 S = "${WORKDIR}/git"
 
 PARALLEL_MAKE = ""
