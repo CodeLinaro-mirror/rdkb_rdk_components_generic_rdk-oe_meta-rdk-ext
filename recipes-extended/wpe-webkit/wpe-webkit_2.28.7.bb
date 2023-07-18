@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r5"
+PR  = "r6"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -50,7 +50,7 @@ SRC_URI += "file://2.28/comcast-RDKTV-6665-Remove-screen-saver-disabler.patch"
 SRC_URI += "file://2.28/comcast-LLAMA-2184-Support-for-external-sink-for-x-d.patch"
 SRC_URI += "file://2.28/comcast-XRE-16393-DELIA-52142-Accessibility.patch"
 SRC_URI += "file://2.28/comcast-XRE-14272-Speech-Synthesis.patch"
-SRC_URI += "file://2.28/comcast-XRE-13799-XRE-13989-Track-encrypted-playback.patch"
+SRC_URI += "file://2.28.7/comcast-XRE-13799-XRE-13989-Track-encrypted-playback.patch"
 SRC_URI += "file://2.28/comcast-RDKTV-380-disable-privileges-loss.patch"
 SRC_URI += "file://2.28/comcast-RDK-28954-add-securedump-location.patch"
 SRC_URI += "file://2.28/comcast-RDKTV-17737-play-pause-mapping.patch"
