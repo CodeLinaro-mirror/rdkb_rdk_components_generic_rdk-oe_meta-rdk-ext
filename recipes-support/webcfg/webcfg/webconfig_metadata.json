@@ -1198,6 +1198,17 @@
                                   "version": "1.0"
                                }
                             ]
+               },
+			   {
+                 "group_id": 16,
+                     "subdocs": [
+                   	       {
+                     		  "name": "prioritizedmacs",
+                     		  "bitposition": 1,
+                     		  "support": true,
+                     		  "version": "1.0"
+                               }
+                            ]
                }
              ],
 	"tchxb7" : [
@@ -1436,6 +1447,17 @@
                                   "bitposition": 2,
                                   "support": false,
                                   "version": "1.0"
+                               }
+                            ]
+               },
+			   {
+                 "group_id": 16,
+                     "subdocs": [
+                   	       {
+                     		  "name": "prioritizedmacs",
+                     		  "bitposition": 1,
+                     		  "support": true,
+                     		  "version": "1.0"
                                }
                             ]
                }
@@ -1678,6 +1700,17 @@
                      "version": "1.0"
                    }
                  ]
+               },
+			   {
+                 "group_id": 16,
+                     "subdocs": [
+                   	       {
+                     		  "name": "prioritizedmacs",
+                     		  "bitposition": 1,
+                     		  "support": true,
+                     		  "version": "1.0"
+                               }
+                            ]
                }
              ],
     "cbr" : [
@@ -2638,7 +2671,18 @@
                                       "version": "1.0"
                                    }
                                 ]
-                   }
+                   },
+			   {
+                 "group_id": 16,
+                     "subdocs": [
+                   	       {
+                     		  "name": "prioritizedmacs",
+                     		  "bitposition": 1,
+                     		  "support": false,
+                     		  "version": "1.0"
+                               }
+                            ]
+               }
             ],
      "skyse501" : [
                   {
