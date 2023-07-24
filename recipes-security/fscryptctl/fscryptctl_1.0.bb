@@ -16,11 +16,9 @@ SRC_URI = "git://github.com/google/fscryptctl.git"
 S = "${WORKDIR}/git"
 
 SRC_URI += "file://firstboot.service \
-            file://Makefile.patch \
-            file://fscryptctl_so_creation.patch \
+            file://fscryptctl_compilation_support.patch \
             file://ss_fscryptctl.patch \
             file://fscrypt.conf \
-            file://ss_testapp.patch \
 "
 
 PACKAGES = "${PN} ${PN}-dev ${PN}-dbg ${PN}-staticdev"
