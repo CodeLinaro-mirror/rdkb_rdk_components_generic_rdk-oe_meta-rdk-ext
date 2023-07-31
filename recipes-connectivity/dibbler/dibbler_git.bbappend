@@ -22,6 +22,6 @@ SRC_URI_append_broadband = "${@bb.utils.contains('DISTRO_FEATURES', 'kirkstone',
 SRC_URI_append_broadband_kirkstone = " file://dhcpv6c_handle_system_time_change_kirkstone.patch \
 				       file://Fix-For-Dibbler-Crash-InNobinding-Rebinding-Solicit-Transition_kirkstone.patch"
 
-SRC_URI_append_broadband = " file://Fix-Dibbler-IPv6-Resolve-Conf-Expiry-Event-Alignment.patch"
+#SRC_URI_append_broadband = " file://Fix-Dibbler-IPv6-Resolve-Conf-Expiry-Event-Alignment.patch"
 SRC_URI_append_kirkstone = " file://0001-TOptIAPrefix-args-in-TClntOptIA_PD-constructor.patch"
 SRC_URI_append_kirkstone = " file://0001-fix-misguided-and-broken-usage-of-clock_gettime-CLOC.patch"
