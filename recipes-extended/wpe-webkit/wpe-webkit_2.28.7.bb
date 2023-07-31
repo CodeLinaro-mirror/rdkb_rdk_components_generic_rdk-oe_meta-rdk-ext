@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r3"
+PR  = "r4"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -127,7 +127,7 @@ PACKAGECONFIG[instantratechange] = "-DENABLE_INSTANT_RATE_CHANGE=ON,-DENABLE_INS
 PACKAGECONFIG[malloc_heap_breakdown] = "-DENABLE_MALLOC_HEAP_BREAKDOWN=ON,-DENABLE_MALLOC_HEAP_BREAKDOWN=OFF,malloc-zone, malloc-zone"
 
 PACKAGECONFIG_append = " cssshapes fetchapi full_logs performance-timeline picturesize \
-                         promise ${PROVISIONING} resourcetiming"
+                         promise ${PROVISIONING} resourcetiming instantratechange"
 PACKAGECONFIG_append = " webcrypto webdriver intl remoteinspector experimental releaselog accessibility speechsynthesis native_video webaudio"
 PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'usesoup3', 'usesoup2', d)}"
 
