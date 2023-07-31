@@ -5,10 +5,12 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=41f7ad6513191953eb3e0b1e480a7ddb"
 
 SRC_URI = "git://github.com/TeknoVenus/MemCapture.git;branch=master"
 SRC_URI += "file://groups.json"
-SRCREV = "${AUTOREV}"
+SRCREV = "9dd5d79e59850b50f5ae54861bf922a493f64f16"
 
 S = "${WORKDIR}/git"
 B = "${WORKDIR}/git/build"
+
+DEPENDS = "breakpad breakpad-wrapper"
 
 inherit cmake syslog-ng-config-gen
 EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=Release"
