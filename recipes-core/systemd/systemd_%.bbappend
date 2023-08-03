@@ -112,6 +112,9 @@ do_install_append_client() {
         rm -rf ${D}${rootlibexecdir}/systemd/systemd-update-done
         rm -rf ${D}${rootlibexecdir}/systemd/system/systemd-update-done.service
         rm -rf ${D}${rootlibexecdir}/systemd/system/sysinit.target.wants/systemd-update-done.service
+	sed -i '$a\net.ipv4.conf.all.send_redirects=0' ${D}${sysconfdir}/sysctl.d/traffic-filter.conf
+        sed -i '$a\net.ipv4.conf.default.send_redirects=0' ${D}${sysconfdir}/sysctl.d/traffic-filter.conf
+        sed -i '$a\net.ipv4.route.flush = 1' ${D}${sysconfdir}/sysctl.d/traffic-filter.conf
         sed -i -e 's/systemd-update-done.service//g' ${D}${systemd_unitdir}/system/systemd-journal-catalog-update.service
         sed -i -e 's/systemd-update-done.service//g' ${D}${systemd_unitdir}/system/systemd-sysusers.service || true
 }
