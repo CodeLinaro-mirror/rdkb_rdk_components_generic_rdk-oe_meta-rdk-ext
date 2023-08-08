@@ -1,0 +1,127 @@
+diff --git a/src/gatt-client.c b/src/gatt-client.c
+index aad81351a..2d02687e5 100644
+--- a/src/gatt-client.c
++++ b/src/gatt-client.c
+@@ -56,6 +56,7 @@
+ #define GATT_CHARACTERISTIC_IFACE	"org.bluez.GattCharacteristic1"
+ #define GATT_DESCRIPTOR_IFACE		"org.bluez.GattDescriptor1"
+ 
++#define NOTIFY_CLIENTS_TO_CHECK 20
+ struct btd_gatt_client {
+ 	struct btd_device *device;
+ 	bool ready;
+@@ -1282,6 +1283,58 @@ struct notify_client {
+ 	unsigned int notify_id;
+ };
+ 
++static struct notify_client * removed_notify_clients[NOTIFY_CLIENTS_TO_CHECK] = {0};
++
++static bool add_removed_notify_client(struct notify_client *client)
++{
++	uint8_t i;
++	DBG("Client: %p", client);
++	for (i = 0; i < NOTIFY_CLIENTS_TO_CHECK; i++)
++	{
++		if (removed_notify_clients[i] == 0)
++		{
++			removed_notify_clients[i] = client;
++			return true;
++		}
++	}
++	for (i = 1; i < NOTIFY_CLIENTS_TO_CHECK; i++)
++	{
++		removed_notify_clients[i - 1] = removed_notify_clients[i];
++	}
++	removed_notify_clients[NOTIFY_CLIENTS_TO_CHECK - 1] = client;
++	return true;
++}
++
++static bool check_removed_notify_clients(struct notify_client *client)
++{
++	uint8_t i;
++	DBG("Client: %p", client);
++	for (i = 0; i < NOTIFY_CLIENTS_TO_CHECK; i++)
++	{
++		if (removed_notify_clients[i] == client)
++		{
++			DBG("Client has already been removed from the queue");
++			return true;
++		}
++	}
++	return false;
++}
++
++static bool remove_removed_notify_client(struct notify_client *client)
++{
++	uint8_t i;
++	DBG("Client: %p", client);
++	for (i = 0; i < NOTIFY_CLIENTS_TO_CHECK; i++)
++	{
++		if (removed_notify_clients[i] == client)
++		{
++			client = 0;
++			return true;
++		}
++	}
++	return false;
++}
++
+ static void notify_client_free(struct notify_client *client)
+ {
+ 	DBG("owner %s", client->owner);
+@@ -1342,7 +1395,11 @@ static void notify_client_disconnect(DBusConnection *conn, void *user_data)
+ 	struct characteristic *chrc = client->chrc;
+ 
+ 	DBG("owner %s", client->owner);
+-
++	if(check_removed_notify_clients(client))
++	{
++		return;
++	}
++	add_removed_notify_client(client);
+ 	queue_remove(chrc->notify_clients, client);
+ 	queue_remove(chrc->service->client->all_notify_clients, client);
+ 
+@@ -1467,6 +1524,11 @@ static void register_notify_io_cb(uint16_t att_ecode, void *user_data)
+ 	struct bt_gatt_client *gatt = chrc->service->client->gatt;
+ 
+ 	if (att_ecode) {
++		if(check_removed_notify_clients(client))
++		{
++			return;
++		}
++		add_removed_notify_client(client);
+ 		queue_remove(chrc->notify_clients, client);
+ 		notify_client_free(client);
+ 		return;
+@@ -1486,7 +1548,11 @@ static void register_notify_io_cb(uint16_t att_ecode, void *user_data)
+ static void notify_io_destroy(void *data)
+ {
+ 	struct notify_client *client = data;
+-
++	if(check_removed_notify_clients(client))
++	{
++		return;
++	}
++	add_removed_notify_client(client);
+ 	if (queue_remove(client->chrc->notify_clients, client))
+ 		notify_client_unref(client);
+ }
+@@ -1525,7 +1591,7 @@ static DBusMessage *characteristic_acquire_notify(DBusConnection *conn,
+ 		notify_client_unref(client);
+ 		return btd_error_failed(msg, "Failed to subscribe");
+ 	}
+-
++	remove_removed_notify_client(client);
+ 	queue_push_tail(chrc->notify_clients, client);
+ 
+ 	chrc->notify_io = new0(struct pipe_io, 1);
+@@ -1568,7 +1634,7 @@ static DBusMessage *characteristic_start_notify(DBusConnection *conn,
+ 	client = notify_client_create(chrc, sender);
+ 	if (!client)
+ 		return btd_error_failed(msg, "Failed allocate notify session");
+-
++	remove_removed_notify_client(client);
+ 	queue_push_tail(chrc->notify_clients, client);
+ 	queue_push_tail(chrc->service->client->all_notify_clients, client);
+ 
