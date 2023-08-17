@@ -5,14 +5,14 @@ Subject: [PATCH] added support for cbcs encryption scheme
 
 ---
  gst/isomp4/fourcc.h  |   1 +
- gst/isomp4/qtdemux.c | 137 +++++++++++++++++++++++++++++++++++--------
- 2 files changed, 112 insertions(+), 26 deletions(-)
+ gst/isomp4/qtdemux.c | 169 ++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 136 insertions(+), 34 deletions(-)
 
 diff --git a/gst/isomp4/fourcc.h b/gst/isomp4/fourcc.h
-index 2ed9c23e8..939e2a961 100644
+index 5be8d4077..b3af931f7 100644
 --- a/gst/isomp4/fourcc.h
 +++ b/gst/isomp4/fourcc.h
-@@ -403,6 +403,7 @@ G_BEGIN_DECLS
+@@ -408,6 +408,7 @@ G_BEGIN_DECLS
  #define FOURCC_pssh     GST_MAKE_FOURCC('p','s','s','h')
  #define FOURCC_tenc     GST_MAKE_FOURCC('t','e','n','c')
  #define FOURCC_cenc     GST_MAKE_FOURCC('c','e','n','c')
@@ -21,20 +21,20 @@ index 2ed9c23e8..939e2a961 100644
  
  G_END_DECLS
 diff --git a/gst/isomp4/qtdemux.c b/gst/isomp4/qtdemux.c
-index 44d8feec0..41c3a3578 100644
+index bc675f459..d62ddddb3 100644
 --- a/gst/isomp4/qtdemux.c
 +++ b/gst/isomp4/qtdemux.c
-@@ -2612,7 +2612,8 @@ gst_qtdemux_stream_clear (QtDemuxStream * stream)
+@@ -2672,7 +2672,8 @@ gst_qtdemux_stream_clear (QtDemuxStream * stream)
    stream->sent_eos = FALSE;
    stream->protected = FALSE;
    if (stream->protection_scheme_info) {
 -    if (stream->protection_scheme_type == FOURCC_cenc) {
 +    if (stream->protection_scheme_type == FOURCC_cenc
-+        || stream->protection_scheme_type == FOURCC_cbcs) {	
++        || stream->protection_scheme_type == FOURCC_cbcs) {
        QtDemuxCencSampleSetInfo *info =
            (QtDemuxCencSampleSetInfo *) stream->protection_scheme_info;
        if (info->default_properties)
-@@ -2753,9 +2754,11 @@ qtdemux_parse_ftyp (GstQTDemux * qtdemux, const guint8 * buffer, gint length)
+@@ -2813,9 +2814,11 @@ qtdemux_parse_ftyp (GstQTDemux * qtdemux, const guint8 * buffer, gint length)
  }
  
  static void
@@ -49,7 +49,7 @@ index 44d8feec0..41c3a3578 100644
  {
    GstBuffer *kid_buf = gst_buffer_new_allocate (NULL, 16, NULL);
    gst_buffer_fill (kid_buf, 0, kid, 16);
-@@ -2769,6 +2772,27 @@ qtdemux_update_default_sample_encryption_settings (GstQTDemux * qtdemux,
+@@ -2829,6 +2832,27 @@ qtdemux_update_default_sample_encryption_settings (GstQTDemux * qtdemux,
    GST_DEBUG_OBJECT (qtdemux, "default sample properties: "
        "is_encrypted=%u, iv_size=%u", is_encrypted, iv_size);
    gst_buffer_unref (kid_buf);
@@ -77,7 +77,7 @@ index 44d8feec0..41c3a3578 100644
  }
  
  static gboolean
-@@ -2800,8 +2824,8 @@ qtdemux_update_default_piff_encryption_settings (GstQTDemux * qtdemux,
+@@ -2860,8 +2884,8 @@ qtdemux_update_default_piff_encryption_settings (GstQTDemux * qtdemux,
    if (!gst_byte_reader_get_data (br, 16, &kid))
      return FALSE;
  
@@ -88,7 +88,7 @@ index 44d8feec0..41c3a3578 100644
    gst_structure_set (info->default_properties, "piff_algorithm_id",
        G_TYPE_UINT, algorithm_id, NULL);
    return TRUE;
-@@ -3813,9 +3837,10 @@ qtdemux_gst_structure_free (GstStructure * gststructure)
+@@ -3946,9 +3970,10 @@ qtdemux_gst_structure_free (GstStructure * gststructure)
    }
  }
  
@@ -102,7 +102,7 @@ index 44d8feec0..41c3a3578 100644
  static gboolean
  qtdemux_parse_cenc_aux_info (GstQTDemux * qtdemux, QtDemuxStream * stream,
      GstByteReader * br, guint8 * info_sizes, guint32 sample_count)
-@@ -3873,6 +3898,7 @@ qtdemux_parse_cenc_aux_info (GstQTDemux * qtdemux, QtDemuxStream * stream,
+@@ -4008,6 +4033,7 @@ qtdemux_parse_cenc_aux_info (GstQTDemux * qtdemux, QtDemuxStream * stream,
      guint8 *data;
      guint iv_size;
      GstBuffer *buf;
@@ -110,7 +110,7 @@ index 44d8feec0..41c3a3578 100644
  
      properties = qtdemux_get_cenc_sample_properties (qtdemux, stream, i);
      if (properties == NULL) {
-@@ -3884,14 +3910,29 @@ qtdemux_parse_cenc_aux_info (GstQTDemux * qtdemux, QtDemuxStream * stream,
+@@ -4019,14 +4045,29 @@ qtdemux_parse_cenc_aux_info (GstQTDemux * qtdemux, QtDemuxStream * stream,
        gst_structure_free (properties);
        return FALSE;
      }
@@ -144,7 +144,58 @@ index 44d8feec0..41c3a3578 100644
      size = info_sizes[i];
      if (size > iv_size) {
        if (!gst_byte_reader_get_uint16_be (br, &n_subsamples)
-@@ -4207,7 +4248,8 @@ qtdemux_parse_moof (GstQTDemux * qtdemux, const guint8 * buffer, guint length,
+@@ -4109,6 +4150,7 @@ qtdemux_parse_senc (GstQTDemux * qtdemux, QtDemuxStream * stream, GstByteReader
+     guint8 *data;
+     guint iv_size;
+     GstBuffer *buf;
++    gboolean could_read_iv;
+ 
+     properties = qtdemux_get_cenc_sample_properties (qtdemux, stream, i);
+     if (properties == NULL) {
+@@ -4122,18 +4164,33 @@ qtdemux_parse_senc (GstQTDemux * qtdemux, QtDemuxStream * stream, GstByteReader
+       return FALSE;
+     }
+ 
+-    if (!gst_byte_reader_dup_data (br, iv_size, &data)) {
+-      GST_ERROR_OBJECT (qtdemux, "failed to get IV for sample %u", i);
+-      gst_structure_free (properties);
+-      return FALSE;
++    could_read_iv =
++        iv_size > 0 ? gst_byte_reader_dup_data (br, iv_size, &data) : FALSE;
++    
++    if (could_read_iv) {
++      buf = gst_buffer_new_wrapped (data, iv_size);
++      gst_structure_set (properties, "iv", GST_TYPE_BUFFER, buf, NULL);
++      gst_buffer_unref (buf);
++    } else if (stream->protection_scheme_type == FOURCC_cbcs) {
++      const GValue *constant_iv_size_value =
++          gst_structure_get_value (properties, "constant_iv_size");
++      const GValue *constant_iv_value =
++          gst_structure_get_value (properties, "iv");
++      if (constant_iv_size_value == NULL || constant_iv_value == NULL) {
++        GST_ERROR_OBJECT (qtdemux, "failed to get constant_iv");
++        gst_structure_free (properties);
++        return FALSE;
++      }
++      gst_structure_set_value (properties, "iv_size", constant_iv_size_value);
++      gst_structure_remove_field (properties, "constant_iv_size");
++    } else if (stream->protection_scheme_type == FOURCC_cenc) {
++       GST_ERROR_OBJECT (qtdemux, "failed to get IV for sample %u", i);
++       gst_structure_free (properties);
++       return FALSE;
+     }
+-
++    
+     GST_MEMDUMP_OBJECT (qtdemux, "iv data", data, iv_size);
+ 
+-    buf = gst_buffer_new_wrapped (data, iv_size);
+-    gst_structure_set (properties, "iv", GST_TYPE_BUFFER, buf, NULL);
+-    gst_buffer_unref (buf);
+-
+     if(flags & 0x2)
+     {
+ 
+@@ -4584,7 +4641,8 @@ qtdemux_parse_moof (GstQTDemux * qtdemux, const guint8 * buffer, guint length,
  
          if (base_offset > -1 && base_offset > qtdemux->moof_offset)
            offset += (guint64) (base_offset - qtdemux->moof_offset);
@@ -154,7 +205,7 @@ index 44d8feec0..41c3a3578 100644
            GstByteReader br;
            if (offset > length) {
              GST_DEBUG_OBJECT (qtdemux, "cenc auxiliary info stored out of moof");
-@@ -5929,7 +5971,8 @@ gst_qtdemux_push_buffer (GstQTDemux * qtdemux, QtDemuxStream * stream,
+@@ -6311,7 +6369,8 @@ gst_qtdemux_push_buffer (GstQTDemux * qtdemux, QtDemuxStream * stream,
        GST_TIME_ARGS (GST_BUFFER_PTS (buf)),
        GST_TIME_ARGS (GST_BUFFER_DURATION (buf)), GST_PAD_NAME (stream->pad));
  
@@ -164,7 +215,7 @@ index 44d8feec0..41c3a3578 100644
      GstStructure *crypto_info;
      QtDemuxCencSampleSetInfo *info =
          (QtDemuxCencSampleSetInfo *) stream->protection_scheme_info;
-@@ -5946,8 +5989,19 @@ gst_qtdemux_push_buffer (GstQTDemux * qtdemux, QtDemuxStream * stream,
+@@ -6328,8 +6387,19 @@ gst_qtdemux_push_buffer (GstQTDemux * qtdemux, QtDemuxStream * stream,
        GST_INFO_OBJECT(qtdemux, "info is NULL");
  
      else if (info->crypto_info == NULL) {
@@ -186,7 +237,7 @@ index 44d8feec0..41c3a3578 100644
      } else {
        /* The end of the crypto_info array matches our n_samples position,
         * so count backward from there */
-@@ -6375,7 +6429,8 @@ gst_qtdemux_do_fragmented_seek (GstQTDemux * qtdemux)
+@@ -6759,7 +6829,8 @@ gst_qtdemux_do_fragmented_seek (GstQTDemux * qtdemux)
  
      if (stream->protection_scheme_info) {
        /* Clear out any old cenc crypto info entries as we'll move to a new moof */
@@ -196,7 +247,7 @@ index 44d8feec0..41c3a3578 100644
          QtDemuxCencSampleSetInfo *info =
              (QtDemuxCencSampleSetInfo *) stream->protection_scheme_info;
          if (info->crypto_info) {
-@@ -8592,7 +8647,8 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
+@@ -8976,7 +9047,8 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
    g_return_val_if_fail (gst_caps_get_size (CUR_STREAM (stream)->caps) == 1,
        FALSE);
  
@@ -206,25 +257,20 @@ index 44d8feec0..41c3a3578 100644
      GST_ERROR_OBJECT (qtdemux,
          "unsupported protection scheme: %" GST_FOURCC_FORMAT,
          GST_FOURCC_ARGS (stream->protection_scheme_type));
-@@ -8602,10 +8658,16 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
-    if (!qtdemux->aamp_player_enabled)
-    {
-     s = gst_caps_get_structure (CUR_STREAM (stream)->caps, 0);
--    if (!gst_structure_has_name (s, "application/x-cenc")) {
-+    if (!gst_structure_has_name (s, "application/x-cenc")) {
+@@ -8990,6 +9062,12 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
        gst_structure_set (s,
            "original-media-type", G_TYPE_STRING, gst_structure_get_name (s),
            NULL);
 +      gst_structure_set_name (s,
 +        stream->protection_scheme_type ==
 +        FOURCC_cbcs ? "application/x-cbcs" : "application/x-cenc");
-+	  gst_structure_set (s, "cipher-mode", G_TYPE_STRING,
++         gst_structure_set (s, "cipher-mode", G_TYPE_STRING,
 +        (stream->protection_scheme_type == FOURCC_cbcs) ? "cbcs" : "cenc",
 +        NULL);
        gst_structure_set_name (s, "application/x-cenc");
      }
     }
-@@ -10624,7 +10686,8 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
+@@ -11018,7 +11096,8 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
  
    sinf = qtdemux_tree_get_child_by_type (container, FOURCC_sinf);
    if (G_UNLIKELY (!sinf)) {
@@ -234,7 +280,7 @@ index 44d8feec0..41c3a3578 100644
        GST_ERROR_OBJECT (qtdemux, "sinf box does not contain schi box, which is "
            "mandatory for Common Encryption");
        return FALSE;
-@@ -10663,7 +10726,8 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
+@@ -11057,7 +11136,8 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
      return FALSE;
    }
    if (stream->protection_scheme_type != FOURCC_cenc &&
@@ -244,7 +290,7 @@ index 44d8feec0..41c3a3578 100644
      GST_ERROR_OBJECT (qtdemux,
          "Invalid protection_scheme_type: %" GST_FOURCC_FORMAT,
          GST_FOURCC_ARGS (stream->protection_scheme_type));
-@@ -10676,10 +10740,15 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
+@@ -11070,10 +11150,15 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
  
    info = (QtDemuxCencSampleSetInfo *) stream->protection_scheme_info;
  
@@ -261,7 +307,7 @@ index 44d8feec0..41c3a3578 100644
  
      tenc = qtdemux_tree_get_child_by_type (schi, FOURCC_tenc);
      if (!tenc) {
-@@ -10688,11 +10757,27 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
+@@ -11082,11 +11167,27 @@ qtdemux_parse_protection_scheme_info (GstQTDemux * qtdemux,
        return FALSE;
      }
      tenc_data = (const guint8 *) tenc->data + 12;
