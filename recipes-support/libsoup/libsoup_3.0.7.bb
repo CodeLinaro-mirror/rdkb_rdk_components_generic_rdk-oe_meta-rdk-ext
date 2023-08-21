@@ -14,6 +14,8 @@ SHRT_VER = "${@d.getVar('PV').split('.')[0]}.${@d.getVar('PV').split('.')[1]}"
 SRC_URI = "${GNOME_MIRROR}/libsoup/${SHRT_VER}/libsoup-${PV}.tar.xz"
 SRC_URI[sha256sum] = "ebdf90cf3599c11acbb6818a9d9e3fc9d2c68e56eb829b93962972683e1bf7c8"
 
+SRC_URI += "file://comcast-LLAMA-11563-Avoid-sending-empty-data-frames-with-EOF.patch"
+
 PROVIDES = "libsoup-3.0"
 CVE_PRODUCT = "libsoup"
 
