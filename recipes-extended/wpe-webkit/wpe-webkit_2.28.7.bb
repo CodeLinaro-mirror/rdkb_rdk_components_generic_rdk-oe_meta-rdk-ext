@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r11"
+PR  = "r12"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -38,6 +38,7 @@ SRC_URI += "file://2.28.7/1117.patch"
 SRC_URI += "file://2.28.7/1121.patch"
 SRC_URI += "file://2.28.7/1094.patch"
 SRC_URI += "file://2.28.7/1142.patch"
+SRC_URI += "file://2.28.7/1155.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.28/comcast-XRE-15382-libwebrtc-fake-encoder.patch"
