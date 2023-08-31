@@ -53,6 +53,7 @@ PACKAGECONFIG[subtlecrypto] = "-DENABLE_SUBTLE_CRYPTO=ON,-DENABLE_SUBTLE_CRYPTO=
 PACKAGECONFIG[video] = "-DENABLE_VIDEO=ON -DENABLE_VIDEO_TRACK=ON,-DENABLE_VIDEO=OFF -DENABLE_VIDEO_TRACK=OFF,gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad,${RDEPS_VIDEO}"
 PACKAGECONFIG[webaudio] = "-DENABLE_WEB_AUDIO=ON,-DENABLE_WEB_AUDIO=OFF,gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good,${RDEPS_WEBAUDIO}"
 PACKAGECONFIG[native_audio] = "-DENABLE_NATIVE_AUDIO=ON, -DENABLE_NATIVE_AUDIO=OFF,"
+PACKAGECONFIG[tools] = "-DENABLE_TOOLS=ON,-DENABLE_TOOLS=OFF,,"
 
 # DRM
 # new CDMI option which uses WPEFramework
@@ -67,7 +68,6 @@ EXTRA_OECMAKE += " \
     -DBUILD_SHARED_LIBS=ON \
     -DPORT=WPE \
     -G Ninja \
-    -DENABLE_TOOLS=OFF \
 "
 
 EXTRA_OECMAKE_append = " -DUSE_LD_GOLD=OFF"
