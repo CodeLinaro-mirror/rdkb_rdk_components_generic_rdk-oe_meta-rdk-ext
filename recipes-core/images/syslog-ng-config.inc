@@ -164,13 +164,19 @@ python update_log() {
     config_file = config_dir + "syslog-ng.conf"
     filter_file = d.getVar('IMAGE_ROOTFS', True) + d.getVar('sysconfdir', True)  + "/syslog-ng/filter/filter_file.conf"
     metadata_file = d.getVar('IMAGE_ROOTFS', True) + d.getVar('sysconfdir', True)  + "/syslog-ng/metadata/metadata.conf"
+    sslendpoint_exist = ""
+    with open(config_file, 'r') as conf:
+        if "f_sslendpoint" in conf.read():
+            sslendpoint_exist = "True"
+        conf.close()
     with open(config_file, 'a') as conf:
         conf.write("\n########################\n")
         conf.write("# Logs\n")
         conf.write("########################\n")
         conf.write("# Log statements are processed in the order they appear in the configuration file.\n\n")
-        conf.write("#sslendpoint logging based on identifier\n")
-        conf.write("log { source(s_journald); filter(f_sslendpoint); destination(d_sslendpoint); flags(final); };\n\n")
+        if sslendpoint_exist:
+            conf.write("#sslendpoint logging based on identifier\n")
+            conf.write("log { source(s_journald); filter(f_sslendpoint); destination(d_sslendpoint); flags(final); };\n\n")
         conf.close()
     with open(filter_file, 'r') as filterdata:
         file_lines = filterdata.readlines()
