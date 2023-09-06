@@ -51,3 +51,8 @@ SRC_URI += "file://breakpad.patch \
 #SRC_URI_append_hybrid += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', '', 'file://0001-bluetooth_autoenable_policy_main_conf.patch', d)}"
 #SRC_URI_append_client += " ${@bb.utils.contains('DISTRO_FEATURES', 'enable-rdkv-bt-voice', '', 'file://0001-bluetooth_autoenable_policy_main_conf.patch', d)}"
 
+
+#Patches needed for Flex2 devices
+SRC_URI_append = "${@bb.utils.contains('DISTRO_FEATURES', 'flex2_rdk', ' file://bluez-5.48-040-RDKTV-14757-fix-to-retain-connection-after-reboot.patch','',d)}"
+SRC_URI_append = "${@bb.utils.contains('DISTRO_FEATURES', 'flex2_rdk', ' file://bluez-5.48-041-rename-bluez-adapter-for-xumo.patch','',d)}"
+SRC_URI_append = "${@bb.utils.contains('DISTRO_FEATURES', 'flex2_rdk', ' file://bluez-5.48-042-fix-for-autoenable-policy-main-conf.patch','',d)}"
