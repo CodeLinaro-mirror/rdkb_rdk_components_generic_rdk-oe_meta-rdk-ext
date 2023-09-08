@@ -10,3 +10,9 @@ do_install_append () {
         sed -i -e 's,/etc/openssl,${sysconfdir}/ssl,g' ${D}${bindir}/c_rehash
 }
 FILES_${PN} =+ " ${bindir}/c_rehash"
+
+SRC_URI_append = " file://CVE-2022-4304_1.1.1l_fix.patch \
+                   file://CVE-2023-0464_1.1.1l_fix.patch \
+                   file://CVE-2023-0465_1.1.1l_fix.patch \
+                   file://CVE-2023-0466_1.1.1l_fix.patch \
+                 "
