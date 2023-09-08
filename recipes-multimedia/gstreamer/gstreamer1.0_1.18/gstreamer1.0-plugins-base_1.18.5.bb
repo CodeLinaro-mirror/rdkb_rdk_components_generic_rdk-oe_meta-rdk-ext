@@ -16,6 +16,9 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-ba
 	   file://0001-gst-plugins-base-stubs-soft.h-not-existing-compilati.patch \
 	   file://0001-XRE-12082-Reset-eos-on-appsrc-on-send-flush-gst1.18.patch \
 	   file://0001-decodebin3-continue-parsebin-autoplug-if-requested-gst1.18.patch \
+	   file://516-0007-improve-support-for-decoder-sinks.patch \
+	   file://516-0008-autoplug-for-sink-decoders.patch \
+           file://0006-streamsynchronizer-Consider-streams-having-received-.patch \
            "
 SRC_URI += "${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', 'file://0001-fix-gst-plugins-base-configure-issue-with-dunfell.patch ', '',d)}"
 
