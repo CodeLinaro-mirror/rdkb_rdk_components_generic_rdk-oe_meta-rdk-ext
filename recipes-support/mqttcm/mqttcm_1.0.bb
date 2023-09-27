@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=86d3f3a95c324c9479bd8986968f4327"
 
 DEPENDS = "mosquitto rbus cpeabs cimplog"
 
-SRCREV = "af374b19f9449d3ab2b08d6fb9c0909271558014"
+SRCREV = "87e7b7f7bb89d33d7bdd4fd976d935a81da170f3"
 SRC_URI = "git://github.com/xmidt-org/mqttConnManager.git;branch=main"
 
 RDEPENDS_${PN} += "util-linux-uuidgen"
