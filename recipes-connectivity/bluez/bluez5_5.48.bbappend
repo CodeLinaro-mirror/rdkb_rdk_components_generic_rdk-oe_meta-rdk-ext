@@ -9,7 +9,6 @@ SRC_URI_remove = " \
 SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-002-disable-unneeded-plugins.patch \
     file://bluez-5.48-003-add-configurable-char-write-value-options.patch \
-    file://bluez-5.48-004-disable-ble-battery-profile.patch \
     file://bluez-5.48-005-enable_auto_connect_on_all_disconnects.patch \
     file://bluez-5.48-006-change_cache_clear_timeout.patch \
     file://bluez-5.48-007-disable_sigpipe_signal.patch \
@@ -46,6 +45,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-040-bluez-btrmgr-crash.patch \
     file://bluez-5.48-041-clear_old_cache_list.patch \
     file://bluez-5.48-043-auto-accept-connection-for_5.10-Kernel.patch \
+    file://bluez-5.48-044-add-up-to-date-battery-service.patch \
 	"
 
 ## Disabled SkyQ Patches
