@@ -249,7 +249,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": false,
                      "version": "1.0"
@@ -506,7 +506,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": false,
                      "version": "1.0"
@@ -763,7 +763,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": false,
                      "version": "1.0"
@@ -1020,7 +1020,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": false,
                      "version": "1.0"
@@ -1288,7 +1288,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": true,
                      "version": "1.0"
@@ -1556,7 +1556,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": true,
                      "version": "1.0"
@@ -1824,7 +1824,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": true,
                      "version": "1.0"
@@ -2081,7 +2081,7 @@
                  "group_id": 17,
                  "subdocs": [
                    {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": false,
                      "version": "1.0"
@@ -2338,7 +2338,7 @@
            "group_id": 17,
            "subdocs": [
              {
-               "name": "LLD-QOS-control",
+               "name": "lldqoscontrol",
                "bitposition": 1,
                "support": false,
                "version": "1.0"
@@ -2595,7 +2595,7 @@
           "group_id": 17,
           "subdocs": [
             {
-               "name": "LLD-QOS-control",
+               "name": "lldqoscontrol",
                "bitposition": 1,
                "support": false,
                "version": "1.0"
@@ -2863,7 +2863,7 @@
                   "group_id": 17,
                   "subdocs": [
                   {
-                     "name": "LLD-QOS-control",
+                     "name": "lldqoscontrol",
                      "bitposition": 1,
                      "support": false,
                     "version": "1.0"
@@ -3120,7 +3120,7 @@
                        "group_id": 17,
                        "subdocs": [
                          {
-                           "name": "LLD-QOS-control",
+                           "name": "lldqoscontrol",
                            "bitposition": 1,
                            "support": false,
                            "version": "1.0"
@@ -3360,7 +3360,7 @@
           "group_id": 17,
           "subdocs": [
             {
-               "name": "LLD-QOS-control",
+               "name": "lldqoscontrol",
                "bitposition": 1,
                "support": false,
                "version": "1.0"
