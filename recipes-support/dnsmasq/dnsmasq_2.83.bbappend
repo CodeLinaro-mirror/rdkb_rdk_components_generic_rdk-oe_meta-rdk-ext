@@ -24,6 +24,9 @@ SRC_URI_append_broadband += " ${@bb.utils.contains('DISTRO_FEATURES', 'vendor_cl
 SRC_URI += " file://130-fingerprint-dhcp-lease-file-V2.83.patch \
              file://client_notify.patch"
 
+SRC_URI += " file://CVE-2022-0934_fix.patch  \
+             file://CVE-2023-28450_fix.patch "
+
 do_install_append() {
     sed -i -- 's/listen-address=127.0.0.1/#listen-address=127.0.0.1/g' ${D}${sysconfdir}/dnsmasq.conf
     sed -i -- 's/bind/#Remove this statement/g' ${D}${sysconfdir}/dnsmasq.conf
