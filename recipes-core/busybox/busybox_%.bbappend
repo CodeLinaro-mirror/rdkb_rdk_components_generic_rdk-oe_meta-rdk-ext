@@ -30,25 +30,5 @@ SRC_URI_append = " file://enable_ar.cfg"
 SRC_URI_remove_morty = " file://devmem.cfg file://enable_ar.cfg "
 VERSION_PATCHES ?= ""
 
-SRC_URI_append_hybrid += " \
-        file://50default \
-"
-
-SRC_URI_append_client += " \
-        file://50default.client \
-"
 PTEST_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'benchmark_enable', '1', '0', d)}"
 inherit ptest-package-deploy
-
-do_install_append_hybrid() {
-        install -d ${D}${sysconfdir}/udhcpc.d
-        install -m 0755 ${WORKDIR}/50default ${D}${sysconfdir}/udhcpc.d
-}
-
-
-do_install_append_client() {
-        install -d ${D}${sysconfdir}/udhcpc.d
-        install -m 0755 ${WORKDIR}/50default.client ${D}${sysconfdir}/udhcpc.d/50default
-}
-
-
