@@ -21,7 +21,7 @@ SRC_URI = "git://github.com/bitmovin/libdash;branch=stable_3_0;protocol=https \
 	   file://0009-RDK-35134-Support-for-FailoverContent.patch \
 	   file://0010-RDKAAMP-121-Failover-Tag-on-SegmentTemplate.patch \
 	   file://0011-RDKAAMP-61-AAMP-low-latency-dash-stream-evaluation.patch \
-	   file://0012-To-retrieves-the-text-content-of-CDATA-section \
+	   file://0012-To-retrieves-the-text-content-of-CDATA-section.patch \
           "
 
 S = "${WORKDIR}/git/libdash"

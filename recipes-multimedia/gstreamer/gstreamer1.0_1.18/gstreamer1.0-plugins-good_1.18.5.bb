@@ -33,10 +33,6 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-go
            file://0038-fix-for-switching-from-clear-to-encrypted-and-vice-v.patch \
            file://0039-LLAMA-8596-Fix-for-demux-end-of-segment-detection.patch \
            file://0040-Migrate-soup3-capable-souphttpsrc-from-gstreamer-1.21.2.patch \
-           file://0041-qtdemux-Parsing-sgpd-sbgp-box-to-support-per-sample.patch \
-           file://0042-qtdemux-Handle-protection-information-in-Sample-Grou.patch \
-           file://0043-qtdemux-Identify-total-samples-in-sbgp-node-and-hand.patch \
-           file://0044-qtdemux-Handle-Piff-parsing-to-use-sample-properties.patch \
            file://0044-qtdemux-Don-t-emit-GstSegment-correcting-start-time-.patch \
            file://0045-qtdemux-Add-MSE-style-flush.patch \
            file://0046-qtdemux-Fix-crash-on-MSE-style-flush.patch \
@@ -44,7 +40,13 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-go
            file://0001-added-support-for-cbcs-encryption-scheme.patch \
            file://0047-DELIA-61396-correct-sbc-rtp-timestamps.patch \
 	   file://0048-XIONE-12501-Add-exposing-flag-to-know-if-configure_s.patch \
+           file://0013-qtdemux-Add-support-for-cenc-sample-grouping.patch \
+           file://0014-qtdemux-Fix-segfault-in-cenc-sample-grouping.patch \
            file://0015-qtdemux-emit-no-more-pads-after-pruning-old-pads.patch \
+           file://0016-qtdemux-Fix-critical-message-on-cenc-sample-grouping.patch \
+           file://0017-Bring-back-sgpd-and-sbgp-dumps.patch \
+           file://0018-RDK-42832-Fix-crash-on-missing-protection-scheme-inf.patch \
+	   file://0044-qtdemux-Handle-Piff-parsing-to-use-sample-properties.patch \
            "
 SRC_URI_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'sage_svp', 'file://0001-audioparser-remove-eac3-aacparse-for-svp.patch', '', d)}"
 
