@@ -1,6 +1,6 @@
 SUMMARY = "The simple GObject game controller library"
 HOMEPAGE = "https://gnome.pages.gitlab.gnome.org/libmanette/"
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPLv2.1 & Zlib"
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c"
 DEPENDS = "libevdev libgudev"
 SRC_URI = "https://download.gnome.org/sources/libmanette/0.2/libmanette-${PV}.tar.xz \
