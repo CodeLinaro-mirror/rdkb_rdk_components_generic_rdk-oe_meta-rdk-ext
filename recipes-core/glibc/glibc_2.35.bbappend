@@ -1,3 +1,6 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
 FULL_OPTIMIZATION_remove = "-Os"
 FULL_OPTIMIZATION_append = "-O2"
 
+SRC_URI_append_broadband = " file://CVE-2023-4813_2.35_fix.patch "
