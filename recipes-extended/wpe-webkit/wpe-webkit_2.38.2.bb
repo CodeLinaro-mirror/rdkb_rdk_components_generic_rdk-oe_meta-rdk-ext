@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r17"
+PR  = "r10"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -16,8 +16,8 @@ RDEPENDS_${PN}_remove = "injectedbundle"
 
 inherit gettext python3native ccache
 
-# Tip of the branch on Oct 6, 2023
-SRCREV = "39d3d180b219aba9fb12e289c0cadfcbf8c6ef7f"
+# Tip of the branch on Nov 30, 2023
+SRCREV = "0ac2e6f2b603d5d87bc5b3c989d3d0f9f2d5bbdd"
 
 BASE_URI ?= "git://github.com/WebPlatformForEmbedded/WPEWebKit.git;protocol=http;branch=wpe-2.38"
 SRC_URI = "${BASE_URI}"
@@ -25,16 +25,15 @@ SRC_URI = "${BASE_URI}"
 # Drop after a PR is approved or different fix is available in wpe-2.38 branch
 SRC_URI += "file://2.38.1/1129.patch"
 SRC_URI += "file://2.38.1/1132.patch"
-SRC_URI += "file://2.38.1/1143.patch"
 SRC_URI += "file://2.38.1/1166.patch"
-SRC_URI += "file://2.38.1/1188.patch"
-SRC_URI += "file://2.38.1/1196.patch"
-SRC_URI += "file://2.38.1/1202.patch"
-SRC_URI += "file://2.38.1/1208.patch"
+SRC_URI += "file://2.38.2/1196.patch"
 SRC_URI += "file://2.38.1/1214.patch"
-SRC_URI += "file://2.38.1/1218.patch"
 SRC_URI += "file://2.38.1/1231.patch"
-SRC_URI += "file://2.38.1/1232.patch"
+SRC_URI += "file://2.38.2/1232.patch"
+SRC_URI += "file://2.38.2/1244.patch"
+SRC_URI += "file://2.38.2/1250.patch"
+SRC_URI += "file://2.38.2/1253.patch"
+SRC_URI += "file://2.38.2/1254.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.38/comcast-DELIA-60920-Malloc-Heap-Breakdown.patch"
@@ -54,13 +53,12 @@ SRC_URI += "file://2.38/comcast-XRE-13799-XRE-13989-Track-encrypted-playback.pat
 SRC_URI += "file://2.38/comcast-RDK-28954-Add-secure-dump-location.patch"
 SRC_URI += "file://2.38/comcast-RDKTV-17737-play-pause-mapping.patch"
 SRC_URI += "file://2.38/comcast-XRE-15382-XIONE-4595-RDKTV-17736-HDR-DV-conf.patch"
-# SRC_URI += "file://2.38/comcast-RDK-37080-disable-reenqueing-of-audio-sample.patch"
 SRC_URI += "file://2.38/comcast-RDKTV-17281-RDKTV-17781-Workaround-for-AppleTV-rende.patch"
 SRC_URI += "file://2.38/comcast-RDKTV-18852-Restrict-inspection-of-locally-h.patch"
 SRC_URI += "file://2.38/comcast-LLAMA-8030-Fix-init-data-filtering.patch"
 SRC_URI += "file://2.38/comcast-LLAMA-8558-vttcue-middle-align-keyword-compa.patch"
 SRC_URI += "file://2.38/comcast-DELIA-59087-Disable-pausing-playback-for-buf.patch"
-SRC_URI += "file://2.38/comcast-AMLOGIC-3262-disable-scaletempto.patch"
+SRC_URI += "file://2.38.2/comcast-AMLOGIC-3262-SERXIONE-4051-disable-scaletempto.patch"
 SRC_URI += "file://2.38/comcast-DELIA-60055-Analyze-higher-CPU-usage-of-Web-Network-.patch"
 SRC_URI += "file://2.38/comcast-DELIA-60613-WebRTC-streaming-fails-with-test.patch"
 SRC_URI += "file://2.38/comcast-RDK-40567-Speech-Synthesis.patch"
@@ -69,11 +67,11 @@ SRC_URI += "file://2.38/comcast-XRE-13505-Dynamic-insertion-of-decryptor-element
 SRC_URI += "file://2.38/comcast-XIONE-12272-configure-video-resource-usage-w.patch"
 SRC_URI += "file://2.38/comcast-RDK-41913-Don-t-fail-playback-with-closed-caption-ce.patch"
 SRC_URI += "file://2.38/comcast-RDK-40634-Only-support-decoders-with-hw-support-for-webrtc.patch"
-SRC_URI += "file://2.38.1/comcast-DELIA-57933-Increase-minor-version-or-WPE-lib.patch"
 SRC_URI += "file://2.38.1/comcast-RDKTV-25465-Fix-Vudu-VG-issue.patch"
-SRC_URI += "file://2.38.1/comcast-RDKTV-25473-Disable-direct-canvas-to-webgl-texture-copy.patch"
-SRC_URI += "file://2.38.1/comcast-AMLOGIC-3262-Initial-support-for-instant-rat.patch"
+SRC_URI += "file://2.38.2/comcast-AMLOGIC-3262-Initial-support-for-instant-rat.patch"
 SRC_URI += "file://2.38.1/comcast-LLAMA-12502-Disable-Permissions-API-for-radioplayer.org.patch"
+SRC_URI += "file://2.38.2/comcast-DELIA-57933-Increase-minor-version-or-WPE-lib.patch"
+SRC_URI += "file://2.38.2/comcast-LLAMA-12282-Add-quirk-for-RTLPlay-mini-player.patch"
 
 PACKAGECONFIG[wpeqtapi]          = "-DENABLE_WPE_QT_API=ON,-DENABLE_WPE_QT_API=OFF"
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
@@ -119,6 +117,7 @@ PACKAGECONFIG[variation_fonts]   = "-DENABLE_VARIATION_FONTS=ON,-DENABLE_VARIATI
 PACKAGECONFIG[dolbyvision]       = "-DENABLE_DV=ON,-DENABLE_DV=OFF,,"
 PACKAGECONFIG[vp9_hdr]           = "-DENABLE_HDR=ON,-DENABLE_HDR=OFF,,gstreamer1.0-plugins-good-matroska"
 PACKAGECONFIG[instantratechange] = "-DENABLE_INSTANT_RATE_CHANGE=ON,-DENABLE_INSTANT_RATE_CHANGE=OFF,"
+PACKAGECONFIG[logs]              = "-DENABLE_LOGS=ON,,"
 
 PACKAGECONFIG_append = " webcrypto webdriver remoteinspector releaselog accessibility speechsynthesis native_video webaudio instantratechange"
 PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'usesoup3', 'usesoup2', d)}"
