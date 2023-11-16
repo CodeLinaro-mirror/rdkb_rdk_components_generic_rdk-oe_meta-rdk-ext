@@ -15,6 +15,7 @@ SRC_URI = "${GNOME_MIRROR}/libsoup/${SHRT_VER}/libsoup-${PV}.tar.xz"
 SRC_URI[sha256sum] = "78c8fa37cb152d40ec8c4a148d6155e2f6947f3f1602a7cda3a31ad40f5ee2f3"
 
 SRC_URI += "file://comcast-LLAMA-11563-Avoid-sending-empty-data-frames-with-EOF.patch"
+SRC_URI += "file://384-libsoup-Increase-HTTP-header-size-limit.patch"
 
 PROVIDES = "libsoup-3.0"
 CVE_PRODUCT = "libsoup"
