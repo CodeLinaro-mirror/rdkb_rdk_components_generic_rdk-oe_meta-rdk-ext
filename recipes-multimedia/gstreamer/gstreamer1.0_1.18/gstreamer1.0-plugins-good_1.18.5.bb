@@ -44,6 +44,7 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-go
            file://0001-added-support-for-cbcs-encryption-scheme.patch \
            file://0047-DELIA-61396-correct-sbc-rtp-timestamps.patch \
 	   file://0048-XIONE-12501-Add-exposing-flag-to-know-if-configure_s.patch \
+           file://0015-qtdemux-emit-no-more-pads-after-pruning-old-pads.patch \
            "
 SRC_URI_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'sage_svp', 'file://0001-audioparser-remove-eac3-aacparse-for-svp.patch', '', d)}"
 
