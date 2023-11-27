@@ -6,9 +6,11 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=07c6570bbc2ba48616882d528c2378f3"
 
 DEPENDS = "nlohmann-json"
 
-SRC_URI = "git://github.com/pantor/inja.git;tag=v3.4.0"
+SRC_URI = "git://github.com/pantor/inja.git;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
+PV = "3.4.0"
+SRCREV = "b2276440be8334aeba9cd5d628c2731d0f6a5809"
 
 inherit cmake
 
