@@ -44,6 +44,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-038-bluez-stream-free-crash-fix.patch \
     file://bluez-5.48-039-bluetooth_a2dp_ref_negative_abort.patch \
     file://bluez-5.48-040-bluez-btrmgr-crash.patch \
+    file://bluez-5.48-041-clear_old_cache_list.patch \
     file://bluez-5.48-043-auto-accept-connection-for_5.10-Kernel.patch \
 	"
 
