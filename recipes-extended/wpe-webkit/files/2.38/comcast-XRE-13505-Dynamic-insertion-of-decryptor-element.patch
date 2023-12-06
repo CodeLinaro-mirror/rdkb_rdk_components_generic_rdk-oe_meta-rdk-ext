@@ -1,28 +1,27 @@
-From 950e4f3ed2ef93b1f89b50bf8dbd03e01465dead Mon Sep 17 00:00:00 2001
-From: Andrzej Surdej <Andrzej_Surdej@comcast.com>
-Date: Tue, 16 May 2023 13:59:20 +0000
+From 7137a99b196402839df1ae94eb8e13b9f9c31589 Mon Sep 17 00:00:00 2001
+From: kkanag314 <krishnapriya_kanagaraj@comcast.com>
+Date: Wed, 6 Dec 2023 09:22:30 +0000
 Subject: [PATCH] comcast - XRE-13505 - Dynamic insertion of decryptor element
 
 ---
- .../gstreamer/eme/CDMProxyThunder.cpp         |   4 +-
+ .../gstreamer/eme/CDMProxyThunder.cpp         |   3 +-
  .../graphics/gstreamer/eme/CDMProxyThunder.h  |   1 +
  .../eme/WebKitThunderDecryptorGStreamer.cpp   |   8 +
  .../graphics/gstreamer/mse/AppendPipeline.cpp |   5 +
  .../mse/WebKitMediaSourceGStreamer.cpp        | 237 +++++++++++++++++-
- 5 files changed, 252 insertions(+), 3 deletions(-)
+ 5 files changed, 251 insertions(+), 3 deletions(-)
 
 diff --git a/Source/WebCore/platform/graphics/gstreamer/eme/CDMProxyThunder.cpp b/Source/WebCore/platform/graphics/gstreamer/eme/CDMProxyThunder.cpp
-index 5bd03c1b9779..08ea10dc8852 100644
+index 5bd03c1b9779..65d79bbd0383 100644
 --- a/Source/WebCore/platform/graphics/gstreamer/eme/CDMProxyThunder.cpp
 +++ b/Source/WebCore/platform/graphics/gstreamer/eme/CDMProxyThunder.cpp
-@@ -90,8 +90,8 @@ bool CDMProxyThunder::decrypt(CDMProxyThunder::DecryptionContext& input)
+@@ -90,8 +90,7 @@ bool CDMProxyThunder::decrypt(CDMProxyThunder::DecryptionContext& input)
  
      GST_TRACE("decrypting");
      // Decrypt cipher.
 -    OpenCDMError errorCode = opencdm_gstreamer_session_decrypt(session->get(), input.dataBuffer, input.subsamplesBuffer, input.numSubsamples,
 -        input.ivBuffer, input.keyIDBuffer, 0);
-+    OpenCDMError errorCode = opencdm_gstreamer_session_decrypt_ex(session->get(), input.dataBuffer, input.subsamplesBuffer, input.numSubsamples,
-+        input.ivBuffer, input.keyIDBuffer, 0, input.caps.get());
++    OpenCDMError errorCode = opencdm_gstreamer_session_decrypt_buffer(session->get(), input.dataBuffer, input.caps.get());
      if (errorCode) {
          GST_ERROR("decryption failed, error code %X", errorCode);
          return false;
@@ -65,10 +64,10 @@ index fda871a66aac..38fa1800e544 100644
  
      if (result && !priv->didReportDecryptionStart) {
 diff --git a/Source/WebCore/platform/graphics/gstreamer/mse/AppendPipeline.cpp b/Source/WebCore/platform/graphics/gstreamer/mse/AppendPipeline.cpp
-index 2271d3192586..60e31b4a393e 100644
+index 1aa21cbf8e65..4fd855cab354 100644
 --- a/Source/WebCore/platform/graphics/gstreamer/mse/AppendPipeline.cpp
 +++ b/Source/WebCore/platform/graphics/gstreamer/mse/AppendPipeline.cpp
-@@ -740,6 +740,11 @@ GRefPtr<GstElement> createOptionalParserForFormat(GstBin* bin, const AtomString&
+@@ -762,6 +762,11 @@ GRefPtr<GstElement> createOptionalParserForFormat(GstBin* bin, const AtomString&
              GST_WARNING_OBJECT(bin, "Unsupported audio mpeg caps: %" GST_PTR_FORMAT, caps);
          }
      }
@@ -81,7 +80,7 @@ index 2271d3192586..60e31b4a393e 100644
      GST_DEBUG_OBJECT(bin, "Creating %s parser for stream with caps %" GST_PTR_FORMAT, elementClass, caps);
      GRefPtr<GstElement> result(makeGStreamerElement(elementClass, parserName.ascii().data()));
 diff --git a/Source/WebCore/platform/graphics/gstreamer/mse/WebKitMediaSourceGStreamer.cpp b/Source/WebCore/platform/graphics/gstreamer/mse/WebKitMediaSourceGStreamer.cpp
-index 942eb17e26ef..bb80cb8a8b26 100644
+index 9eabc6edf9f2..b26e613c8407 100644
 --- a/Source/WebCore/platform/graphics/gstreamer/mse/WebKitMediaSourceGStreamer.cpp
 +++ b/Source/WebCore/platform/graphics/gstreamer/mse/WebKitMediaSourceGStreamer.cpp
 @@ -103,6 +103,10 @@ static gboolean webKitMediaSrcSendEvent(GstElement*, GstEvent*);
