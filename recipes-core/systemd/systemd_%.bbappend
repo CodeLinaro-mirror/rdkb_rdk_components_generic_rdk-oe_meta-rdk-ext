@@ -8,6 +8,8 @@ PACKAGECONFIG_remove_kirkstone = "${@bb.utils.contains('DISTRO_FEATURES', 'netwo
 PACKAGECONFIG_remove = "${@bb.utils.contains_any('DISTRO_FEATURES','dunfell kirkstone',' resolved nss-resolve ','',d)} "
 
 PACKAGECONFIG_remove_libc-uclibc = "sysusers machined"
+DEPENDS += " ${@bb.utils.contains("DISTRO_FEATURES", "apparmor", " apparmor", "" ,d)}"
+PACKAGECONFIG_append = " ${@bb.utils.contains("DISTRO_FEATURES", "apparmor", " apparmor", "" ,d)}"
 
 EXTRA_OECONF += "--disable-ldconfig"
 EXTRA_OECONF_append_libc-uclibc = " --disable-sysusers --disable-machined "
