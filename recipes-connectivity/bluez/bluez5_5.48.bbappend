@@ -47,6 +47,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-043-auto-accept-connection-for_5.10-Kernel.patch \
     file://bluez-5.48-044-add-up-to-date-battery-service.patch \
     file://bluez-5.48-045-ensure-bluez-connects-on-bredr-to-audio-devices.patch \
+    file://bluz5_5.48_gatt_db_service_crash.patch \
 	"
 
 ## Disabled SkyQ Patches
