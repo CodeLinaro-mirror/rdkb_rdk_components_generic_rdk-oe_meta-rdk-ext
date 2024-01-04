@@ -197,6 +197,12 @@ INITSCRIPT_PACKAGES = "${PN}"
 INITSCRIPT_NAME = "apparmor"
 INITSCRIPT_PARAMS = "start 16 2 3 4 5 . stop 35 0 1 6 ."
 
+inherit syslog-ng-config-gen
+SYSLOG-NG_FILTER = "startup_stdout_log"
+SYSLOG-NG_SERVICE_startup_stdout_log = "apparmor.service"
+SYSLOG-NG_DESTINATION_startup_stdout_log = "startup_stdout_log.txt"
+SYSLOG-NG_LOGRATE_startup_stdout_log = "low"
+
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE_${PN} = "apparmor.service"
 SYSTEMD_AUTO_ENABLE ?= "enable"
