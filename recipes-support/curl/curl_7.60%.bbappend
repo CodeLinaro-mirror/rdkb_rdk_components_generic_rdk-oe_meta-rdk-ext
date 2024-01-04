@@ -6,6 +6,9 @@ SRC_URI += "file://ocsp_request_to_CA_Directly.patch \
             file://CVE-2020-8286_7.60.patch \
 "
 
+SRC_URI_append = " file://CVE-2021-22924_7.60.0_fix.patch \
+                 "
+
 CURLGNUTLS = "--without-gnutls --with-ssl"
 DEPENDS += " openssl"
 
