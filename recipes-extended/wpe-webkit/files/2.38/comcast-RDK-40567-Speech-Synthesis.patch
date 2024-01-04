@@ -855,7 +855,7 @@ index f03f888117b8..2fc243fda30e 100644
      void speechSynthesisPause(CompletionHandler<void()>&&);
      void speechSynthesisResume(CompletionHandler<void()>&&);
      void speechSynthesisResetState();
-+    double getPageMediaVolume() override {}
++    double getPageMediaVolume() override { return 0.0; }
 +    void setPageMediaVolume(double volume) override {}
  #endif
  

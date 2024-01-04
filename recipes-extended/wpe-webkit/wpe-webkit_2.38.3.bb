@@ -6,7 +6,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r12"
+PR  = "r7"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -15,26 +15,19 @@ RDEPENDS_${PN}_remove = "injectedbundle"
 
 inherit gettext python3native ccache
 
-# Tip of the branch on Nov 30, 2023
-SRCREV = "0ac2e6f2b603d5d87bc5b3c989d3d0f9f2d5bbdd"
+# Tip of the branch on Jan 29, 2024
+SRCREV = "9622aa748596f103b8f0073072d0a18e6d5ad2f1"
 
 BASE_URI ?= "git://github.com/WebPlatformForEmbedded/WPEWebKit.git;protocol=http;branch=wpe-2.38"
 SRC_URI = "${BASE_URI}"
 
 # Drop after a PR is approved or different fix is available in wpe-2.38 branch
-SRC_URI += "file://2.38.1/1129.patch"
 SRC_URI += "file://2.38.1/1132.patch"
 SRC_URI += "file://2.38.1/1166.patch"
 SRC_URI += "file://2.38.2/1196.patch"
 SRC_URI += "file://2.38.1/1214.patch"
-SRC_URI += "file://2.38.1/1231.patch"
-SRC_URI += "file://2.38.2/1232.patch"
-SRC_URI += "file://2.38.2/1244.patch"
 SRC_URI += "file://2.38.2/1250.patch"
-SRC_URI += "file://2.38.2/1253.patch"
-SRC_URI += "file://2.38.2/1254.patch"
-SRC_URI += "file://2.38.2/1275.patch"
-SRC_URI += "file://2.38.2/1277.patch"
+SRC_URI += "file://2.38.3/1284.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.38/comcast-DELIA-60920-Malloc-Heap-Breakdown.patch"
@@ -71,8 +64,10 @@ SRC_URI += "file://2.38/comcast-RDK-40634-Only-support-decoders-with-hw-support-
 SRC_URI += "file://2.38.1/comcast-RDKTV-25465-Fix-Vudu-VG-issue.patch"
 SRC_URI += "file://2.38.2/comcast-AMLOGIC-3262-Initial-support-for-instant-rat.patch"
 SRC_URI += "file://2.38.1/comcast-LLAMA-12502-Disable-Permissions-API-for-radioplayer.org.patch"
-SRC_URI += "file://2.38.2/comcast-DELIA-57933-Increase-minor-version-or-WPE-lib.patch"
+SRC_URI += "file://2.38.3/comcast-DELIA-57933-Increase-minor-version-or-WPE-lib.patch"
 SRC_URI += "file://2.38.2/comcast-LLAMA-12282-Add-quirk-for-RTLPlay-mini-player.patch"
+SRC_URI += "file://2.38.3/comcast-RDKTV-28214-WebProcess-shutdown-_exit.patch"
+SRC_URI += "file://2.38.3/comcast-RDKTV-28439-Memory-Pressure.patch"
 
 PACKAGECONFIG[wpeqtapi]          = "-DENABLE_WPE_QT_API=ON,-DENABLE_WPE_QT_API=OFF"
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
@@ -160,3 +155,4 @@ do_install_append() {
         rm ${D}/usr/bin/WPEWebDriver
     fi
 }
+FILES_${PN} += "${bindir}"

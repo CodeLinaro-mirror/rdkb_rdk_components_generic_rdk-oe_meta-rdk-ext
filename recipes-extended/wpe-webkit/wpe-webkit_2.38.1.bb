@@ -1,6 +1,5 @@
 inherit features_check
-
-REQUIRED_DISTRO_FEATURES = "wpe-2.38"
+CONFLICT_DISTRO_FEATURES = "wpe-2.28"
 
 PATCHTOOL = "git"
 
