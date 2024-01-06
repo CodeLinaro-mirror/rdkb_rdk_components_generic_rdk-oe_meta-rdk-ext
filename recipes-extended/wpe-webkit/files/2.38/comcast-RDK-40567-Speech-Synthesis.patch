@@ -1,4 +1,4 @@
-From df07128ee8628a801e038581503ad8a17e292221 Mon Sep 17 00:00:00 2001
+From 4644179baa4ce0c5fd5b03b1cfa803acf2c3b345 Mon Sep 17 00:00:00 2001
 From: Pawel Lampe <pawel.lampe@sky.uk>
 Date: Wed, 22 Mar 2023 09:22:12 +0000
 Subject: [PATCH] comcast - RDK-40567 - Speech Synthesis Implementation
@@ -9,11 +9,10 @@ This patch consists of following changes:
 Custom:
 1) Remove SpeechSynthesisClient logic to ensure TTS processing in WebProcess
 2) Adaptations required by WPE WebKit 2.38
-
 ---
  .../Modules/speech/SpeechSynthesis.cpp        |  30 +-
  .../WebCore/Modules/speech/SpeechSynthesis.h  |   2 +
- .../speech/SpeechSynthesisUtterance.cpp       |  28 ++
+ .../speech/SpeechSynthesisUtterance.cpp       |  29 ++
  .../Modules/speech/SpeechSynthesisUtterance.h |   3 +
  Source/WebCore/PlatformWPE.cmake              |   5 +
  Source/WebCore/SourcesWPE.txt                 |   2 +
@@ -26,7 +25,7 @@ Custom:
  Source/WebKit/UIProcess/WebPageProxy.h        |   2 +
  Source/WebKit/WebProcess/WebPage/WebPage.cpp  |   2 +-
  Source/cmake/OptionsWPE.cmake                 |   2 +
- 15 files changed, 637 insertions(+), 7 deletions(-)
+ 15 files changed, 638 insertions(+), 7 deletions(-)
  create mode 100644 Source/WebCore/platform/ttsclient/PlatformSpeechSynthesizerTTSClient.cpp
  create mode 100644 Source/WebCore/platform/ttsclient/PlatformSpeechSynthesizerTTSClient.h
 
@@ -107,10 +106,10 @@ index d38370ae7637..a6253f6e634a 100644
      // SpeechSynthesisClient override methods
      void didStartSpeaking() override;
 diff --git a/Source/WebCore/Modules/speech/SpeechSynthesisUtterance.cpp b/Source/WebCore/Modules/speech/SpeechSynthesisUtterance.cpp
-index 66a45fb91526..8e0ae3c8cdfe 100644
+index 66a45fb91526..fb2a04a45010 100644
 --- a/Source/WebCore/Modules/speech/SpeechSynthesisUtterance.cpp
 +++ b/Source/WebCore/Modules/speech/SpeechSynthesisUtterance.cpp
-@@ -25,6 +25,8 @@
+@@ -25,10 +25,13 @@
  
  #include "config.h"
  #include "SpeechSynthesisUtterance.h"
@@ -119,7 +118,12 @@ index 66a45fb91526..8e0ae3c8cdfe 100644
  
  #if ENABLE(SPEECH_SYNTHESIS)
  
-@@ -69,6 +71,32 @@ void SpeechSynthesisUtterance::setVoice(SpeechSynthesisVoice* voice)
+ #include <wtf/IsoMallocInlines.h>
++#include "Logging.h"
+ 
+ namespace WebCore {
+ 
+@@ -69,6 +72,32 @@ void SpeechSynthesisUtterance::setVoice(SpeechSynthesisVoice* voice)
          m_platformUtterance->setVoice(voice->platformVoice());
  }
  
@@ -831,10 +835,10 @@ index 000000000000..1ebb72d1cf01
 +
 +#endif // PlatformSpeechSynthesizer_h
 diff --git a/Source/WebKit/UIProcess/WebPageProxy.cpp b/Source/WebKit/UIProcess/WebPageProxy.cpp
-index d2bd1bc7b34e..49459d4f0225 100644
+index 641cff85d709..5b4f573d4447 100644
 --- a/Source/WebKit/UIProcess/WebPageProxy.cpp
 +++ b/Source/WebKit/UIProcess/WebPageProxy.cpp
-@@ -10988,7 +10988,7 @@ void WebPageProxy::resetSpeechSynthesizer()
+@@ -10994,7 +10994,7 @@ void WebPageProxy::resetSpeechSynthesizer()
  WebPageProxy::SpeechSynthesisData& WebPageProxy::speechSynthesisData()
  {
      if (!m_speechSynthesisData)
@@ -844,7 +848,7 @@ index d2bd1bc7b34e..49459d4f0225 100644
  }
  
 diff --git a/Source/WebKit/UIProcess/WebPageProxy.h b/Source/WebKit/UIProcess/WebPageProxy.h
-index 58f2b96e6700..38c88ab248f4 100644
+index f03f888117b8..2fc243fda30e 100644
 --- a/Source/WebKit/UIProcess/WebPageProxy.h
 +++ b/Source/WebKit/UIProcess/WebPageProxy.h
 @@ -1875,6 +1875,8 @@ public:
@@ -870,7 +874,7 @@ index b8ec4d02e671..cc211663e2db 100644
  #endif
  
 diff --git a/Source/cmake/OptionsWPE.cmake b/Source/cmake/OptionsWPE.cmake
-index cf67b94c76d9..942420ece3a4 100644
+index 1e815a3650ba..c65f9fcaa854 100644
 --- a/Source/cmake/OptionsWPE.cmake
 +++ b/Source/cmake/OptionsWPE.cmake
 @@ -39,6 +39,7 @@ include(GStreamerDefinitions)

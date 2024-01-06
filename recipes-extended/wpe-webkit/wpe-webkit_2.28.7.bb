@@ -1,6 +1,3 @@
-inherit features_check
-
-REQUIRED_DISTRO_FEATURES = "wpe-2.28"
 
 PATCHTOOL = "git"
 
@@ -161,9 +158,9 @@ RDEPS_VIDEO += " \
 "
 
 def wk_use_ccache(bb,d):
-    if d.getVar('CCACHE_DISABLED') == "1":
+    if d.getVar('CCACHE_DISABLED', True) == "1":
        return "NO"
-    if bb.data.inherits_class("icecc", d) and d.getVar('ICECC_DISABLED') != "1":
+    if bb.data.inherits_class("icecc", d) and d.getVar('ICECC_DISABLED', True) != "1":
        return "NO"
     return "YES"
 export WK_USE_CCACHE="${@wk_use_ccache(bb, d)}"
