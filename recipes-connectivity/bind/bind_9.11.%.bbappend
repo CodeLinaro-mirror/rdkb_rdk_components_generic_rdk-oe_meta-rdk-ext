@@ -15,3 +15,5 @@ SRC_URI_remove_broadband  = "file://CVE-2022-38178_fix.patch \
                             "
 SRC_URI_remove_client = "file://CVE-2023-2828_fix.patch \
                         "
+SRC_URI_append_hybrid = " file://CVE-2023-3341_fix.patch "
+SRC_URI_append_client = " file://CVE-2023-3341_fix.patch "
