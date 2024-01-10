@@ -246,6 +246,17 @@
                             ]
                },
                {
+                  "group_id": 16,
+                      "subdocs": [
+                              {
+                              "name": "prioritizedmacs",
+                              "bitposition": 1,
+                              "support": false,
+                              "version": "1.0"
+                                }
+                             ]
+               },               
+               {
                  "group_id": 17,
                  "subdocs": [
                    {
@@ -502,6 +513,17 @@
                                }
                             ]
                },
+               {
+                  "group_id": 16,
+                      "subdocs": [
+                              {
+                              "name": "prioritizedmacs",
+                              "bitposition": 1,
+                              "support": false,
+                              "version": "1.0"
+                                }
+                             ]
+               },               
                {
                  "group_id": 17,
                  "subdocs": [
@@ -760,6 +782,17 @@
                             ]
                },
                {
+                  "group_id": 16,
+                      "subdocs": [
+                              {
+                              "name": "prioritizedmacs",
+                              "bitposition": 1,
+                              "support": false,
+                              "version": "1.0"
+                                }
+                             ]
+               },               
+               {
                  "group_id": 17,
                  "subdocs": [
                    {
@@ -1016,6 +1049,17 @@
                                }
                             ]
                },
+               {
+                  "group_id": 16,
+                      "subdocs": [
+                              {
+                              "name": "prioritizedmacs",
+                              "bitposition": 1,
+                              "support": false,
+                              "version": "1.0"
+                                }
+                             ]
+               },               
                {
                  "group_id": 17,
                  "subdocs": [
@@ -2078,6 +2122,17 @@
                  ]
                },
                {
+                  "group_id": 16,
+                      "subdocs": [
+                              {
+                              "name": "prioritizedmacs",
+                              "bitposition": 1,
+                              "support": false,
+                              "version": "1.0"
+                                }
+                             ]
+               },               
+               {
                  "group_id": 17,
                  "subdocs": [
                    {
@@ -2335,6 +2390,17 @@
          ]
        },
        {
+         "group_id": 16,
+             "subdocs": [
+                     {
+                     "name": "prioritizedmacs",
+                     "bitposition": 1,
+                     "support": false,
+                     "version": "1.0"
+                       }
+                    ]
+       },       
+       {
            "group_id": 17,
            "subdocs": [
              {
@@ -2591,6 +2657,17 @@
            }
          ]
        },
+       {
+         "group_id": 16,
+             "subdocs": [
+                     {
+                     "name": "prioritizedmacs",
+                     "bitposition": 1,
+                     "support": false,
+                     "version": "1.0"
+                       }
+                    ]
+       },       
        {
           "group_id": 17,
           "subdocs": [
@@ -3117,6 +3194,17 @@
                                 ]
                    },
                    {
+                     "group_id": 16,
+                         "subdocs": [
+                                 {
+                                 "name": "prioritizedmacs",
+                                 "bitposition": 1,
+                                 "support": false,
+                                 "version": "1.0"
+                                   }
+                                ]
+                   },                   
+                   {
                        "group_id": 17,
                        "subdocs": [
                          {
@@ -3356,6 +3444,17 @@
            }
          ]
        },
+       {
+         "group_id": 16,
+             "subdocs": [
+                     {
+                     "name": "prioritizedmacs",
+                     "bitposition": 1,
+                     "support": false,
+                     "version": "1.0"
+                       }
+                    ]
+       },       
        {
           "group_id": 17,
           "subdocs": [
