@@ -5,7 +5,6 @@ SRC_URI_append = " file://ocsp_request_to_CA_Directly_curl_7.69.1.patch \
                    file://CVE-2020-8285.patch \
                    file://CVE-2020-8286.patch \
 "
-
 SRC_URI_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'yocto-3.1.15', '', 'file://CVE-2020-8284_fix.patch \
                                                                                 file://CVE-2021-22876_fix.patch \
                                                                                 file://CVE-2021-22890_fix.patch \
@@ -24,7 +23,11 @@ SRC_URI_append = " file://CVE-2022-22576_fix.patch \
                    file://CVE-2022-35252_fix.patch \
                    file://CVE-2022-43552_fix.patch \
                  "
-
+   
+SRC_URI_append_broadband = " file://CVE-2023-27534_fix.patch \
+                             file://CVE-2023-27538_fix.patch \
+                             file://CVE-2023-28320_fix.patch \
+                           "
 
 CURLGNUTLS = "--without-gnutls --with-ssl"
 DEPENDS += " openssl"
