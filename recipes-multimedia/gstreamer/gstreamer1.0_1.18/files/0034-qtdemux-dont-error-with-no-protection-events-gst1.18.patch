@@ -8,14 +8,14 @@ passing thru.
 
 Signed-off-by: Tony Paul <Tony_Paul@comcast.com>
 ---
- gst/isomp4/qtdemux.c | 26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ gst/isomp4/qtdemux.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
 diff --git a/gst/isomp4/qtdemux.c b/gst/isomp4/qtdemux.c
-index f04ca2d23..243259c5b 100644
+index d4f116ccb..8bfe35157 100644
 --- a/gst/isomp4/qtdemux.c
 +++ b/gst/isomp4/qtdemux.c
-@@ -8522,10 +8522,23 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
+@@ -8979,10 +8979,23 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
          GST_FOURCC_ARGS (stream->protection_scheme_type));
      return FALSE;
    }
@@ -32,16 +32,17 @@ index f04ca2d23..243259c5b 100644
 +   }
 +
    if (qtdemux->protection_system_ids == NULL) {
-     GST_ERROR_OBJECT (qtdemux, "stream is protected using cenc, but no "
+-    GST_ERROR_OBJECT (qtdemux, "stream is protected using cenc, but no "
 -        "cenc protection system information has been found");
 -    return FALSE;
++    GST_DEBUG_OBJECT (qtdemux, "stream is protected using cenc, but no "
 +        "cenc protection system information has been found, not setting a "
 +        "protection system UUID");
 +    return TRUE;
    }
  
-   gst_qtdemux_request_protection_context (qtdemux, stream);
-@@ -8619,6 +8620,11 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
+   gst_qtdemux_request_protection_context_if_needed (qtdemux, stream);
+@@ -9026,6 +9039,11 @@ gst_qtdemux_configure_protected_caps (GstQTDemux * qtdemux,
          NULL);
      gst_structure_set_name (s, "application/x-cenc");
    }
@@ -52,6 +53,6 @@ index f04ca2d23..243259c5b 100644
 +
    return TRUE;
  }
-
+ 
 -- 
-2.25.1
+2.17.1

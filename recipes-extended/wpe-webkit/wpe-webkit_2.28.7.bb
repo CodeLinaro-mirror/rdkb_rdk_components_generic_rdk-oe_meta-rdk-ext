@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r5"
+PR  = "r12"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -32,8 +32,13 @@ SRC_URI += "file://2.28.6/1073.patch"
 SRC_URI += "file://2.28.7/1074.patch"
 SRC_URI += "file://2.28.6/1076.patch"
 SRC_URI += "file://2.28.6/1086.patch"
-SRC_URI += "file://2.28.7/1117.patch"
+SRC_URI += "file://2.28.6/1087.patch"
 SRC_URI += "file://2.28.7/1108.patch"
+SRC_URI += "file://2.28.7/1117.patch"
+SRC_URI += "file://2.28.7/1121.patch"
+SRC_URI += "file://2.28.7/1094.patch"
+SRC_URI += "file://2.28.7/1142.patch"
+SRC_URI += "file://2.28.7/1155.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.28/comcast-XRE-15382-libwebrtc-fake-encoder.patch"
@@ -50,7 +55,7 @@ SRC_URI += "file://2.28/comcast-RDKTV-6665-Remove-screen-saver-disabler.patch"
 SRC_URI += "file://2.28/comcast-LLAMA-2184-Support-for-external-sink-for-x-d.patch"
 SRC_URI += "file://2.28/comcast-XRE-16393-DELIA-52142-Accessibility.patch"
 SRC_URI += "file://2.28/comcast-XRE-14272-Speech-Synthesis.patch"
-SRC_URI += "file://2.28/comcast-XRE-13799-XRE-13989-Track-encrypted-playback.patch"
+SRC_URI += "file://2.28.7/comcast-XRE-13799-XRE-13989-Track-encrypted-playback.patch"
 SRC_URI += "file://2.28/comcast-RDKTV-380-disable-privileges-loss.patch"
 SRC_URI += "file://2.28/comcast-RDK-28954-add-securedump-location.patch"
 SRC_URI += "file://2.28/comcast-RDKTV-17737-play-pause-mapping.patch"
@@ -77,6 +82,9 @@ SRC_URI += "file://2.28.6/comcast-DELIA-60613-WebRTC-streaming-fails-with-test-a
 SRC_URI += "file://2.28/comcast-DELIA-60227-Malloc-Heap-Breakdown.patch"
 SRC_URI += "file://2.28.7/comcast-DELIA-62248-Fix-AppleTV-format-error.patch"
 SRC_URI += "file://2.28.7/comast-XIONE-12615-Perform-instant-rate-change-using-custom-event.patch"
+SRC_URI += "file://2.28.7/comcast-BCOM-6804-No-Decoder-available-errors-during.patch"
+SRC_URI += "file://2.28.7/comcast-DELIA-61357-Moderate-Memory-Pressure-logs.patch"
+SRC_URI += "file://2.28.7/comcast-XIONE-12272-configure-video-resource-usage-w.patch"
 
 PACKAGECONFIG[cssshapes]         = "-DENABLE_CSS_SHAPES=ON,-DENABLE_CSS_SHAPES=OFF,"
 PACKAGECONFIG[fetchapi]          = "-DENABLE_FETCH_API=ON,-DENABLE_FETCH_API=OFF,"
