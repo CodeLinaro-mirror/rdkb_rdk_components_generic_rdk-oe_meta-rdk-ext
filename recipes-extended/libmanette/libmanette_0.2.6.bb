@@ -6,21 +6,26 @@ DEPENDS = "libevdev libgudev"
 SRC_URI = "https://download.gnome.org/sources/libmanette/0.2/libmanette-${PV}.tar.xz \
            file://0001-old-kernel-and-64-bit-kernel-build-error-fix.patch \
            file://0001-send-event-in-thread-context.patch \
-           file://0001-default-gamepad-db-dir-etc.patch \
+           file://0001-default-gamepad-db-dir-usr-share.patch \
            file://gamecontrollerdb \
            file://0001-new-SDL-gamedb.patch \
+           file://0002-add-wayland-inputfd-support.patch \
            "
+
 SRC_URI[sha256sum] = "63653259a821ec7d90d681e52e757e2219d462828c9d74b056a5f53267636bac"
 
 inherit ${@bb.utils.contains('DISTRO_FEATURES', 'dunfell', 'meson', ' ', d)} pkgconfig gobject-introspection ptest vala
 
+PACKAGECONFIG[wayland-inputfd] = "-Dwayland-inputfd=true,-Dwayland-inputfd=false,wayland wayland-native"
+
 do_install_append() {
-    install -d ${D}${sysconfdir}/libmanette/
-    cp -f ${WORKDIR}/gamecontrollerdb ${D}${sysconfdir}/libmanette/
-    chmod 0644 ${D}${sysconfdir}/libmanette/gamecontrollerdb
+    install -d ${D}${datadir}/libmanette/
+    cp -f ${WORKDIR}/gamecontrollerdb ${D}${datadir}/libmanette/
+    chmod 0644 ${D}${datadir}/libmanette/gamecontrollerdb
     rm ${D}/usr/bin/manette-test
 }
-FILES_${PN} += "${sysconfdir}/libmanette/"
+
+FILES_${PN} += "${datadir}/libmanette/"
 #FILES_${PN}-ptest =+ "${bindir}/manette-test"
 #FILES_${PN}-ptest =+ "${bindir}/ManetteEventMapping"
 #FILES_${PN}-ptest =+ "${bindir}/ManetteMapping"

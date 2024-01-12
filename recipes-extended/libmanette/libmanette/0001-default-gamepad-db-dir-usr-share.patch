@@ -1,7 +1,7 @@
 From e65f129c29b6cc96bd65677ac763c6e92888d4a7 Mon Sep 17 00:00:00 2001
 From: Manoj Bhatta <manoj_bhatta@comcast.com>
 Date: Fri, 10 Mar 2023 19:24:30 +0000
-Subject: [PATCH] default gamepad db dir etc
+Subject: [PATCH] default gamepad db dir /usr/share
 
 ---
  src/manette-device.h          | 1 +
@@ -28,7 +28,7 @@ index 4e9afaa..7ec13d4 100644
    g_autofree gchar *path = NULL;
    g_autoptr (GFile) user_mappings_file = NULL;
    GError *inner_error = NULL;
-+  gchar *etc_dir = "/etc/"; //can be done using env variable
++  gchar *data_dir = "/usr/share/"; //can be done using env variable
  
    self = (ManetteMappingManager*) g_object_new (MANETTE_TYPE_MAPPING_MANAGER, NULL);
  
@@ -37,7 +37,7 @@ index 4e9afaa..7ec13d4 100644
    }
  
 -  path = g_build_filename (g_get_user_config_dir (), CONFIG_DIR, MAPPING_CONFIG_FILE, NULL);
-+  path = g_build_filename (etc_dir , CONFIG_DIR, MAPPING_CONFIG_FILE, NULL);
++  path = g_build_filename (data_dir, CONFIG_DIR, MAPPING_CONFIG_FILE, NULL);
  
    self->user_mappings_uri = g_filename_to_uri (path, NULL, &inner_error);
    if (G_UNLIKELY (inner_error != NULL)) {
