@@ -23,8 +23,8 @@ SRC_URI += " file://memcr.service"
 INSANE_SKIP_${PN} += "ldflags"
 
 PV = "1.0+git${SRCPV}"
-# Code base from 20.09.2023
-SRCREV = "6cbc4ce87f19972007b689078aceb54014106fae"
+# Code base from 19.01.2024
+SRCREV = "4cd8d833f8af5946d7ebee7e1f3dd81feb611aa4"
 
 DEPENDS += " util-linux-native lz4 openssl"
 RDEPENDS_${PN} = "libcrypto lz4"
