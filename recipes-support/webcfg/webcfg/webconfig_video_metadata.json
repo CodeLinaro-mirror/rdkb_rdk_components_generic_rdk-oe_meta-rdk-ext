@@ -264,5 +264,47 @@
                                }
                             ]
                }
+             ],
+         "apache-2k" : [
+              {
+                 "group_id": 1,
+                     "subdocs": [
+                               {
+                                  "name": "telemetry",
+                                  "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0",
+                                  "secondary_doc": true
+                               }
+                            ]
+               }
+             ],
+         "apache-4k" : [
+              {
+                 "group_id": 1,
+                     "subdocs": [
+                               {
+                                  "name": "telemetry",
+                                  "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0",
+                                  "secondary_doc": true
+                               }
+                            ]
+               }
+             ],
+         "pioneer-v2-2k" : [
+              {
+                 "group_id": 1,
+                     "subdocs": [
+                               {
+                                  "name": "telemetry",
+                                  "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0",
+                                  "secondary_doc": true
+                               }
+                            ]
+               }
              ]
 }
