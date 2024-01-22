@@ -1452,6 +1452,30 @@
                                   "bitposition": 1,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": true,
+                                  "version": "1.0"
                                }
                             ]
                },
