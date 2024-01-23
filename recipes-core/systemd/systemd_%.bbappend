@@ -106,7 +106,6 @@ fi
 }
 
 do_install_append_client() {
-        install -d ${D}/media/apps
         rm -rf ${D}${rootlibexecdir}/systemd/systemd-binfmt
         rm -rf ${D}${rootlibexecdir}/systemd/system/systemd-binfmt.service
         rm -rf ${D}${rootlibexecdir}/systemd/systemd-update-done
@@ -142,10 +141,8 @@ FILES_${PN} += "${sysconfdir}/sysctl.d/50-netfilter.conf \
                "
 FILES_${PN}_remove = "${bindir}/busctl ${datadir}/bash-completion/completions/busctl ${libdir}/libnss_mymachines.so.2 ${rootlibexecdir}/systemd/systemd-bus-proxyd ${rootlibexecdir}/systemd/systemd-ac-power ${rootlibexecdir}/systemd/systemd-fsck ${rootlibexecdir}/systemd/systemd-sleep ${rootlibexecdir}/systemd/system/systemd-fsck*.service ${rootlibexecdir}/systemd/systemd-reply-password ${rootlibexecdir}/systemd/systemd-activate"
 
-FILES_${PN}_append_client = " /media/apps"
 FILES_${PN}_append_hybrid = " /media/apps"
 FILES_${PN}_append_hybrid += "${sysconfdir}/sysctl.d/50-portreserv.conf"
-FILES_${PN} += "/media"
 
 SYSTEMD_SERVICE_systemd-binfmt_remove_hybrid = " systemd-binfmt.service"
 SYSTEMD_SERVICE_systemd-binfmt_remove_client = " systemd-binfmt.service"
