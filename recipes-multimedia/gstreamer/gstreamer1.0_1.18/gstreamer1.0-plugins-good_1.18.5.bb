@@ -69,7 +69,7 @@ PACKAGECONFIG ??= " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'pulseaudio x11', 'pulseaudio x11', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'soup3', 'soup', d)} \
     ${@bb.utils.contains('TUNE_FEATURES', 'm64', 'asm', '', d)} \
-    bz2 cairo flac gdk-pixbuf gudev jpeg libpng mpg123 speex taglib v4l2 \
+    bz2 cairo flac gdk-pixbuf jpeg libpng mpg123 speex taglib \
 "
 
 X11DEPENDS = "virtual/libx11 libsm libxrender libxfixes libxdamage"
