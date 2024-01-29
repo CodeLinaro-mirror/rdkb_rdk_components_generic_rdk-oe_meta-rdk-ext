@@ -5,7 +5,7 @@ BUGTRACKER  = "https://gitlab.freedesktop.org/pipewire/pipewire/issues"
 AUTHOR      = "Wim Taymans <wtaymans@redhat.com>"
 SECTION     = "multimedia"
 
-LICENSE = "MIT & LGPL-2.1-or-later & GPL-2.0-only"
+LICENSE = "MIT & LGPL-2.1-or-later"
 LIC_FILES_CHKSUM = " \
     file://LICENSE;md5=2158739e172e58dc9ab1bdd2d6ec9c72 \
     file://COPYING;md5=97be96ca4fab23e9657ffa590b931c1a \
@@ -19,6 +19,12 @@ SRC_URI = "git://gitlab.freedesktop.org/pipewire/pipewire.git;branch=master;prot
            file://pipewire_0.3.75_upgrade.patch \
            file://pipewire-conf.patch \
            file://pipewire_service.patch \
+           "
+
+# The JACK is GPL code and RDK does not use any GPL code. So removed JACK from RDK Deliverable.
+SRC_URI += "\
+           file://meson_options.patch \
+           file://Remove_pipewire-jack.patch \
            "
 
 S = "${WORKDIR}/git"
@@ -93,7 +99,7 @@ PACKAGECONFIG:class-target ??= " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd systemd-system-service systemd-user-service', '', d)} \
     ${@bb.utils.filter('DISTRO_FEATURES', 'alsa vulkan pulseaudio', d)} \
     ${PIPEWIRE_SESSION_MANAGER} \
-    ${FFMPEG_AVAILABLE} avahi flatpak gstreamer gsettings jack libusb pw-cat raop sndfile v4l2 udev volume webrtc-echo-cancelling libcamera readline pipewire-alsa \
+    ${FFMPEG_AVAILABLE} avahi flatpak gstreamer gsettings libusb pw-cat raop sndfile v4l2 udev volume webrtc-echo-cancelling libcamera readline pipewire-alsa \
 "
 
 # "jack" and "pipewire-jack" packageconfigs cannot be both enabled,
@@ -116,14 +122,12 @@ PACKAGECONFIG[ffmpeg] = "-Dffmpeg=enabled,-Dffmpeg=disabled,ffmpeg"
 PACKAGECONFIG[flatpak] = "-Dflatpak=enabled,-Dflatpak=disabled,glib-2.0"
 PACKAGECONFIG[gsettings] = "-Dgsettings=enabled,-Dgsettings=disabled,glib-2.0"
 PACKAGECONFIG[gstreamer] = "-Dgstreamer=enabled,-Dgstreamer=disabled,glib-2.0 gstreamer1.0 gstreamer1.0-plugins-base,,gstreamer1.0-pipewire"
-PACKAGECONFIG[jack] = "-Djack=enabled,-Djack=disabled,jack,,,pipewire-jack"
 PACKAGECONFIG[libcamera] = "-Dlibcamera=enabled,-Dlibcamera=disabled,libcamera libdrm"
 PACKAGECONFIG[libcanberra] = "-Dlibcanberra=enabled,-Dlibcanberra=disabled,libcanberra"
 PACKAGECONFIG[libusb] = "-Dlibusb=enabled,-Dlibusb=disabled,libusb"
 PACKAGECONFIG[media-session] = ",,,pipewire-media-session,,wireplumber"
 PACKAGECONFIG[pulseaudio] = "-Dlibpulse=enabled,-Dlibpulse=disabled,pulseaudio,,pipewire-pulse"
 PACKAGECONFIG[pipewire-alsa] = "-Dpipewire-alsa=enabled,-Dpipewire-alsa=enabled,alsa-lib"
-PACKAGECONFIG[pipewire-jack] = "-Dpipewire-jack=enabled -Dlibjack-path=${libdir}/${PW_MODULE_SUBDIR}/jack,-Dpipewire-jack=disabled,jack,,pipewire-jack,jack"
 PACKAGECONFIG[pw-cat] = "-Dpw-cat=enabled,-Dpw-cat=disabled"
 PACKAGECONFIG[raop] = "-Draop=enabled,-Draop=disabled,openssl"
 # Starting with version 0.3.60, readline usage can be turned off in pw-cli.
@@ -150,8 +154,6 @@ PACKAGESPLITFUNCS:append = " set_dynamic_metapkg_rdepends "
 
 SPA_SUBDIR = "spa-0.2"
 PW_MODULE_SUBDIR = "pipewire-0.3"
-
-#do_install[postfuncs] += "remove_unused_installed_files"
 
 python split_dynamic_packages () {
     # Create packages for each SPA plugin. These plugins are located
@@ -234,7 +236,6 @@ PACKAGES =+ "\
     ${PN}-tools \
     ${PN}-pulse \
     ${PN}-alsa \
-    ${PN}-jack \
     ${PN}-spa-plugins \
     ${PN}-spa-plugins-meta \
     ${PN}-spa-tools \
@@ -262,10 +263,6 @@ FILES:${PN} = " \
 RRECOMMENDS:${PN}:class-target += " \
 	pipewire-modules-meta \
 	pipewire-spa-plugins-meta \
-"
-
-FILES:${PN}-dev += " \
-    ${libdir}/${PW_MODULE_SUBDIR}/jack/libjack*.so \
 "
 
 CONFFILES:libpipewire += "${datadir}/pipewire/client.conf"
@@ -327,13 +324,6 @@ RDEPENDS:${PN}-pulse += " \
 FILES:${PN}-alsa = "\
     ${libdir}/alsa-lib/* \
     ${datadir}/alsa/alsa.conf.d/* \
-"
-# JACK drop-in libraries to redirect audio to pipewire.
-CONFFILES:${PN}-jack = "${datadir}/pipewire/jack.conf"
-FILES:${PN}-jack = "\
-    ${bindir}/pw-jack \
-    ${datadir}/pipewire/jack.conf \
-    ${libdir}/${PW_MODULE_SUBDIR}/jack/libjack*.so.* \
 "
 
 # Dynamic SPA plugin packages (see set_dynamic_metapkg_rdepends).
