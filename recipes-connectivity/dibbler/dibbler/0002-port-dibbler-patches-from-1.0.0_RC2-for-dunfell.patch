@@ -75,7 +75,7 @@ Index: git/Misc/Portable.h
 ===================================================================
 --- git.orig/Misc/Portable.h
 +++ git/Misc/Portable.h
-@@ -164,18 +164,18 @@ struct link_state_notify_t
+@@ -164,12 +164,12 @@ struct link_state_notify_t
  #if defined(BSD)
  #define DEFAULT_WORKDIR       "/var/db/dibbler"
  #else
@@ -89,13 +89,6 @@ Index: git/Misc/Portable.h
 +#define DEFAULT_CLNTPID_FILE  "/tmp/dibbler/client.pid"
  #define DEFAULT_CLNTLOG_FILE  "/var/log/dibbler/dibbler-client.log"
  
- #define DEFAULT_SCRIPT     ""
- #define SRVCONF_FILE       "/etc/dibbler/server.conf"
- #define RELCONF_FILE       "/etc/dibbler/relay.conf"
--#define RESOLVCONF_FILE    "/etc/resolv.conf"
-+#define RESOLVCONF_FILE    "/etc/resolv.dnsmasq"
- #define NTPCONF_FILE       "/etc/ntp.conf"
- #define RADVD_FILE         "/etc/dibbler/radvd.conf"
  
 @@ -185,10 +185,10 @@ struct link_state_notify_t
  #define CLNT_AAASPI_FILE   "/var/db/dibbler/AAA/AAA-SPI"
