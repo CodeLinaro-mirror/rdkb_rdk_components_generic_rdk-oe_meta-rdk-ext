@@ -26,7 +26,6 @@ SRC_URI_append = " file://CVE-2022-32221_7.82.0_fix.patch \
 CURLGNUTLS = "--without-gnutls --with-ssl"
 DEPENDS += " openssl"
 
-
 # see https://lists.yoctoproject.org/pipermail/poky/2013-December/009435.html
 # We should ideally drop ac_cv_sizeof_off_t from site files but until then
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES', 'largefile', 'ac_cv_sizeof_off_t=8', '', d)}"

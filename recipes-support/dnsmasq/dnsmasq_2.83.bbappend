@@ -26,7 +26,11 @@ SRC_URI += " file://130-fingerprint-dhcp-lease-file-V2.83.patch \
              file://client_notify.patch"
 
 SRC_URI += " file://CVE-2022-0934_fix.patch  \
-             file://CVE-2023-28450_fix.patch "
+             file://CVE-2023-28450_fix.patch \
+             file://CVE-2021-3448.patch "
+             
+SRC_URI_remove_broadband += "file://CVE-2021-3448.patch"
+
 
 do_install_append() {
     sed -i -- 's/listen-address=127.0.0.1/#listen-address=127.0.0.1/g' ${D}${sysconfdir}/dnsmasq.conf
