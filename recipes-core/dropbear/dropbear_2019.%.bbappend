@@ -9,6 +9,8 @@ SRC_URI_append_dunfell = " file://dropbear_2019-verbose.patch \
                            ${@bb.utils.contains('DISTRO_FEATURES', 'yocto-3.1.15', '', 'file://dropbear_2019-CVE-2020-36254.patch', d)} \
 "
 
+SRC_URI_append = " file://CVE-2021-36369_fix.patch"
+
 CFLAGS_append_broadband = " -DRDK_BROADBAND"
 
 do_install_append() {

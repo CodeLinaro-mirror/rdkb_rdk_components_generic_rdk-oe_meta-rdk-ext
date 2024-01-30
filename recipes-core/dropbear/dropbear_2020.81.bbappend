@@ -8,4 +8,6 @@ SRC_URI_append = " file://dropbear_2019-verbose.patch \
                    file://dropbear_2019-Fixed-Race-Conditions-Observed-when-using-port-forwa.patch \
 "
 
+SRC_URI_append = " file://CVE-2021-36369_dropbear_2020.81_fix.patch "
+
 CFLAGS_append_broadband = " -DRDK_BROADBAND"
