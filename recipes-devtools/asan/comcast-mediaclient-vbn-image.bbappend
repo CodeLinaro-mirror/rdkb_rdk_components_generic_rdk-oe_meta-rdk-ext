@@ -2,4 +2,4 @@
 # as one of postinstall tasks. It updates gio module cache under qemu-arm
 # that doesn't work with leak detector (as both uses ptrace).
 # Disable leak detector as we don't want it here anyway
-export ASAN_OPTIONS="detect_leaks=0"
+export ASAN_OPTIONS="start_deactivated=1,detect_leaks=0"
