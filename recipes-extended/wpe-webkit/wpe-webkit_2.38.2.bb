@@ -7,7 +7,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r10"
+PR  = "r11"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -34,6 +34,7 @@ SRC_URI += "file://2.38.2/1244.patch"
 SRC_URI += "file://2.38.2/1250.patch"
 SRC_URI += "file://2.38.2/1253.patch"
 SRC_URI += "file://2.38.2/1254.patch"
+SRC_URI += "file://2.38.2/1275.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.38/comcast-DELIA-60920-Malloc-Heap-Breakdown.patch"
