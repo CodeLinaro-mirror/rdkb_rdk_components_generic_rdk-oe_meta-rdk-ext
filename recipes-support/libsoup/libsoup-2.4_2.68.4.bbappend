@@ -9,6 +9,7 @@ SRC_URI += " \
      file://0001-RDKB-44368-libsoup-2.68-Continuous-flooding-of-libso.patch \
 	 file://DELIA-57838-cookie-jar-db-Fix-DB-access-BUSY-failure.patch \
 	 file://DELIA-57540-Refresh-cookies-from-database-in-runtime.patch \
+     file://kirkstone-upgrade-breaking-cookiedb-schema.patch \
 "
 
 # glib-openssl is needed for SSL, proxies, etc.
