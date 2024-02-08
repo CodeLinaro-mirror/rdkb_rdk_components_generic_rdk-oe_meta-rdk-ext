@@ -22,7 +22,8 @@ SRC_URI_append_client = " file://CVE-2020-29562_fix.patch \
 
 SRC_URI_append_broadband = " file://CVE-2020-29562_fix.patch \
                              file://Add_the___sockaddr_un_set_function.patch \
-                             file://CVE-2022-23218_fix.patch  "
+                             file://CVE-2022-23218_fix.patch \
+                             file://CVE-2020-1752_fix.patch "
 
 SRC_URI_remove_puma7 = " file://Add_the___sockaddr_un_set_function.patch "
 

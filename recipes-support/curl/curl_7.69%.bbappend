@@ -29,6 +29,14 @@ SRC_URI_append_broadband = " file://CVE-2023-27534_fix.patch \
                              file://CVE-2023-28320_fix.patch \
                            "
 
+SRC_URI_append_broadband = " file://CVE-2023-28319_fix.patch \
+                             file://CVE-2022-27776_fix.patch \
+                             file://CVE-2022-32207_fix.patch \
+                             file://CVE-2023-38545_fix.patch \
+                             file://CVE-2023-38546_fix.patch \
+                             file://CVE-2023-28322_fix.patch \ 
+                           "
+
 CURLGNUTLS = "--without-gnutls --with-ssl"
 DEPENDS += " openssl"
 
