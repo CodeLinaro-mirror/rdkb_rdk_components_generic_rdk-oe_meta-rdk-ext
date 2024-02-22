@@ -6,7 +6,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r7"
+PR  = "r8"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -68,6 +68,7 @@ SRC_URI += "file://2.38.3/comcast-DELIA-57933-Increase-minor-version-or-WPE-lib.
 SRC_URI += "file://2.38.2/comcast-LLAMA-12282-Add-quirk-for-RTLPlay-mini-player.patch"
 SRC_URI += "file://2.38.3/comcast-RDKTV-28214-WebProcess-shutdown-_exit.patch"
 SRC_URI += "file://2.38.3/comcast-RDKTV-28439-Memory-Pressure.patch"
+SRC_URI += "file://2.38.3/comcast-SERXIONE-4428-scan-decoder-elements-on-Broad.patch"
 
 PACKAGECONFIG[wpeqtapi]          = "-DENABLE_WPE_QT_API=ON,-DENABLE_WPE_QT_API=OFF"
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
