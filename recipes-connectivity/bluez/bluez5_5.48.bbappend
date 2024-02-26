@@ -49,6 +49,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-045-ensure-bluez-connects-on-bredr-to-audio-devices.patch \
     file://bluz5_5.48_gatt_db_service_crash.patch \
     file://bluez-5.48-046-prevent-scan-becoming-stuck.patch \
+    file://bluez-5.48-047-Gen4-Crash-avoid.patch \
 	"
 
 ## Disabled SkyQ Patches
