@@ -6,7 +6,7 @@ SRC_URI += " \
 
 ## The below patches are needed to build systemd V230 with glibc V2.31 on dunfell(Yocto 3.1)
 # journald-minimal-client-metadata-caching patch contains changes the remaining 3 patches as well
-SRC_URI_append_dunfell = " \
+SRC_URI_append = " \
             ${@bb.utils.contains('DISTRO_FEATURES', 'systemd-journal-cache', 'file://journald-minimal-client-metadata-caching.patch', '\
             file://0001-memfd-patch-for-latest-version-of-glibc.patch \
             file://0002-Remove-include-of-xlocale-header.patch \
@@ -15,6 +15,14 @@ SRC_URI_append_dunfell = " \
             file://99-default.preset \
             "
 
+SRC_URI_remove_morty = " \
+            file://journald-minimal-client-metadata-caching.patch \
+            file://0001-memfd-patch-for-latest-version-of-glibc.patch \
+            file://0002-Remove-include-of-xlocale-header.patch \
+            file://0003-Remove-MS-constants-from-missing-header-file.patch', d)} \
+            file://0001-nss-util-silence-warning-about-deprecated-RES_USE_IN.patch \
+            file://99-default.preset \
+            "
 
 EXTRA_OECONF += " --enable-polkit=no"
 PACKAGECONFIG_remove = "pam"
@@ -53,7 +61,10 @@ do_install_append_broadband() {
     rm -rf ${D}${libdir}/tmpfiles.d/home.conf
 }
 
-do_install_append_dunfell() {
-    install -Dm 0644 ${WORKDIR}/99-default.preset ${D}${systemd_unitdir}/system-preset/99-default.preset
+do_install_append() {
+    if ${@bb.utils.contains_any("DISTRO_FEATURES", "dunfell kirkstone", "true", "false", d)}
+    then
+        install -Dm 0644 ${WORKDIR}/99-default.preset ${D}${systemd_unitdir}/system-preset/99-default.preset
+    fi
 }
 
