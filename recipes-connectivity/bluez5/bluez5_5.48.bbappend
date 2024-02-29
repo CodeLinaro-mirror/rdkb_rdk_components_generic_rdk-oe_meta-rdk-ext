@@ -12,4 +12,5 @@ SRC_URI += "file://0001-Fix-race-issue-with-tools-directory.patch \
             file://CVE-2019-8921.patch \
             file://CVE-2022-39176_5.48_fix.patch \
             file://CVE-2022-39177_5.48_fix.patch \
+            file://CVE-2023-45866.patch \
 "

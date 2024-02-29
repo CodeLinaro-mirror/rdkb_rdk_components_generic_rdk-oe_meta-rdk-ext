@@ -5,4 +5,5 @@ SRC_URI += " \
             file://0007-add-configurable-secure-connections_5_66.patch \
             file://0005-clear_old_cache_list.patch \
             file://0008-enabling_network_security_5_66.patch \
+            file://CVE-2023-45866-5.66.patch \
            "
