@@ -3,6 +3,7 @@ PACKAGECONFIG_append = " openssl"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI += "${@bb.utils.contains('PREFERRED_VERSION_wpa-supplicant', '2.10', '', 'file://openssl_no_md4.patch', d)}"
+SRC_URI_append_kirkstone = " file://wpa_supplicant_makefile_bug_fix_2.10.patch"
 
 inherit syslog-ng-config-gen breakpad-logmapper
 SYSLOG-NG_FILTER = "wpa_supplicant"

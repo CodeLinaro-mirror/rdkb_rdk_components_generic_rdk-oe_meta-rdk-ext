@@ -1,4 +1,4 @@
-inherit cmake
+inherit cmake pkgconfig
 
 PACKAGECONFIG[dbus] = "-DCOG_DBUS_SYSTEM_BUS=ON -DCOG_DBUS_OWN_USER=${COG_DBUS_OWN_USER},-DCOG_DBUS_SYSTEM_BUS=OFF"
 PACKAGECONFIG[drm] = "-DCOG_PLATFORM_DRM=ON,-DCOG_PLATFORM_DRM=OFF,wpebackend-fdo libdrm virtual/libgbm libinput"

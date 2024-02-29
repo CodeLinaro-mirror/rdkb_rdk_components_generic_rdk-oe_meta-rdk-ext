@@ -51,6 +51,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-046-prevent-scan-becoming-stuck.patch \
     file://bluez-5.48-047-Gen4-Crash-avoid.patch \
 	"
+SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
 ## Disabled SkyQ Patches
 #file://bluez-5.48-018-change_storage_dir.patch

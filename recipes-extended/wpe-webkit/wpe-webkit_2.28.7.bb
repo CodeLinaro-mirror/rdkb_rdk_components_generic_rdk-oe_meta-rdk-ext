@@ -4,7 +4,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r13"
+PR  = "r14"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -83,6 +83,7 @@ SRC_URI += "file://2.28.7/comcast-BCOM-6804-No-Decoder-available-errors-during.p
 SRC_URI += "file://2.28.7/comcast-DELIA-61357-Moderate-Memory-Pressure-logs.patch"
 SRC_URI += "file://2.28.7/comcast-XIONE-12272-configure-video-resource-usage-w.patch"
 SRC_URI += "file://2.28.7/comcast-RDKTV-26486-improve-memory-cost-reporting.patch"
+SRC_URI += "file://2.28.7/comcast-RDK-40340-Fix_build_issues_with_gcc_11.patch"
 
 PACKAGECONFIG[cssshapes]         = "-DENABLE_CSS_SHAPES=ON,-DENABLE_CSS_SHAPES=OFF,"
 PACKAGECONFIG[fetchapi]          = "-DENABLE_FETCH_API=ON,-DENABLE_FETCH_API=OFF,"
@@ -168,5 +169,6 @@ export WK_USE_CCACHE="${@wk_use_ccache(bb, d)}"
 do_install_append() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'enable_wpe-webdriver', 'false', 'true', d)}; then
         rm ${D}/usr/bin/WPEWebDriver
+        rmdir --ignore-fail-on-non-empty ${D}/usr/bin
     fi
 }

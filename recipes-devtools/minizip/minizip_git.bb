@@ -15,8 +15,11 @@ DEPENDS += "zlib"
 
 inherit cmake
 
-PARALLEL_MAKE = ""
 unset CMAKE_BUILD_PARALLEL_LEVEL
+
+do_install_append() {
+    rm -r ${D}/usr/cmake
+}
 
 FILES_${PN} += "${libdir}/*.so"
 FILES_SOLIBSDEV = ""

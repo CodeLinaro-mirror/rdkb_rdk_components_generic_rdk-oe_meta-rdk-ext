@@ -96,15 +96,18 @@ if ${@bb.utils.contains('EXTRA_OECONF', '--enable-hwselftest', 'false', 'true', 
         rm -rf ${D}${rootlibexecdir}/systemd/systemd-socket-proxyd
 fi
         rm -rf ${D}${rootlibexecdir}/systemd/systemd-ac-power
-        rm -rf ${D}${rootlibexecdir}/systemd/systemd-fsck
         rm -rf ${D}${rootlibexecdir}/systemd/systemd-sleep
-        rm -rf ${D}${rootlibexecdir}/systemd/system/systemd-fsck*.service
 	rm -rf ${D}${rootlibexecdir}/systemd/systemd-reply-password
 	rm -rf ${D}${rootlibexecdir}/systemd/systemd-activate
 	sed -i -e 's/systemd-fsck-root.service//g' ${D}${systemd_unitdir}/system/systemd-remount-fs.service
 if ! ${@bb.utils.contains('PACKAGECONFIG', 'resolved', 'true', 'false', d)}; then
         sed -i -e '/^L! \/etc\/resolv\.conf*/d' ${D}${exec_prefix}/lib/tmpfiles.d/etc.conf
 fi
+}
+
+do_install_append_dunfell() {
+        rm -rf ${D}${rootlibexecdir}/systemd/systemd-fsck
+        rm -rf ${D}${rootlibexecdir}/systemd/system/systemd-fsck*.service
 }
 
 do_install_append_client() {
@@ -142,7 +145,8 @@ FILES_${PN} += "${sysconfdir}/sysctl.d/50-coredump.conf \
 
 FILES_${PN} += "${sysconfdir}/sysctl.d/50-netfilter.conf \
                "
-FILES_${PN}_remove = "${bindir}/busctl ${datadir}/bash-completion/completions/busctl ${libdir}/libnss_mymachines.so.2 ${rootlibexecdir}/systemd/systemd-bus-proxyd ${rootlibexecdir}/systemd/systemd-ac-power ${rootlibexecdir}/systemd/systemd-fsck ${rootlibexecdir}/systemd/systemd-sleep ${rootlibexecdir}/systemd/system/systemd-fsck*.service ${rootlibexecdir}/systemd/systemd-reply-password ${rootlibexecdir}/systemd/systemd-activate"
+FILES_${PN}_remove = "${bindir}/busctl ${datadir}/bash-completion/completions/busctl ${libdir}/libnss_mymachines.so.2 ${rootlibexecdir}/systemd/systemd-bus-proxyd ${rootlibexecdir}/systemd/systemd-ac-power ${rootlibexecdir}/systemd/systemd-sleep ${rootlibexecdir}/systemd/systemd-reply-password ${rootlibexecdir}/systemd/systemd-activate"
+FILES_${PN}_remove_dunfell = " ${rootlibexecdir}/systemd/systemd-fsck"
 
 FILES_${PN}_append_client = " /media/apps"
 FILES_${PN}_append_hybrid = " /media/apps"
