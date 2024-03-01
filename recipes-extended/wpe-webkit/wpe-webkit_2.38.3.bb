@@ -6,7 +6,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r8"
+PR  = "r10"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -115,16 +115,21 @@ PACKAGECONFIG[dolbyvision]       = "-DENABLE_DV=ON,-DENABLE_DV=OFF,,"
 PACKAGECONFIG[vp9_hdr]           = "-DENABLE_HDR=ON,-DENABLE_HDR=OFF,,gstreamer1.0-plugins-good-matroska"
 PACKAGECONFIG[instantratechange] = "-DENABLE_INSTANT_RATE_CHANGE=ON,-DENABLE_INSTANT_RATE_CHANGE=OFF,"
 PACKAGECONFIG[logs]              = "-DENABLE_LOGS=ON,,"
+PACKAGECONFIG[fhd]               = "-DVIDEO_DECODING_LIMIT=1920x1080@60,,"
 
 PACKAGECONFIG_append = " webcrypto webdriver remoteinspector releaselog accessibility speechsynthesis native_video webaudio instantratechange"
 PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'enable_libsoup3', 'usesoup3', 'usesoup2', d)}"
 PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'malloc_heap_breakdown', 'malloc_heap_breakdown', '', d)}"
 PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'wpe-webkit-developer-mode', 'developermode tools', '', d)}"
 
+PACKAGECONFIG_append =  "${@bb.utils.contains('BROWSER_MEMORYPROFILE', 'fhd', 'fhd', '', d)}"
+
 # Config options are no longer available in 2.38 branch
 PACKAGECONFIG[hevc] = ""
 PACKAGECONFIG[indexeddb] = ""
 PACKAGECONFIG_remove = "hevc indexeddb"
+PACKAGECONFIG_remove = "${@bb.utils.contains('HAS_HDR_SUPPORT', '0', 'vp9_hdr', '', d)}"
+PACKAGECONFIG_remove = "${@bb.utils.contains('HAS_DOLBY_VISION_SUPPORT', '0', 'dolbyvision', '', d)}"
 
 EXTRA_OECMAKE += " \
   -DPYTHON_EXECUTABLE=${STAGING_BINDIR_NATIVE}/python3-native/python3 \
