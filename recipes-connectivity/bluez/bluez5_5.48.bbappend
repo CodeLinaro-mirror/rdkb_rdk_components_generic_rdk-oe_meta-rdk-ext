@@ -50,6 +50,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluz5_5.48_gatt_db_service_crash.patch \
     file://bluez-5.48-046-prevent-scan-becoming-stuck.patch \
     file://bluez-5.48-047-Gen4-Crash-avoid.patch \
+    file://bluez-5.48-048-disable-avc-passthrough-uinput.patch \
 	"
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
