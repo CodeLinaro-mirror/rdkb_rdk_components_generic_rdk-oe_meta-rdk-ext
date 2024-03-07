@@ -6,7 +6,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r10"
+PR  = "r11"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -44,7 +44,7 @@ SRC_URI += "file://2.38/comcast-RDKTV-1411-force-stop-media-on-loading-about.pat
 SRC_URI += "file://2.38/comcast-RDKTV-6665-Remove-screen-saver-disabler.patch"
 SRC_URI += "file://2.38/comcast-LLAMA-2184-Support-for-external-sink-for-x-d.patch"
 SRC_URI += "file://2.38/comcast-XRE-13799-XRE-13989-Track-encrypted-playback.patch"
-SRC_URI += "file://2.38/comcast-RDK-28954-Add-secure-dump-location.patch"
+SRC_URI += "file://2.38.3/comcast-RDK-28954-SERXIONE-4574-Minidump-exception-h.patch"
 SRC_URI += "file://2.38/comcast-RDKTV-17737-play-pause-mapping.patch"
 SRC_URI += "file://2.38/comcast-XRE-15382-XIONE-4595-RDKTV-17736-HDR-DV-conf.patch"
 SRC_URI += "file://2.38/comcast-RDKTV-17281-RDKTV-17781-Workaround-for-AppleTV-rende.patch"
