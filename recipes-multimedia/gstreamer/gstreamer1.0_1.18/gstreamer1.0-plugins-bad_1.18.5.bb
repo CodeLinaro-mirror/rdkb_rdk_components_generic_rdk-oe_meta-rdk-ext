@@ -16,6 +16,7 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad
 	   file://0002-h264parse-always-send-codec-data-updates-gst1.18.patch \
            file://0001-RDKTV-22768-Handle-invalid-nal_unit_length-in-DV-con.patch \
            file://0006-RDKDEV-828-Fix-deadlocks-in-gstadaptivedemux.patch \
+           file://0041-h264parse-h265parse-resend-codec-info-on-reconfig-gst1.18.patch \
            "
 SRC_URI += "${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', '', 'file://0001-wayland-version-issue-in-gst-plugins-bad.patch ',d)}"
 SRC_URI += "${@bb.utils.contains('DISTRO_FEATURES', 'sage_svp', 'file://0001-videoparser-remove-h264-h265parse-for-svp.patch', '', d)}"
