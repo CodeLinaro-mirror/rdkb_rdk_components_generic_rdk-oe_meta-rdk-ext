@@ -6,10 +6,10 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=ab5b52d145a58f5fcc0e2a531e7a2370"
 
 DEPENDS += "libwpe glib-2.0"
 
-PV = "0.3+git${SRCPV}"
+PV = "0.5+git${SRCPV}"
 
-# Revision date: Apr 28 2023
-SRCREV = "0b0562680e251a3fbf2ae202c89b7c9acfc1d01a"
+# Revision date: March 15, 2024
+SRCREV = "6f53fce68d8e6895fd25a2b18c781bfbccdcf3b0"
 BASE_URI ?= "git://github.com/WebPlatformForEmbedded/WPEBackend-rdk.git;protocol=http;branch=master"
 SRC_URI = "${BASE_URI}"
 
