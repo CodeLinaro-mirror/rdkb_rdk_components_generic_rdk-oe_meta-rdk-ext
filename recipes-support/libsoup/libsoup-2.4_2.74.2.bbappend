@@ -9,4 +9,5 @@ SRC_URI += " \
      file://0001-RDKB-44368-libsoup-2.68-Continuous-flooding-of-libso.patch \
 	 file://DELIA-57838-cookie-jar-db-Fix-DB-access-BUSY-failure.patch \
 	 file://DELIA-57540-Refresh-cookies-from-database-in-runtime.patch \
+         file://0001-set-same_site_policy-to-NONE-if-COL_SAME_SITE_POLICY.patch \
 "
