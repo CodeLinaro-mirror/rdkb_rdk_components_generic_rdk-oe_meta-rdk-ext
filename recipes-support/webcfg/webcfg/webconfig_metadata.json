@@ -111,6 +111,36 @@
                                   "bitposition": 1,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -378,6 +408,36 @@
                                {
                                   "name": "mesh",
                                   "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
                                   "support": true,
                                   "version": "1.0"
                                }
@@ -648,6 +708,36 @@
                                   "bitposition": 1,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": true,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -916,6 +1006,36 @@
                                   "bitposition": 1,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -1182,6 +1302,36 @@
                                {
                                   "name": "mesh",
                                   "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
                                   "support": true,
                                   "version": "1.0"
                                }
@@ -1476,6 +1626,12 @@
                                   "bitposition": 5,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": true,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -1742,6 +1898,36 @@
                                {
                                   "name": "mesh",
                                   "bitposition": 1,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -2012,6 +2198,36 @@
                                   "bitposition": 1,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -2278,6 +2494,36 @@
                                {
                                   "name": "mesh",
                                   "bitposition": 1,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
                                   "support": true,
                                   "version": "1.0"
                                }
@@ -2549,6 +2795,36 @@
                                   "bitposition": 1,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -2818,6 +3094,36 @@
                                   "bitposition": 1,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -3085,6 +3391,36 @@
                           "name": "mesh",
                           "bitposition": 1,
                           "support": true,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "clienttosteeringprofile",
+                          "bitposition": 2,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "meshsteeringprofiles",
+                          "bitposition": 3,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "wifistatsconfig",
+                          "bitposition": 4,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "mwoconfigs",
+                          "bitposition": 5,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "interference",
+                          "bitposition": 6,
+                          "support": false,
                           "version": "1.0"
                        }
                     ]
@@ -3354,6 +3690,36 @@
                           "bitposition": 1,
                           "support": true,
                           "version": "1.0"
+                       },
+                       {
+                          "name": "clienttosteeringprofile",
+                          "bitposition": 2,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "meshsteeringprofiles",
+                          "bitposition": 3,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "wifistatsconfig",
+                          "bitposition": 4,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "mwoconfigs",
+                          "bitposition": 5,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "interference",
+                          "bitposition": 6,
+                          "support": false,
+                          "version": "1.0"
                        }
                     ]
        },
@@ -3622,7 +3988,37 @@
                                  "bitposition": 1,
                                  "support": true,
                                  "version": "1.0"
-                              }
+                              },
+                               {
+                                  "name": "clienttosteeringprofile",
+                                  "bitposition": 2,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "meshsteeringprofiles",
+                                  "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifistatsconfig",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "mwoconfigs",
+                                  "bitposition": 5,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "interference",
+                                  "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
+                               }
                            ]
               },
               {
@@ -3890,7 +4286,37 @@
                                       "bitposition": 1,
                                       "support": true,
                                       "version": "1.0"
-                                   }
+                                   },
+                                   {
+                                      "name": "clienttosteeringprofile",
+                                      "bitposition": 2,
+                                      "support": false,
+                                      "version": "1.0"
+                                   },
+                                   {
+                                      "name": "meshsteeringprofiles",
+                                      "bitposition": 3,
+                                      "support": false,
+                                      "version": "1.0"
+                                   },
+                                   {
+                                      "name": "wifistatsconfig",
+                                      "bitposition": 4,
+                                      "support": false,
+                                      "version": "1.0"
+                                  },
+                                  {
+                                      "name": "mwoconfigs",
+                                      "bitposition": 5,
+                                      "support": false,
+                                      "version": "1.0"
+                                  },
+                                  {
+                                      "name": "interference",
+                                      "bitposition": 6,
+                                      "support": false,
+                                      "version": "1.0"
+                                  }
                                 ]
                    },
                    {
@@ -4157,6 +4583,36 @@
                           "name": "mesh",
                           "bitposition": 1,
                           "support": true,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "clienttosteeringprofile",
+                          "bitposition": 2,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "meshsteeringprofiles",
+                          "bitposition": 3,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "wifistatsconfig",
+                          "bitposition": 4,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "mwoconfigs",
+                          "bitposition": 5,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "interference",
+                          "bitposition": 6,
+                          "support": false,
                           "version": "1.0"
                        }
                     ]
