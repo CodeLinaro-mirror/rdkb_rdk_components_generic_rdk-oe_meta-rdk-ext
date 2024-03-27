@@ -10,13 +10,15 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
 DEPENDS = "libpng cairo libdrm dbus"
 
-SRC_URI = "http://www.freedesktop.org/software/plymouth/releases/${BPN}-${PV}.tar.bz2"
-SRC_URI[md5sum] = "38f5e613e5ab17806b950cee2d0d0d4e"
-SRC_URI[sha256sum] = "1bada4e1d3a31a5a99adc2db83f5452d9818839cda51a6e430f044f6281d759b"
+SRC_URI = "http://www.freedesktop.org/software/plymouth/releases/${BPN}-${PV}.tar.xz"
+SRC_URI[md5sum] = "8a25d23f3ae732af300a56fa33cacff2"
+SRC_URI[sha256sum] = "ecae257f351d098340542a5bc06de029404c24dcee87e6ebb2abd5ef117fce86"
 
-EXTRA_OECONF += " --enable-shared --disable-static --enable-libkms \
+EXTRA_OECONF += " --enable-shared --disable-static \
                   --disable-gtk --disable-pango \
                   --enable-systemd-integration --with-system-root-install "
+
+EXTRA_OECONF_append = " --disable-documentation"
 
 EXTRA_OECONF_append_x86 = " --enable-drm --enable-libdrm_intel --enable-libdrm_radeon"
 EXTRA_OECONF_append_x86-64 = " --enable-drm --enable-libdrm_intel --enable-libdrm_radeon"
@@ -24,7 +26,7 @@ EXTRA_OECONF_append_x86-64 = " --enable-drm --enable-libdrm_intel --enable-libdr
 FILES_${PN} += "${systemd_unitdir}/system/*"
 FILES_${PN}-dbg += "${libdir}/plymouth/renderers/.debug"
 
-inherit autotools pkgconfig systemd
+inherit autotools pkgconfig systemd gettext
 
 SYSTEMD_SERVICE_${PN} = "plymouth-start.service"
 
