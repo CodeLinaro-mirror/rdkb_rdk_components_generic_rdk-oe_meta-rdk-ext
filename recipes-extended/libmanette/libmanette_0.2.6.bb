@@ -10,6 +10,7 @@ SRC_URI = "https://download.gnome.org/sources/libmanette/0.2/libmanette-${PV}.ta
            file://gamecontrollerdb \
            file://0001-new-SDL-gamedb.patch \
            file://0002-add-wayland-inputfd-support.patch \
+           file://0001-map-key-menu-back-as-btn.patch \
            "
 
 SRC_URI[sha256sum] = "63653259a821ec7d90d681e52e757e2219d462828c9d74b056a5f53267636bac"
