@@ -4,6 +4,16 @@ SRC_URI_append = " file://CVE-2022-4304_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0464_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0465_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0466_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-5678_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-5363_openssl_3.0.5_fix.patch \
+                   file://CVE-2022-3358_openssl_3.0.5_fix.patch \
+                   file://CVE-2022-3602_openssl_3.0.5_fix.patch \
+                   file://CVE-2022-3786_openssl_3.0.5_fix.patch \
+                   file://CVE-2022-3996_openssl_3.0.5_fix.patch \
+                   file://CVE-2022-4203_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-0216_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-0217_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-0401_openssl_3.0.5_fix.patch \
                  "
 SRC_URI_append_broadband = " file://CVE-2023-1255_openssl_3.0.5_fix.patch \
                              file://CVE-2023-2650_openssl_3.0.5_fix.patch \
