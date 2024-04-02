@@ -30,7 +30,7 @@ SRC_URI = " \
 #		then add an AppArmorProfile= entry for the service profile name, then check if
 #		a service profile already exists from step #1. If it doesn't then create one using
 #		the default structure. Finally, put these profiles in rootfs/etc/apparmor/aa_profiles/ and
-#		then compile them to /etc/apparmor/earlypolicy/
+#		then compile them to /etc/apparmor/service_profiles/
 #
 # This recipe and the image recipe must work in conjunction to ensure full coverage. 
 
@@ -87,7 +87,6 @@ EXTRANATIVEPATH = "apparmor-cache-native"
 LDFLAGS_remove = "-flto"
 CFLAGS_remove = "-flto"
 CXXFLAGS_remove = "-flto"
-FILES_${PN} += "/etc/apparmor/earlypolicy/*"
 FILES_${PN} += "/etc/apparmor/aa_profiles/"
 
 FILES_${PN}-native += "${base_sbindir}/apparmor_parser"
