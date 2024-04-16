@@ -312,6 +312,7 @@ diff -Naur dibbler-1.0.1_org/scripts/notify-scripts/client-notify-bsd.sh dibbler
 +fi
 +
 +if [ "$SRV_OPTION23" != "" ] && [ "$SRV_OPTION23" != ":: " ]; then
++if [ "$WanUnificationEnable" != "true" ];then #DNS is handled in Wanmanager in WanUnification builds. Don't set here
 +     cp $RESOLV_CONF $RESOLV_CONF_TMP
 +     echo "comapring old and new dns IPV6 configuration " >> $CONSOLEFILE
 +     RESOLV_CONF_override_needed=0
@@ -360,7 +361,7 @@ diff -Naur dibbler-1.0.1_org/scripts/notify-scripts/client-notify-bsd.sh dibbler
 +	echo "old and new IPV6 dns config are same no resolv_conf file override required " >> $CONSOLEFILE
 +   fi
 +       rm -rf $RESOLV_CONF_TMP
-+
++fi
 +     sysevent set wan6_ns "$SRV_OPTION23"
 +     sysevent set ipv6_nameserver "$SRV_OPTION23"
 +fi
