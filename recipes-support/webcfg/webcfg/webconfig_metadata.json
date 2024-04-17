@@ -44,6 +44,12 @@
                                   "bitposition": 7,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -341,6 +347,12 @@
                                {
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -641,6 +653,12 @@
                                   "bitposition": 7,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -937,6 +955,12 @@
                                {
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -1237,6 +1261,12 @@
                                   "bitposition": 7,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -1535,6 +1565,12 @@
                                   "bitposition": 7,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -1831,6 +1867,12 @@
                                {
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -2131,6 +2173,12 @@
                                   "bitposition": 7,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -2427,6 +2475,12 @@
                                {
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
+                                  "support": true,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
                                   "support": true,
                                   "version": "1.0"
                                }
@@ -2728,6 +2782,12 @@
                                   "bitposition": 7,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -3027,6 +3087,12 @@
                                   "bitposition": 7,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -3323,6 +3389,12 @@
                        {
                           "name": "connectedbuilding",
                           "bitposition": 7,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "xmspeedboost",
+                          "bitposition": 8,
                           "support": false,
                           "version": "1.0"
                        }
@@ -3623,6 +3695,12 @@
                           "bitposition": 7,
                           "support": false,
                           "version": "1.0"
+                       },
+                       {
+                          "name": "xmspeedboost",
+                          "bitposition": 8,
+                          "support": false,
+                          "version": "1.0"
                        }
                     ]
        },
@@ -3919,6 +3997,12 @@
                               {
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
+                              },
+                              {
+                                  "name": "xmspeedboost",
+                                  "bitposition": 8,
                                   "support": false,
                                   "version": "1.0"
                               }
@@ -4219,6 +4303,12 @@
                                       "bitposition": 7,
                                       "support": false,
                                       "version": "1.0"
+                                   },
+                                   {
+                                      "name": "xmspeedboost",
+                                      "bitposition": 8,
+                                      "support": false,
+                                      "version": "1.0"
                                    }
                                 ]
                    },
@@ -4515,6 +4605,12 @@
                        {
                           "name": "connectedbuilding",
                           "bitposition": 7,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "xmspeedboost",
+                          "bitposition": 8,
                           "support": false,
                           "version": "1.0"
                        }
