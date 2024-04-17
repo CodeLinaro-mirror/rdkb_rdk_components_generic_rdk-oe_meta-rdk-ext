@@ -147,7 +147,13 @@
                                   "bitposition": 6,
                                   "support": false,
                                   "version": "1.0"
-                               }
+                               },
+                               {
+                                  "name": "wifimotionsettings",
+                                  "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
+                               }     
                             ]
                },
                {
@@ -1070,6 +1076,12 @@
                                {
                                   "name": "interference",
                                   "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifimotionsettings",
+                                  "bitposition": 7,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -1996,6 +2008,12 @@
                                   "bitposition": 6,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "wifimotionsettings",
+                                  "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -2298,6 +2316,12 @@
                                {
                                   "name": "interference",
                                   "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifimotionsettings",
+                                  "bitposition": 7,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -2915,6 +2939,12 @@
                                   "bitposition": 6,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "wifimotionsettings",
+                                  "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -3218,6 +3248,12 @@
                                {
                                   "name": "interference",
                                   "bitposition": 6,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "wifimotionsettings",
+                                  "bitposition": 7,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -3524,6 +3560,12 @@
                           "bitposition": 6,
                           "support": false,
                           "version": "1.0"
+                       },
+                       {
+                          "name": "wifimotionsettings",
+                          "bitposition": 7,
+                          "support": false,
+                          "version": "1.0"
                        }
                     ]
        },
@@ -3826,6 +3868,12 @@
                        {
                           "name": "interference",
                           "bitposition": 6,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "wifimotionsettings",
+                          "bitposition": 7,
                           "support": false,
                           "version": "1.0"
                        }
@@ -4132,6 +4180,12 @@
                                   "bitposition": 6,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "wifimotionsettings",
+                                  "bitposition": 7,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                            ]
               },
@@ -4436,6 +4490,12 @@
                                       "bitposition": 6,
                                       "support": false,
                                       "version": "1.0"
+                                  },
+                                  {
+                                       "name": "wifimotionsettings",
+                                       "bitposition": 7,
+                                       "support": false,
+                                       "version": "1.0"
                                   }
                                 ]
                    },
@@ -4738,6 +4798,12 @@
                        {
                           "name": "interference",
                           "bitposition": 6,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "wifimotionsettings",
+                          "bitposition": 7,
                           "support": false,
                           "version": "1.0"
                        }
