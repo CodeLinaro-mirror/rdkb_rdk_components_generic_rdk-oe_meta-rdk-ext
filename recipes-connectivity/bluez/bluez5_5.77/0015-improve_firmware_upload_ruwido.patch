@@ -1,0 +1,21 @@
+Index: bluez-5.77/profiles/input/hog-lib.c
+===================================================================
+--- bluez-5.77.orig/profiles/input/hog-lib.c
++++ bluez-5.77/profiles/input/hog-lib.c
+@@ -769,12 +769,12 @@ static void forward_report(struct uhid_e
+ 	if (hog->attrib == NULL)
+ 		return;
+ 
+-	if (report->properties & GATT_CHR_PROP_WRITE)
+-		write_char(hog, hog->attrib, report->value_handle,
+-				data, size, output_written_cb, hog);
+-	else if (report->properties & GATT_CHR_PROP_WRITE_WITHOUT_RESP)
++	if (report->properties & GATT_CHR_PROP_WRITE_WITHOUT_RESP)
+ 		gatt_write_cmd(hog->attrib, report->value_handle,
+ 						data, size, NULL, NULL);
++	else if (report->properties & GATT_CHR_PROP_WRITE)
++		write_char(hog, hog->attrib, report->value_handle,
++				data, size, output_written_cb, hog);
+ }
+ 
+ static void set_numbered(void *data, void *user_data)
