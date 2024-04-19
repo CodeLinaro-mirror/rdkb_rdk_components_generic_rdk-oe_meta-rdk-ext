@@ -151,6 +151,7 @@ FILES_${PN}_append_client = " /media/apps"
 FILES_${PN}_append_hybrid = " /media/apps"
 FILES_${PN}_append_hybrid += "${sysconfdir}/sysctl.d/50-portreserv.conf"
 FILES_${PN} += "/media"
+INSANE_SKIP_${PN} += "empty-dirs"
 
 SYSTEMD_SERVICE_systemd-binfmt_remove_hybrid = " systemd-binfmt.service"
 SYSTEMD_SERVICE_systemd-binfmt_remove_client = " systemd-binfmt.service"
