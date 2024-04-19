@@ -105,7 +105,7 @@ if ! ${@bb.utils.contains('PACKAGECONFIG', 'resolved', 'true', 'false', d)}; the
 fi
 }
 
-do_install_append_dunfell() {
+do_install_append() {
         rm -rf ${D}${rootlibexecdir}/systemd/systemd-fsck
         rm -rf ${D}${rootlibexecdir}/systemd/system/systemd-fsck*.service
 }
@@ -145,8 +145,7 @@ FILES_${PN} += "${sysconfdir}/sysctl.d/50-coredump.conf \
 
 FILES_${PN} += "${sysconfdir}/sysctl.d/50-netfilter.conf \
                "
-FILES_${PN}_remove = "${bindir}/busctl ${datadir}/bash-completion/completions/busctl ${libdir}/libnss_mymachines.so.2 ${rootlibexecdir}/systemd/systemd-bus-proxyd ${rootlibexecdir}/systemd/systemd-ac-power ${rootlibexecdir}/systemd/systemd-sleep ${rootlibexecdir}/systemd/systemd-reply-password ${rootlibexecdir}/systemd/systemd-activate"
-FILES_${PN}_remove_dunfell = " ${rootlibexecdir}/systemd/systemd-fsck"
+FILES_${PN}_remove = "${bindir}/busctl ${datadir}/bash-completion/completions/busctl ${libdir}/libnss_mymachines.so.2 ${rootlibexecdir}/systemd/systemd-bus-proxyd ${rootlibexecdir}/systemd/systemd-ac-power ${rootlibexecdir}/systemd/systemd-fsck ${rootlibexecdir}/systemd/systemd-sleep ${rootlibexecdir}/systemd/system/systemd-fsck*.service ${rootlibexecdir}/systemd/systemd-reply-password ${rootlibexecdir}/systemd/systemd-activate"
 
 FILES_${PN}_append_client = " /media/apps"
 FILES_${PN}_append_hybrid = " /media/apps"
