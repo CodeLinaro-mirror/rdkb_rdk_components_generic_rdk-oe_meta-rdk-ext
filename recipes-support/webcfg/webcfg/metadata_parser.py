@@ -186,6 +186,7 @@ def json_read(data, dest, device_name):
                         supported_docs(group_id, docs)
                         group_id = None
                         docs = None
+            break
 
     '''print "Docs"
     for i in range(0,10):
