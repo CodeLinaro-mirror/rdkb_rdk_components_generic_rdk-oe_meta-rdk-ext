@@ -6,7 +6,6 @@ SRC_URI_append = " file://ssh_telemetry_2019_uninit_init_add.patch"
 SRC_URI_append_dunfell = " file://dropbear_2019-verbose.patch \
                            file://dropbear_2019-revsshipv6.patch \
                            file://dropbear_2019-Fixed-Race-Conditions-Observed-when-using-port-forwa.patch \
-                           ${@bb.utils.contains('DISTRO_FEATURES', 'yocto-3.1.15', '', 'file://dropbear_2019-CVE-2020-36254.patch', d)} \
 "
 
 CFLAGS_append_broadband = " -DRDK_BROADBAND"
