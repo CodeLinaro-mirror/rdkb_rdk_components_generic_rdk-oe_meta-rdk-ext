@@ -18,7 +18,10 @@ SRC_URI_append_hybrid = " ${@bb.utils.contains('DISTRO_FEATURES', 'yocto-3.1.15'
 
 SRC_URI_append_client = " file://CVE-2020-29562_fix.patch \
                           file://Add_the___sockaddr_un_set_function.patch \
-                          file://CVE-2022-23218_fix.patch "
+                          file://CVE-2022-23218_fix.patch \
+                        "
+
+SRC_URI_append = " file://CVE-2023-0687_fix.patch"
 
 SRC_URI_append_broadband = " file://CVE-2020-29562_fix.patch \
                              file://Add_the___sockaddr_un_set_function.patch \

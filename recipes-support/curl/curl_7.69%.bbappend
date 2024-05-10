@@ -22,6 +22,7 @@ SRC_URI_append = " file://CVE-2022-22576_fix.patch \
                    file://CVE-2022-32221_fix.patch \
                    file://CVE-2022-35252_fix.patch \
                    file://CVE-2022-43552_fix.patch \
+                   file://CVE-2023-46218_fix.patch \
                  "
    
 SRC_URI_append_broadband = " file://CVE-2023-27534_fix.patch \
