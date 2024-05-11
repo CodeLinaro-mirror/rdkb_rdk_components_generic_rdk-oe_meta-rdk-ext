@@ -6,18 +6,21 @@ SRC_URI_append = " file://CVE-2022-32221_7.82.0_fix.patch \
                    file://CVE-2022-43552_7.82.0_fix.patch \
                    file://CVE-2023-46218_7.82.0_fix.patch \
                    file://CVE-2023-27536_7.82.0_fix.patch \
+                   file://CVE-2023-23914_7.82_fix.patch \
+                   file://CVE-2023-23916_7.82_fix.patch \
+                   file://CVE-2023-27538_7.82_fix.patch \
+                   file://CVE-2023-27533_7.82_fix.patch \
+                   file://CVE-2023-27534_7.82_fix.patch \
+                   file://CVE-2023-27535_7.82.0_fix.patch \
                  "
 
 CURLGNUTLS = "--without-gnutls --with-ssl"
 DEPENDS += " openssl"
 
-SRC_URI_append_broadband = " file://CVE-2023-27534_7.82_fix.patch \
-                             file://CVE-2023-27538_7.82_fix.patch \
-                             file://CVE-2023-28320_7.82_fix.patch \
+SRC_URI_append_broadband = " file://CVE-2023-28320_7.82_fix.patch \
                              file://CVE-2023-38546_7.82_fix.patch \
                              file://CVE-2023-28321_7.82_fix.patch \
                              file://CVE-2022-42916_7.82_fix.patch \
-                             file://CVE-2023-23914_7.82_fix.patch \
                              file://CVE-2022-42915_7.82_fix.patch \
                              file://CVE-2022-43551_7.82_fix.patch \
                              file://CVE-2023-28319_7.82_fix.patch \

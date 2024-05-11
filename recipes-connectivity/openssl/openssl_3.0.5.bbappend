@@ -18,13 +18,13 @@ SRC_URI_append = " file://CVE-2022-4304_openssl_3.0.5_fix.patch \
                    file://CVE-2023-6129_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0286_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0215_openssl_3.0.5_fix.patch \
+                   file://CVE-2022-4450_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-1255_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-2650_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-2975_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-3817_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-4807_openssl_3.0.5_fix.patch \
                  "
-SRC_URI_append_broadband = " file://CVE-2023-1255_openssl_3.0.5_fix.patch \
-                             file://CVE-2023-2650_openssl_3.0.5_fix.patch \
-                             file://CVE-2023-2975_openssl_3.0.5_fix.patch \
-                             file://CVE-2023-3817_openssl_3.0.5_fix.patch \
-                             file://CVE-2023-4807_openssl_3.0.5_fix.patch \
-                           "
 SRC_URI += " file://openssl-c_rehash.sh \
            "
 

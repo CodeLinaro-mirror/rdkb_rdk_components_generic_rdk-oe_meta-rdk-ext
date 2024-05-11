@@ -18,4 +18,5 @@ SRC_URI_append_dunfell = " file://CVE-2022-44792_fix.patch \
                          "
 
 SRC_URI_append_kirkstone = " file://CVE-2022-44792_net-snmp_5.9.1_fix.patch \
+                             file://CVE-2022-24805_5.9.1_fix.patch \
                            "
