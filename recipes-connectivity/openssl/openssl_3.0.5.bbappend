@@ -14,6 +14,10 @@ SRC_URI_append = " file://CVE-2022-4304_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0216_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0217_openssl_3.0.5_fix.patch \
                    file://CVE-2023-0401_openssl_3.0.5_fix.patch \
+                   file://CVE-2024-0727_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-6129_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-0286_openssl_3.0.5_fix.patch \
+                   file://CVE-2023-0215_openssl_3.0.5_fix.patch \
                  "
 SRC_URI_append_broadband = " file://CVE-2023-1255_openssl_3.0.5_fix.patch \
                              file://CVE-2023-2650_openssl_3.0.5_fix.patch \
