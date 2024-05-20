@@ -6,13 +6,13 @@ Index: dropbear-2019.78/svr-authpubkey.c
  	/* ... and finally verify the signature */
  	fp = sign_key_fingerprint(keyblob, keybloblen);
  	if (buf_verify(ses.payload, key, signbuf) == DROPBEAR_SUCCESS) {
-+		t2_event_s("SSH_connection_split", ses.authstate.pw_name);
++		ssh_logging("SSH_connection_split %s\n", ses.authstate.pw_name);
  		dropbear_log(LOG_NOTICE,
  				"Pubkey auth succeeded for '%s' with key %s from %s",
  				ses.authstate.pw_name, fp, svr_ses.addrstring);
  		send_msg_userauth_success();
  	} else {
-+		t2_event_d("Illegal_SSH_connection",1);
++		ssh_logging("Illegal_SSH_connection %s\n", ses.authstate.pw_name);
  		dropbear_log(LOG_WARNING,
  				"Pubkey auth bad signature for '%s' with key %s from %s",
  				ses.authstate.pw_name, fp, svr_ses.addrstring);
