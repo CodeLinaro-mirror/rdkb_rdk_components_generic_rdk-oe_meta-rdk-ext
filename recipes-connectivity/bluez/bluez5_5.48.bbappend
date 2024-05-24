@@ -52,6 +52,8 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-047-Gen4-Crash-avoid.patch \
     file://bluez-5.48-048-disable-avc-passthrough-uinput.patch \
     file://bluez-5.48-049-Queue_remove_crash.patch \
+    file://bluez-5.48-050-migrate_ble_pairing_data_to_originalPath.patch \
+    file://bt_original_path_setup.sh \
 	"
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
