@@ -12,21 +12,20 @@ SRC_URI_append = " file://CVE-2022-32221_7.82.0_fix.patch \
                    file://CVE-2023-27533_7.82_fix.patch \
                    file://CVE-2023-27534_7.82_fix.patch \
                    file://CVE-2023-27535_7.82.0_fix.patch \
+                   file://CVE-2023-28320_7.82_fix.patch \
+                   file://CVE-2023-38546_7.82_fix.patch \
+                   file://CVE-2023-28321_7.82_fix.patch \
+                   file://CVE-2022-42916_7.82_fix.patch \
+                   file://CVE-2022-42915_7.82_fix.patch \
+                   file://CVE-2022-43551_7.82_fix.patch \
+                   file://CVE-2023-28319_7.82_fix.patch \
+                   file://CVE-2023-38545_7.82_fix.patch \
+                   file://CVE-2023-28322_7.82_fix.patch \
                  "
 
 CURLGNUTLS = "--without-gnutls --with-ssl"
 DEPENDS += " openssl"
 
-SRC_URI_append_broadband = " file://CVE-2023-28320_7.82_fix.patch \
-                             file://CVE-2023-38546_7.82_fix.patch \
-                             file://CVE-2023-28321_7.82_fix.patch \
-                             file://CVE-2022-42916_7.82_fix.patch \
-                             file://CVE-2022-42915_7.82_fix.patch \
-                             file://CVE-2022-43551_7.82_fix.patch \
-                             file://CVE-2023-28319_7.82_fix.patch \
-                             file://CVE-2023-38545_7.82_fix.patch \
-                             file://CVE-2023-28322_7.82_fix.patch \
-                           "
 
 # see https://lists.yoctoproject.org/pipermail/poky/2013-December/009435.html
 # We should ideally drop ac_cv_sizeof_off_t from site files but until then

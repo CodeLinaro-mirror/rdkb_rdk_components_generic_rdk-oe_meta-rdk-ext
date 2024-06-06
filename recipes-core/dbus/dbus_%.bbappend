@@ -27,3 +27,8 @@ do_install_append() {
          sed -i '/system.d/d' ${D}${sysconfdir}/dbus-1/system.conf
 }
 
+SRC_URI_append = "file://CVE-2022-42010_fix.patch \
+                  file://CVE-2022-42012_fix.patch \
+                  file://CVE-2022-42011_fix.patch \
+                  file://CVE-2023-34969_fix.patch \
+                 "
