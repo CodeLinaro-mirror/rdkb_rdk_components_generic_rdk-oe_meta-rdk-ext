@@ -57,7 +57,7 @@ PACKAGECONFIG[tools] = "-DENABLE_TOOLS=ON,-DENABLE_TOOLS=OFF,,"
 
 # DRM
 # new CDMI option which uses WPEFramework
-PACKAGECONFIG[wpeframework_opencdm] ?= "-DENABLE_OPENCDM=ON,-DENABLE_OPENCDM=OFF,wpeframework-clientlibraries,rdkservices"
+PACKAGECONFIG[wpeframework_opencdm] ?= "-DENABLE_OPENCDM=ON,-DENABLE_OPENCDM=OFF,wpeframework-clientlibraries,"
 
 RDEPENDS_${PN} += "\
   libatomic \
