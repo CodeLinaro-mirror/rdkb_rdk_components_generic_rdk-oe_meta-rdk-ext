@@ -19,6 +19,7 @@ SRC_URI = "https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-ba
 	   file://516-0007-improve-support-for-decoder-sinks.patch \
 	   file://516-0008-autoplug-for-sink-decoders.patch \
            file://0006-streamsynchronizer-Consider-streams-having-received-.patch \
+           file://0007-LLAMA-14037-fix-deadlock-on-early-flushing-seek.patch \
            "
 SRC_URI += "${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', 'file://0001-fix-gst-plugins-base-configure-issue-with-dunfell.patch ', '',d)}"
 
