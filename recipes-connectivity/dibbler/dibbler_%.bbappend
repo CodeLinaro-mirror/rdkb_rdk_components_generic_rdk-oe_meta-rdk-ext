@@ -31,6 +31,15 @@ SRC_URI_append_tchcbr = "file://RDKB_40826_Dibbler_Vendor_Info_Crash_Fix.patch"
 
 SRC_URI_append_broadband = " ${@bb.utils.contains('DISTRO_FEATURES', 'nat46','file://client-notify-option95.patch','', d)}"
 
+inherit logrotate
+
+LOGROTATE_NAME = "dibbler"
+LOGROTATE_LOGNAME_dibbler = "dibbler.log"
+LOGROTATE_SIZE_dibbler = "1572864"
+LOGROTATE_ROTATION_dibbler = "3"
+LOGROTATE_SIZE_MEM_dibbler = "1572864"
+LOGROTATE_ROTATION_MEM_dibbler = "3"
+
 do_install_append() {
         install -d ${D}${sysconfdir}/dibbler
         install -m 0644 ${WORKDIR}/client_back.conf ${D}${sysconfdir}/dibbler/

@@ -1,8 +1,17 @@
-inherit systemd syslog-ng-config-gen
+inherit systemd syslog-ng-config-gen logrotate
 SYSLOG-NG_FILTER_client += "bluetooth"
 SYSLOG-NG_SERVICE_bluetooth_client += "bluetooth.service"
 SYSLOG-NG_DESTINATION_bluetooth_client = "bluez.log"
 SYSLOG-NG_LOGRATE_bluetooth_client = "medium"
+
+LOGROTATE_NAME="bluez"
+LOGROTATE_LOGNAME_bluez="bluez.log"
+#HDD_DISABLE
+LOGROTATE_SIZE_MEM_bluez="250000"
+LOGROTATE_ROTATION_MEM_bluez="2"
+#HDD_ENABLE
+LOGROTATE_SIZE_bluez="512000"
+LOGROTATE_ROTATION_bluez="5"
 
 # Remapping default localstatedir which has a value /var to /opt (persistent memory) across boxes
 # to store bluetooth device and runtime operations data across STB power cycles
