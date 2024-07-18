@@ -8,7 +8,7 @@ DEPENDS = "cjson trower-base64 msgpack-c cimplog wdmp-c curl wrp-c"
 DEPENDS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " rbus cpeabs", " ", d)}"
 DEPENDS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'aker', ' nanomsg libparodus ', '', d)}"
 
-SRCREV = "5bd98c9ce2d0ea770e4a4edf35a2d34ca4c7dfa3"
+SRCREV = "540c3b692f4652b573afb3cc2b64b7f0defc318e"
 SRC_URI = "git://github.com/xmidt-org/webcfg.git"
 
 RDEPENDS_${PN} += "util-linux-uuidgen"
