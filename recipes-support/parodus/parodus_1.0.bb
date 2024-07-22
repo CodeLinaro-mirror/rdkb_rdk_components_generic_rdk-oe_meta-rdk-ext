@@ -10,7 +10,7 @@ DEPENDS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " rbu
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 
-SRCREV= "ee66d52e04994c57f33b4f13318bd906e4c09d74"
+SRCREV= "1d129c762651dc495b888f51302d5315b793afd8"
 SRC_URI = " \
     git://github.com/xmidt-org/parodus.git \
     "
@@ -45,12 +45,14 @@ CFLAGS_append = " -DINCLUDE_BREAKPAD "
 CFLAGS_append = "${@bb.utils.contains("DISTRO_FEATURES", "seshat", "-I${STAGING_INCDIR}/libseshat ", " ", d)}"
 CFLAGS_append = "${@bb.utils.contains("DISTRO_FEATURES", "seshat", "-DENABLE_SESHAT ", " ", d)}"
 CFLAGS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " -I${STAGING_INCDIR}/rbus ", " ", d)}"
+CFLAGS_append = "${@bb.utils.contains("DISTRO_FEATURES", "parodus_secert", " -DPARODUS_SECERT_ENABLE ", " ", d)}"
 
 inherit pkgconfig cmake
 EXTRA_OECMAKE = "-DBUILD_TESTING=OFF -DBUILD_YOCTO=true -DFEATURE_DNS_QUERY=true"
 EXTRA_OECMAKE_append = "${@bb.utils.contains("DISTRO_FEATURES", "seshat", " -DENABLE_SESHAT=true", " ", d)}"
 EXTRA_OECMAKE_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " -DENABLE_WEBCFGBIN=true", " ", d)}"
 EXTRA_OECMAKE_append = "${@bb.utils.contains("DISTRO_FEATURES", "WanFailOverSupportEnable", " -DWAN_FAILOVER_SUPPORTED=true", " ", d)}"
+EXTRA_OECMAKE_append = "${@bb.utils.contains("DISTRO_FEATURES", "parodus_secert", " -DPARODUS_SECERT_ENABLE=true", " ", d)}"
 
 do_compile_prepend_dunfell() {
 	sed -i 's/-Werror -Wall/-Wno-error=all/g' ${S}/CMakeLists.txt
