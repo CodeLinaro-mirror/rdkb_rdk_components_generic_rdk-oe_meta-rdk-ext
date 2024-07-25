@@ -30,6 +30,7 @@ SRC_URI += "file://2.38.5/1352.patch"
 SRC_URI += "file://2.38.5/1355.patch"
 SRC_URI += "file://2.38.5/1356.patch"
 SRC_URI += "file://2.38.5/1359.patch"
+SRC_URI += "file://2.38.5/1372.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.38.5/comcast-DELIA-60920-Malloc-Heap-Breakdown.patch"
