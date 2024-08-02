@@ -9,7 +9,8 @@ UPSTREAM_CHECK_URI = "https://github.com/nghttp2/nghttp2/releases"
 SRC_URI = "\
     https://github.com/nghttp2/nghttp2/releases/download/v${PV}/nghttp2-${PV}.tar.xz \
     file://0001-fetch-ocsp-response-use-python3.patch \
-"
+    file://CVE-2023-35945_1.48_fix.patch \
+          "
 SRC_URI[sha256sum] = "47d8f30ee4f1bc621566d10362ca1b3ac83a335c63da7144947c806772d016e4"
 
 inherit cmake manpages python3native

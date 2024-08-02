@@ -7,7 +7,9 @@ DEPENDS = "cunit openssl libev zlib c-ares libxml2 systemd jansson"
 
 SRC_URI = " https://github.com/nghttp2/nghttp2/releases/download/v${PV}/nghttp2-${PV}.tar.gz \
             file://cares-nghttp-configure.patch \
-          "
+            file://CVE-2023-35945_1.31_fix.patch \
+            file://CVE-2020-11080_1.31_fix.patch \
+           "
 SRC_URI[md5sum] = "b68392c65f25241cc4aec9b26f51c0a7"
 SRC_URI[sha256sum] = "66562e26c2a8112eb3d15e8521290352cbb5a8295271583840cb9a9f225c7195"
 

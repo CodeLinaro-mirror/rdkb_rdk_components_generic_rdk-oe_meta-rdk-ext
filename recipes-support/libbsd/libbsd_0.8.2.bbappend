@@ -6,5 +6,4 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI_append = " file://nlist_no_a_out_h.patch \
                    file://CVE-2019-20367_fix.patch \
                  "
-SRC_URI_remove_client  = "file://CVE-2019-20367_fix.patch \
-                         "
+
