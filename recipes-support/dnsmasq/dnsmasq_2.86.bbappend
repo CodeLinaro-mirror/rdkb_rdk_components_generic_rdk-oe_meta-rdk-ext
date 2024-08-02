@@ -7,6 +7,8 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${PV}:"
 
 SRC_URI_remove = "file://130-fingerprint-dhcp-lease-file.patch"
 
+SRC_URI_append = " file://CVE-2023-28450_2.86_fix.patch "
+
 SRC_URI_append_broadband = "  file://RDKCENTRAL_XDNS_core.patch \
                               file://RDKCENTRAL_Secondary_XDNS.patch \
                               file://RDKCENTRAL_dnsmasq_zombie_fix.patch \
