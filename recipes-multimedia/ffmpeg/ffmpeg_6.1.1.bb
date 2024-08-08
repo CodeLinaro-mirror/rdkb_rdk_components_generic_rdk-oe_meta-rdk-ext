@@ -1,14 +1,3 @@
-#
-# ============================================================================
-# COMCAST C O N F I D E N T I A L AND PROPRIETARY
-# ============================================================================
-# This file and its contents are the intellectual property of Comcast.  It may
-# not be used, copied, distributed or otherwise  disclosed in whole or in part
-# without the express written permission of Comcast.
-# ============================================================================
-# Copyright (c) 2023 Comcast. All rights reserved.
-# ============================================================================
-#
 SUMMARY = "A complete, cross-platform solution to record, convert and stream audio and video."
 DESCRIPTION = "FFmpeg is the leading multimedia framework, able to decode, encode, transcode, \
                mux, demux, stream, filter and play pretty much anything that humans and machines \
