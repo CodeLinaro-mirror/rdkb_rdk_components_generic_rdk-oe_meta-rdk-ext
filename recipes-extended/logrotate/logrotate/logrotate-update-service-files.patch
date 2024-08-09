@@ -27,7 +27,7 @@ diff -Naur logrotate-3.21.0.orig/logrotate_nohdd.conf logrotate-3.21.0/logrotate
 +/opt/logs/*.txt
 +/opt/logs/*.log
 +/opt/logs/*.txt.0{
-+size 2097152
++size 10485760
 +rotate 1
 +copytruncate
 +missingok
