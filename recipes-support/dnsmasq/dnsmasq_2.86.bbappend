@@ -24,6 +24,8 @@ SRC_URI_append_broadband += " ${@bb.utils.contains('DISTRO_FEATURES', 'device_ga
 SRC_URI += " file://130-fingerprint-dhcp-lease-file-V2.86.patch \
              file://client_notify.patch"
 
+SRC_URI_append = " file://0001-Fix-crash-after-re-reading-an-empty-resolv.conf-file.patch"
+
 do_install_append() {
     sed -i -- 's/listen-address=127.0.0.1/#listen-address=127.0.0.1/g' ${D}${sysconfdir}/dnsmasq.conf
     sed -i -- 's/bind/#Remove this statement/g' ${D}${sysconfdir}/dnsmasq.conf
