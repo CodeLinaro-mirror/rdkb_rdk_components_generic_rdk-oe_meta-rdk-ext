@@ -1,0 +1,98 @@
+From ca1bcbb2cd00b82c855abb41fcbbf0df0bd80ccd Mon Sep 17 00:00:00 2001
+From: Rob Buis <rbuis@igalia.com>
+Date: Tue, 30 Aug 2022 14:50:51 -0700
+Subject: [PATCH] Images with loading="lazy" have uncontrollable gray border
+ while loading https://bugs.webkit.org/show_bug.cgi?id=243601
+
+Reviewed by Darin Adler.
+
+Do not paint border while an image is in deferred state.
+The test image-loading-lazy-slow.html covers this. However, the current
+test runner logic stops page loads before making a pixel snapshot, causing the
+image to be painted as a broken image instead of the empty image at the
+time of calling takeScreenshot. To fix this, postpone the stopping of page
+loads and instead always stop page loads when reseting after the test.
+
+Note that printing tests are not affected since they already made a pixel
+snapshot before stopping the page loads.
+
+* LayoutTests/TestExpectations:
+* LayoutTests/platform/ios/TestExpectations:
+* LayoutTests/platform/mac-wk1/TestExpectations:
+* Source/WebCore/rendering/RenderImage.cpp:
+(WebCore::RenderImage::paintReplaced):
+* Tools/WebKitTestRunner/InjectedBundle/InjectedBundle.cpp:
+(WTR::InjectedBundle::didReceiveMessageToPage):
+(WTR::InjectedBundle::done):
+
+Canonical link: https://commits.webkit.org/253960@main
+---
+ LayoutTests/TestExpectations                             | 1 -
+ Source/WebCore/rendering/RenderImage.cpp                 | 7 +++++--
+ Tools/WebKitTestRunner/InjectedBundle/InjectedBundle.cpp | 7 ++++++-
+ 3 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/LayoutTests/TestExpectations b/LayoutTests/TestExpectations
+index 3e553948d0d2..68670673a300 100644
+--- a/LayoutTests/TestExpectations
++++ b/LayoutTests/TestExpectations
+@@ -783,7 +783,6 @@ imported/w3c/web-platform-tests/html/rendering/widgets/the-select-element/option
+ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-iframe-element/iframe-modify-scrolling-attr-to-yes.html [ ImageOnlyFailure ]
+ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/adopt-from-image-document.html [ ImageOnlyFailure ]
+ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-slow-aspect-ratio.html [ ImageOnlyFailure ]
+-imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-slow.html [ ImageOnlyFailure ]
+ imported/w3c/web-platform-tests/html/semantics/forms/the-option-element/dynamic-content-change-rendering.html [ ImageOnlyFailure ]
+ imported/w3c/web-platform-tests/html/semantics/forms/the-selectmenu-element/selectmenu-option-arbitrary-content-displayed.tentative.html [ ImageOnlyFailure ]
+ imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-popup-element/popup-hidden-display.tentative.html [ ImageOnlyFailure ]
+diff --git a/Source/WebCore/rendering/RenderImage.cpp b/Source/WebCore/rendering/RenderImage.cpp
+index 44a6488b053b..ff7a9b35b78f 100644
+--- a/Source/WebCore/rendering/RenderImage.cpp
++++ b/Source/WebCore/rendering/RenderImage.cpp
+@@ -479,14 +479,17 @@ void RenderImage::paintReplaced(PaintInfo& paintInfo, const LayoutPoint& paintOf
+     float deviceScaleFactor = document().deviceScaleFactor();
+     LayoutUnit missingImageBorderWidth(1 / deviceScaleFactor);
+ 
++    if (isDeferredImage(element()))
++        return;
++
+     if (context.detectingContentfulPaint()) {
+-        if (!context.contenfulPaintDetected() && !isDeferredImage(element()) && cachedImage() && cachedImage()->canRender(this, deviceScaleFactor) && !contentSize.isEmpty())
++        if (!context.contenfulPaintDetected() && cachedImage() && cachedImage()->canRender(this, deviceScaleFactor) && !contentSize.isEmpty())
+             context.setContentfulPaintDetected();
+ 
+         return;
+     }
+ 
+-    if (!imageResource().cachedImage() || isDeferredImage(element()) || shouldDisplayBrokenImageIcon()) {
++    if (!imageResource().cachedImage() || shouldDisplayBrokenImageIcon()) {
+         if (paintInfo.phase == PaintPhase::Selection)
+             return;
+ 
+diff --git a/Tools/WebKitTestRunner/InjectedBundle/InjectedBundle.cpp b/Tools/WebKitTestRunner/InjectedBundle/InjectedBundle.cpp
+index f3eb80edb3a8..c35fb872f62b 100644
+--- a/Tools/WebKitTestRunner/InjectedBundle/InjectedBundle.cpp
++++ b/Tools/WebKitTestRunner/InjectedBundle/InjectedBundle.cpp
+@@ -222,6 +222,8 @@ void InjectedBundle::didReceiveMessageToPage(WKBundlePageRef page, WKStringRef m
+         m_state = Idle;
+         m_dumpPixels = false;
+         m_pixelResultIsPending = false;
++        // Needed for pixel result pending mode, otherwise a no-op.
++        InjectedBundle::page()->stopLoading();
+ 
+         setlocale(LC_ALL, "");
+         TestRunner::removeAllWebNotificationPermissions();
+@@ -552,7 +554,10 @@ void InjectedBundle::done()
+ 
+     m_useWorkQueue = false;
+ 
+-    page()->stopLoading();
++    // Postpone page load stop if pixel result is still pending since
++    // cancelled image loads will paint as broken images.
++    if (!m_pixelResultIsPending)
++        page()->stopLoading();
+     setTopLoadingFrame(0);
+ 
+ #if ENABLE(ACCESSIBILITY)
+-- 
+2.25.1
+

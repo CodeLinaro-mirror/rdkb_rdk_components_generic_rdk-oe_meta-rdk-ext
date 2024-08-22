@@ -1,0 +1,37 @@
+From 21c128d78ed63ab56dfe8ac1d00762d87a5f2f13 Mon Sep 17 00:00:00 2001
+From: Andrzej Surdej <Andrzej_Surdej@comcast.com>
+Date: Mon, 23 Sep 2024 15:19:05 +0200
+Subject: [PATCH] [SoupNetworkProcess] Destroy all Network sessions at exit
+
+Destroy all NetworkSession(s) in platformFinalize() to make sure
+all resources are cleared.
+
+It happens that DestroySession message from UI process
+is not handled in NetworkProcess becasue of UI process connection loss
+that triggers exit procedure on Network process side.
+Once that happens, active NetworkSessions are never destroyed.
+---
+ .../WebKit/NetworkProcess/soup/NetworkProcessMainSoup.cpp  | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/Source/WebKit/NetworkProcess/soup/NetworkProcessMainSoup.cpp b/Source/WebKit/NetworkProcess/soup/NetworkProcessMainSoup.cpp
+index f98cd65a0ea1..d7d8c64713bf 100644
+--- a/Source/WebKit/NetworkProcess/soup/NetworkProcessMainSoup.cpp
++++ b/Source/WebKit/NetworkProcess/soup/NetworkProcessMainSoup.cpp
+@@ -52,6 +52,13 @@ public:
+         // FIXME: Is this still needed? We should probably destroy all existing sessions at this point instead.
+         // Needed to destroy the SoupSession and SoupCookieJar, e.g. to avoid
+         // leaking SQLite temporary journaling files.
++        Vector<PAL::SessionID> sessionIDs;
++        process().forEachNetworkSession([&sessionIDs](auto& session) {
++            sessionIDs.append(session.sessionID());
++        });
++        for (auto& sessionID : sessionIDs) {
++            process().destroySession(sessionID);
++        }
+         process().destroySession(PAL::SessionID::defaultSessionID());
+     }
+ };
+-- 
+2.25.1
+

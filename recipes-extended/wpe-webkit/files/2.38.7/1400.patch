@@ -1,0 +1,69 @@
+From eefc3da141feefd3408a3c6a5264c22227454a3a Mon Sep 17 00:00:00 2001
+From: Eugene Mutavchi <Ievgen_Mutavchi@comcast.com>
+Date: Tue, 10 Sep 2024 19:25:00 +0000
+Subject: [PATCH] [Modern Media Controls] remove window event listeners at
+ deinitialization
+
+DOMWindow keeps media controls object alive because of installed event
+listeners (see JSDOMWindow::visitAdditionalChildren). This results in
+extra memory usage undil DOMWindow cleared (on top level navigation).
+---
+ .../modern-media-controls/controls/media-controls.js   | 10 ++++++++++
+ .../modern-media-controls/media/media-controller.js    |  9 +++++++++
+ 2 files changed, 19 insertions(+)
+
+diff --git a/Source/WebCore/Modules/modern-media-controls/controls/media-controls.js b/Source/WebCore/Modules/modern-media-controls/controls/media-controls.js
+index da549e80c6a34..cdc6fcec5f8ea 100644
+--- a/Source/WebCore/Modules/modern-media-controls/controls/media-controls.js
++++ b/Source/WebCore/Modules/modern-media-controls/controls/media-controls.js
+@@ -205,6 +205,16 @@ class MediaControls extends LayoutNode
+         return this.children.some(child => child.element.contains(tappedElement));
+     }
+ 
++    deinitialize()
++    {
++        window.removeEventListener("dragstart", this, true);
++    }
++
++    reinitialize()
++    {
++        window.addEventListener("dragstart", this, true);
++    }
++
+     // Protected
+ 
+     handleEvent(event)
+diff --git a/Source/WebCore/Modules/modern-media-controls/media/media-controller.js b/Source/WebCore/Modules/modern-media-controls/media/media-controller.js
+index 8ed8708690836..2e0e8313d6247 100644
+--- a/Source/WebCore/Modules/modern-media-controls/media/media-controller.js
++++ b/Source/WebCore/Modules/modern-media-controls/media/media-controller.js
+@@ -222,6 +222,9 @@ class MediaController
+     deinitialize()
+     {
+         this.shadowRoot.removeChild(this.container);
++        window.removeEventListener("keydown", this);
++        if (this.controls)
++            this.controls.deinitialize();
+         return true;
+     }
+ 
+@@ -232,6 +235,9 @@ class MediaController
+         this.mediaWeakRef = new WeakRef(media);
+         this.host = host;
+         shadowRoot.appendChild(this.container);
++        window.addEventListener("keydown", this);
++        if (this.controls)
++            this.controls.reinitialize();
+         return true;
+     }
+ 
+@@ -269,6 +275,9 @@ class MediaController
+                 supportingObject.disable();
+         }
+ 
++        if (previousControls)
++            previousControls.deinitialize();
++
+         this.controls = new ControlsClass;
+         this.controls.delegate = this;
+ 
