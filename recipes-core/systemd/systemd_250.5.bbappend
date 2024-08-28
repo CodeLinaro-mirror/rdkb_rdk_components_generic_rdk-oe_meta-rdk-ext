@@ -8,6 +8,9 @@ SRC_URI_append = " file://journalctl-250.patch \
                    file://10-ubi-device-systemd.rules \
                    file://99-default.preset \
                    file://0001-cgroup-downgrade-warning-if-we-can-t-get-ID-off-cgro.patch \
+                   file://CVE-2022-3821_250.5_fix.patch \
+                   file://CVE-2022-4415_250.5_fix.patch \
+                   file://CVE-2022-45873_250.5_fix.patch \
 "
 
 EXTRA_OECONF += " --enable-polkit=no"

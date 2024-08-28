@@ -1,7 +1,14 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 SRC_URI += " \
     file://journalctl-230.patch \
     file://systemd230-journalctl-remove-noentries-log.patch \
     file://10-ubi-device-systemd.rules \
+    file://CVE-2017-9217_230.5_fix.patch \
+    file://CVE-2018-1049_230.5_fix.patch \
+    file://CVE-2018-15688_230.5_fix.patch \
+    file://CVE-2018-16866_230.5_fix.patch \
+    file://CVE-2019-3842_230.5_fix.patch \
+    file://CVE-2019-20386_230.5_fix.patch \
 "
 
 ## The below patches are needed to build systemd V230 with glibc V2.31 on dunfell(Yocto 3.1)
@@ -22,6 +29,12 @@ SRC_URI_remove_morty = " \
             file://0003-Remove-MS-constants-from-missing-header-file.patch', d)} \
             file://0001-nss-util-silence-warning-about-deprecated-RES_USE_IN.patch \
             file://99-default.preset \
+            file://CVE-2017-9217_230.5_fix.patch \
+            file://CVE-2018-1049_230.5_fix.patch \
+            file://CVE-2018-15688_230.5_fix.patch \
+            file://CVE-2018-16866_230.5_fix.patch \
+            file://CVE-2019-3842_230.5_fix.patch \
+            file://CVE-2019-20386_230.5_fix.patch \
             "
 
 EXTRA_OECONF += " --enable-polkit=no"
