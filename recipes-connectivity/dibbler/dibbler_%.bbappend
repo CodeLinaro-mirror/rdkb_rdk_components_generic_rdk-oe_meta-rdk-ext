@@ -78,6 +78,7 @@ do_install_append_broadband() {
 
 FILES_${PN}-client += "${sysconfdir}/dibbler/* \
                        ${base_libdir}/rdk/*    \
+                       ${sbindir}/dibbler-client \
                       "
 FILES_${PN}_append_broadband += " ${sysconfdir}/*"
 FILES_${PN}-client_append_broadband += " ${base_libdir}/rdk/*"
