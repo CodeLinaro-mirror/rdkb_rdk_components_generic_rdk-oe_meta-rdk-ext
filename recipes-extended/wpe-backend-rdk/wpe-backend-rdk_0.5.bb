@@ -17,6 +17,7 @@ SRC_URI += "file://comcast-Naive-gamepad-support.patch"
 SRC_URI += "file://0001-Fix-browser-crash-when-the-compositor-is-not-created.patch"
 SRC_URI += "file://0001-Send-SIGHUP-if-compositor-is-terminated.patch"
 SRC_URI += "file://comcast-manette-gamepad-support.patch"
+SRC_URI += "file://comcast-manette-gamepad-analog-button.patch"
 
 S = "${WORKDIR}/git"
 
