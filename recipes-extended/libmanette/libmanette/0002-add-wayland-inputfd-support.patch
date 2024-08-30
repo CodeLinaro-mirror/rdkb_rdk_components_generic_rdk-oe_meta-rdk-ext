@@ -405,7 +405,7 @@ diff --git a/src/manette-monitor.c b/src/manette-monitor.c
  static void
  remove_device (ManetteMonitor *self,
                 const gchar    *filename)
-@@ -138,7 +172,89 @@ remove_device (ManetteMonitor *self,
+@@ -138,7 +172,95 @@ remove_device (ManetteMonitor *self,
    g_object_unref (device);
  }
  
@@ -419,6 +419,7 @@ diff --git a/src/manette-monitor.c b/src/manette-monitor.c
 +                                    ManetteMonitor        *self)
 +{
 +  int dup_fd;
++  int flags;
 +  ManetteDevice *device;
 +
 +  // Need to dup fd as the caller owns it and will probably close it
@@ -426,6 +427,11 @@ diff --git a/src/manette-monitor.c b/src/manette-monitor.c
 +  dup_fd = fcntl (fd, F_DUPFD_CLOEXEC, 3);
 +  if (dup_fd < 0)
 +    return;
++
++  // Ensure the O_NONBLOCK flag is set on the fd
++  flags = fcntl (dup_fd, F_GETFL);
++  if (flags >= 0)
++    fcntl (dup_fd, F_SETFL, flags | O_NONBLOCK);
 +
 +  device = g_hash_table_lookup (self->devices, uuid);
 +  if (device == NULL) {
@@ -496,7 +502,7 @@ diff --git a/src/manette-monitor.c b/src/manette-monitor.c
  
  static void
  add_device_for_udev_device (ManetteMonitor *self,
-@@ -425,7 +541,9 @@ manette_monitor_finalize (GObject *object)
+@@ -426,7 +547,9 @@ manette_monitor_finalize (GObject *object)
  {
    ManetteMonitor *self = MANETTE_MONITOR (object);
  
