@@ -11,6 +11,6 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=bf1229cd7425b302d60cdb641b0ce5fb"
 
 FILESEXTRAPATHS_append := "${THISDIR}/files:"
 
-SRC_URI = "https://wpewebkit.org/releases/${P}.tar.xz"
+SRC_URI = "https://wpewebkit.org/releases/cog-${PV}.tar.xz"
 
 DEPENDS = " systemd libwpe glib-2.0 wpe-webkit"
