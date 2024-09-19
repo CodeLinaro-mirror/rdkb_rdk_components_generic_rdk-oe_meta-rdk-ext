@@ -2931,7 +2931,7 @@
                                   "name": "hotspot",
                                   "bitposition": 5,
                                   "support": true,
-                                  "version": "1.3"
+                                  "version": "1.0"
                                },
                                {
                                   "name": "bridge",
@@ -2960,13 +2960,13 @@
                                   "name": "privatessid",
                                   "bitposition": 1,
                                   "support": true,
-                                  "version": "1.3"
+                                  "version": "1.0"
                                },
                                {
                                   "name": "homessid",
                                   "bitposition": 2,
                                   "support": true,
-                                  "version": "1.3"
+                                  "version": "1.0"
                                },
                                {
                                   "name": "radio",
