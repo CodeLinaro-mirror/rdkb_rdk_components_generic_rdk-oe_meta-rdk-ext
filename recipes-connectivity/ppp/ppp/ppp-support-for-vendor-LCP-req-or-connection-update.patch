@@ -1,0 +1,139 @@
+###################################################################
+Date: <Jan 20th 2023>
+Source: Deutsche Telekom AG
+Changes copyright 2023-2024 Deutsche Telekom AG
+###################################################################
+Index: ppp-2.4.8/pppd/lcp.c
+===================================================================
+--- ppp-2.4.8.orig/pppd/lcp.c
++++ ppp-2.4.8/pppd/lcp.c
+@@ -67,6 +67,8 @@
+  */
+ /* steal a bit in fsm flags word */
+ #define DELAYED_UP	0x100
++#define VENDOR_LCP_RESP_LENGTH	8
++#define VENDOR_LCP_OUI_LEN	3
+ 
+ static void lcp_delayed_up __P((void *));
+ 
+@@ -505,6 +507,72 @@ lcp_input(unit, p, len)
+     }
+     fsm_input(f, p, len);
+ }
++/*
++ * LcpSendConnectionUpdateAck - Connection-Update-Ack
++ */
++
++void
++LcpSendConnectionUpdateAck(f, code, id, inp, len)
++    fsm * f;
++    int code, id;
++    u_char * inp;
++    int len;
++{
++    int cilen = VENDOR_LCP_RESP_LENGTH;
++    u_char * outp;
++    outp = inp;
++    u_int32_t magic,kind, type,length;
++
++    /*Validating Connection Update Request packet*/
++    if (code)
++    {
++        LCPDEBUG (("LcpSendConnectionUpdateAck: Not a vendor LCP"));
++        return;
++    }
++
++    else
++    {
++        LCPDEBUG(("LcpSendConnectionUpdateAck: Received vendor LCP"));
++	/*Processing Magic number,Kind,type and Data length*/
++        GETLONG(magic, inp);
++        inp += VENDOR_LCP_OUI_LEN; /*OUI*/
++        GETCHAR(kind,inp);
++        GETCHAR(type,inp);
++        GETCHAR(length,inp);
++
++        if (kind == 1 && type == 1)
++        {
++            LCPDEBUG(("LcpSendConnectionUpdateAck: Received vendor LCP with Valid Kind and Type"));
++        }
++        else
++        {
++            LCPDEBUG(("LcpSendConnectionUpdateAck: Vendor specific LCP with wrong Kind or Type!!"));
++            return;
++        }
++    }
++
++    int i;
++    u_int32_t data;
++    u_char data_arr[len];
++    char string_arr[length];
++
++       /* Debug purpose only - print the rest of the bytes in the packet */
++    for (i = 0; i < len; ++i)
++    {
++        GETCHAR(data, inp);
++        data_arr[i] = data;
++    }
++    memcpy(string_arr,data_arr,length);
++    string_arr[length] =  '\0';
++    LCPDEBUG(("LcpSendConnectionUpdateAck: Vendor specific LCP data is %s",string_arr));
++    script_setenv("VENDOR_MESSAGE", string_arr, 1);
++    sendPppLcpState(PPP_LCP_VENDOR_RECEIVED, getpid());
++
++    /*Kind = 2 Indicating Connection-Update-Ack */
++    outp[7] = 2;
++    fsm_sdata (f, code, id, outp, cilen);
++}
++
+ 
+ /*
+  * lcp_extcode - Handle a LCP-specific code.
+@@ -535,6 +603,10 @@ lcp_extcode(f, code, id, inp, len)
+ 	lcp_received_echo_reply(f, id, inp, len);
+ 	break;
+ 
++    case CONNUPDATEREQ:
++        LcpSendConnectionUpdateAck(f,code, id,inp,len);
++        break;
++
+     case DISCREQ:
+     case IDENTIF:
+     case TIMEREM:
+Index: ppp-2.4.8/pppd/lcp.h
+===================================================================
+--- ppp-2.4.8.orig/pppd/lcp.h
++++ ppp-2.4.8/pppd/lcp.h
+@@ -78,6 +78,7 @@
+ #define DISCREQ		11	/* Discard Request */
+ #define IDENTIF		12	/* Identification */
+ #define TIMEREM		13	/* Time Remaining */
++#define CONNUPDATEREQ		0	/*Vendor LCP Request*/
+ 
+ /* Value used as data for CI_CALLBACK option */
+ #define CBCP_OPT	6	/* Use callback control protocol */
+Index: ppp-2.4.8/pppd/ppp_ipc.c
+===================================================================
+--- ppp-2.4.8.orig/pppd/ppp_ipc.c
++++ ppp-2.4.8/pppd/ppp_ipc.c
+@@ -149,7 +149,7 @@ int sendPppLcpState(uint8_t PppState, pi
+ 
+     ipcMsg.pppEventMsg.pppState = PppState;
+ 
+-    if(PPP_LCP_AUTH_COMPLETED == PppState)
++    if((PPP_LCP_AUTH_COMPLETED == PppState) || (PPP_LCP_VENDOR_RECEIVED == PppState))
+     {
+ 	memset(ipcMsg.pppEventMsg.event.pppLcpMsg.vendormsg , '\0' ,
+        sizeof(ipcMsg.pppEventMsg.event.pppLcpMsg.vendormsg));
+Index: ppp-2.4.8/pppd/ppp_ipc.h
+===================================================================
+--- ppp-2.4.8.orig/pppd/ppp_ipc.h
++++ ppp-2.4.8/pppd/ppp_ipc.h
+@@ -72,6 +72,7 @@ typedef enum _PPP_STATES
+     PPP_IPV6CP_COMPLETED,
+     PPP_IPV6CP_FAILED,
+     PPP_LCP_AUTH_COMPLETED,
++    PPP_LCP_VENDOR_RECEIVED,
+     PPP_MAX_STATE
+ }PPP_STATES;
+ 
