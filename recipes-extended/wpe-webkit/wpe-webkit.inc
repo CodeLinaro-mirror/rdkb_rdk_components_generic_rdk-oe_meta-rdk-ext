@@ -9,13 +9,11 @@ CMAKE_VERBOSE = ""
 DEPENDS += " \
      libwpe \
      bison-native ccache-native glib-2.0-native gperf-native libxml2-native ninja-native ruby-native chrpath-replacement-native \
-     cairo freetype glib-2.0 gnutls harfbuzz icu jpeg pcre sqlite3 zlib \
+     freetype glib-2.0 gnutls harfbuzz icu jpeg pcre sqlite3 zlib \
      libepoxy libpng libwebp libxml2 libxslt \
      virtual/egl virtual/libgles2 \
      libinput \
 "
-
-RDEPENDS_${PN} += "injectedbundle"
 
 EXTRANATIVEPATH += " chrpath-native"
 
@@ -54,6 +52,8 @@ PACKAGECONFIG[video] = "-DENABLE_VIDEO=ON -DENABLE_VIDEO_TRACK=ON,-DENABLE_VIDEO
 PACKAGECONFIG[webaudio] = "-DENABLE_WEB_AUDIO=ON,-DENABLE_WEB_AUDIO=OFF,gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good,${RDEPS_WEBAUDIO}"
 PACKAGECONFIG[native_audio] = "-DENABLE_NATIVE_AUDIO=ON, -DENABLE_NATIVE_AUDIO=OFF,"
 PACKAGECONFIG[tools] = "-DENABLE_TOOLS=ON,-DENABLE_TOOLS=OFF,,"
+PACKAGECONFIG[debugfission] = "-DDEBUG_FISSION=ON,-DDEBUG_FISSION=OFF,"
+PACKAGECONFIG[uselld] = "-DTRY_USE_LD_LLD=ON -DUSE_LD_LLD=ON,,${MLPREFIX}clang-cross-${TARGET_ARCH}"
 
 # DRM
 # new CDMI option which uses WPEFramework
@@ -77,7 +77,6 @@ LDFLAGS_append = " -Wl,--no-keep-memory"
 
 # don't build debug
 FULL_OPTIMIZATION_remove = "-g"
-FULL_OPTIMIZATION_append = " -g1"
 FULL_OPTIMIZATION_remove = "-Os"
 FULL_OPTIMIZATION_remove = "-O2"
 FULL_OPTIMIZATION_remove = "-O3"
@@ -107,6 +106,7 @@ RDEPS_VIDEO = " \
     gstreamer1.0-plugins-base-app \
     gstreamer1.0-plugins-base-playback \
     gstreamer1.0-plugins-good-souphttpsrc \
+    gstreamer1.0-plugins-bad-opusparse \
 "
 
 RDEPS_WEBAUDIO = " \
@@ -153,3 +153,27 @@ do_add_version () {
     echo "WPE_WEBKIT_VERSION=${PV}-${PR}" > ${EXTRA_VERSIONS_PATH}/${PN}.txt
 }
 
+
+do_generate_toolchain_file_append() {
+    cat >> ${WORKDIR}/toolchain.cmake <<EOF
+set ( CMAKE_C_FLAGS_RELWITHDEBINFO "-g1 -DNDEBUG" CACHE STRING "C_FLAGS_RELWITHDEBINFO" )
+set ( CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g1 -DNDEBUG" CACHE STRING "CXX_FLAGS_RELWITHDEBINFO" )
+EOF
+}
+
+
+# Build wpewebkit with split-dwarf, see for more info:
+#   https://gcc.gnu.org/wiki/DebugFission
+#   https://www.tweag.io/blog/2023-11-23-debug-fission/
+PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'wpe-webkit-debugfission', 'debugfission uselld','', d)}"
+SELECTED_OPTIMIZATION_remove =  "${@bb.utils.contains('DISTRO_FEATURES', 'wpe-webkit-debugfission', '-g1', '-g', d)}"
+SELECTED_OPTIMIZATION_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'wpe-webkit-debugfission', '-g', '-g1', d)}"
+WPE_WEBKIT_LTO_remove = "${@bb.utils.contains('DISTRO_FEATURES', 'wpe-webkit-debugfission', '-flto=auto', '', d)}"
+do_install_append() {
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'wpe-webkit-debugfission', 'true', 'false', d)}; then
+       rm -rf ${D}/usr/src/debug/${PN}-dwo.tgz
+       install -d ${D}/usr/src/debug/
+       # unfortunately dwp crashes when used with wpewebkit binaries. pack *.dwo files in tarball instead.
+       (cd ${B}; find . -name '*.dwo' -print0 | tar -czvf ${D}/usr/src/debug/${PN}-dwo.tgz --null -T -)
+    fi
+}

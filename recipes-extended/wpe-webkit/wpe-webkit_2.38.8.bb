@@ -9,7 +9,7 @@ require wpe-webkit.inc
 PR  = "r12"
 PV .= "+git${SRCPV}"
 
-DEPENDS_append = " libepoxy libgcrypt"
+DEPENDS_append = " libepoxy libgcrypt cairo"
 RDEPENDS_${PN} += "wpe-backend-rdk-platform-plugin"
 RDEPENDS_${PN}_remove = "injectedbundle"
 
