@@ -9,6 +9,10 @@ SRC_URI += " \
     file://CVE-2018-16866_230.5_fix.patch \
     file://CVE-2019-3842_230.5_fix.patch \
     file://CVE-2019-20386_230.5_fix.patch \
+    file://CVE-2017-15908_230.5_fix.patch \
+    file://CVE-2017-18078_230.5_fix.patch \
+    file://CVE-2017-9445_230.5_fix.patch \
+    file://CVE-2018-16865_230.5_fix.patch \
 "
 
 ## The below patches are needed to build systemd V230 with glibc V2.31 on dunfell(Yocto 3.1)
@@ -35,6 +39,10 @@ SRC_URI_remove_morty = " \
             file://CVE-2018-16866_230.5_fix.patch \
             file://CVE-2019-3842_230.5_fix.patch \
             file://CVE-2019-20386_230.5_fix.patch \
+            file://CVE-2017-15908_230.5_fix.patch \
+            file://CVE-2017-18078_230.5_fix.patch \
+            file://CVE-2017-9445_230.5_fix.patch \
+            file://CVE-2018-16865_230.5_fix.patch \
             "
 
 EXTRA_OECONF += " --enable-polkit=no"
