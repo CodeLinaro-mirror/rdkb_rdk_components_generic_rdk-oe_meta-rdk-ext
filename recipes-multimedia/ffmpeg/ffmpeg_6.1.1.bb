@@ -27,30 +27,22 @@ do_compile() {
 }
 
 do_install() {
-  install -d ${D}${bindir}
+  #install -d ${D}${bindir}
   install -d ${D}${libdir}
-  install -d ${D}${includedir}
-  install -d ${D}${datadir}
+  #install -d ${D}${includedir}
+  #install -d ${D}${datadir}
   cd ${S}/
   # libraries install
   cp -rvf ./libavcodec/libavcodec.so.60 ${D}${libdir}
   cp -rvf ./libavformat/libavformat.so.60 ${D}${libdir}
   cp -rvf ./libavutil/libavutil.so.58 ${D}${libdir}
-  cp -rvf ./libavfilter/libavfilter.so.9 ${D}${libdir}
-  cp -rvf ./libavdevice/libavdevice.so.60 ${D}${libdir}
-  cp -rvf ./libswresample/libswresample.so.4 ${D}${libdir}
-  cp -rvf ./libswscale/libswscale.so.7 ${D}${libdir}
   # binaries install
-  cp -rvf ./ffmpeg ${D}${bindir}
-  cp -rvf ./ffprobe ${D}${bindir}
+  #cp -rvf ./ffmpeg ${D}${bindir}
+  #cp -rvf ./ffprobe ${D}${bindir}
   # symbolic links
   ln -s ${D}${libdir}/libavcodec.so.60 ${D}${libdir}/libavcodec.so
   ln -s ${D}${libdir}/libavformat.so.60 ${D}${libdir}/libavformat.so
   ln -s ${D}${libdir}/libavutil.so.58 ${D}${libdir}/libavutil.so
-  ln -s ${D}${libdir}/libavfilter.so.9 ${D}${libdir}/libavfilter.so
-  ln -s ${D}${libdir}/libavdevice.so.60 ${D}${libdir}/libavdevice.so
-  ln -s ${D}${libdir}/libswresample.so.4 ${D}${libdir}/libswresample.so
-  ln -s ${D}${libdir}/libswscale.so.7 ${D}${libdir}/libswscale.so
 }
 
 ERROR_QA_remove_morty = "pkgconfig"
