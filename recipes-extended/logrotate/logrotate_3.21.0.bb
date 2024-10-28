@@ -43,7 +43,21 @@ EXTRA_OEMAKE = "\
 # INSTALL=install and BASEDIR=/usr.
 OS_NAME = "Linux"
 
-inherit autotools systemd
+inherit autotools systemd syslog-ng-config-gen logrotate
+
+SYSLOG-NG_FILTER = "logrotate"
+SYSLOG-NG_SERVICE_logrotate = "logrotate.service"
+SYSLOG-NG_DESTINATION_logrotate = "logrotate.log"
+SYSLOG-NG_LOGRATE_logrotate = "medium"
+
+LOGROTATE_NAME="logrotate"
+LOGROTATE_LOGNAME_logrotate="logrotate.log"
+#HDD_ENABLE
+LOGROTATE_SIZE_logrotate="1572864"
+LOGROTATE_ROTATION_logrotate="3"
+#HDD_DISABLE
+LOGROTATE_SIZE_MEM_logrotate="1572864"
+LOGROTATE_ROTATION_MEM_logrotate="3"
 
 SYSTEMD_SERVICE_${PN} = "\
     ${BPN}.service \

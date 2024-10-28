@@ -85,7 +85,7 @@ Index: logrotate-3.21.0/logrotate.c
 +	{
 +		main_logrotate(argc,argv);
 +		/* Rotate Maximum size reached file */
-+		main_logrotate(argc,argv_max);
++		/* main_logrotate(argc,argv_max);   */
 +		/* Calling the lograte function for every One minute to check and update the files need to be rotated */
 +		sleep(60);
 +	}
