@@ -3,6 +3,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI_append = " file://fix_pollfd_dispatch.patch \
                    file://CVE-2021-3800_fix.patch \
                    file://CVE-2023-32665_fix.patch \
+                   file://0001-gtlscertificate-Add-ability-to-load-PKCS-12-encrypte.patch \
                  "
 
 SRC_URI_append_broadband = " file://CVE-2020-35457_fix.patch \

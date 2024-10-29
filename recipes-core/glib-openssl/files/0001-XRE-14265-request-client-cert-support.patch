@@ -32,7 +32,7 @@ index dc92e7e..e417f36 100644
  
  G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GTlsConnectionOpenssl, g_tls_connection_openssl, G_TYPE_TLS_CONNECTION_BASE,
                                    G_ADD_PRIVATE (GTlsConnectionOpenssl)
-@@ -622,9 +624,61 @@ g_tls_connection_openssl_request_certificate (GTlsConnectionOpenssl  *openssl,
+@@ -622,9 +624,85 @@ g_tls_connection_openssl_request_certificate (GTlsConnectionOpenssl  *openssl,
  
    interaction = g_tls_connection_get_interaction (conn);
    if (!interaction)
@@ -63,11 +63,35 @@ index dc92e7e..e417f36 100644
 +
 +  keyPath = g_getenv ("G_TLS_OPENSSL_CLIENT_CERT_KEY_PATH");
 +
-+  if (keyPath)
++  if (g_str_has_suffix (certPath, ".pk12"))
++    {
++      gchar *certData, *keyData = NULL;
++      gsize certLen, keyLen;
++      if (keyPath)
++        {
++          gsize i;
++          if (!g_file_get_contents (keyPath, &keyData, &keyLen, &error))
++            goto out;
++          for (i = keyLen - 1; i >= 0 && g_ascii_isspace(keyData[i]); --i)
++            keyData[i] = '\0';
++        }
++
++      if (!g_file_get_contents (certPath, &certData, &certLen, &error))
++        {
++          g_free (keyData);
++          goto out;
++        }
++
++      cert = g_tls_certificate_new_from_pkcs12 ((guint8 *)certData, certLen, keyData, &error);
++      g_free (certData);
++      g_free (keyData);
++    }
++  else if (keyPath)
 +    cert = g_tls_certificate_new_from_files (certPath, keyPath, &error);
 +  else
 +    cert = g_tls_certificate_new_from_file (certPath, &error);
 +
++out:
 +  if (error)
 +    {
 +      g_printerr ("Cert load failed. %s\n", error ? error->message : "unknown");

@@ -37,6 +37,7 @@ SRC_URI += "\
     file://0001-XRE-14265-request-client-cert-support.patch \
     file://fix_dates_check.patch \
     file://Enable-OCSP-by-default.patch \
+    file://0001-Add-support-for-PKCS-12-encrypted-files.patch \
 "
 SRC_URI_append_kirkstone = " file://openssl3.0_x509_verify_param_set1host_function_param.patch"
 SRC_URI_append_morty =" file://0001-DELIA-57258-Morty-devices-self-discovery-fails.patch"
