@@ -21,6 +21,7 @@ SRC_URI_append = " file://CVE-2022-32221_7.82.0_fix.patch \
                    file://CVE-2023-28319_7.82_fix.patch \
                    file://CVE-2023-38545_7.82_fix.patch \
                    file://CVE-2023-28322_7.82_fix.patch \
+                   file://CVE-2024-7264_7.82_fix.patch \
                  "
 
 CURLGNUTLS = "--without-gnutls --with-ssl"
