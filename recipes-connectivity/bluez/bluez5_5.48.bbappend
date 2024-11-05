@@ -60,6 +60,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-054-enable_ccc_callback_crash.patch \
     file://bluez-5.48-055-kernel-dev-node-delete-create.patch \
     file://bluez-5.48-056-remove-pairing-failure-cache.patch \
+    file://bluez-5.48-057-stop-scan-getting-stuck-when-adapter-busy.patch \
 	"
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
