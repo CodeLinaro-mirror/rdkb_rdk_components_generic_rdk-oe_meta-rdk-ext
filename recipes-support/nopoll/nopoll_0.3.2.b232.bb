@@ -13,6 +13,10 @@ SRC_URI[sha256sum] = "a1a25dcfe8406fcd355568ab0331f24eeec011a7b272df7b34a16db4a2
 
 SRC_URI_append_morty = " file://libnopoll.pc"
 
+SRC_URI_append = " file://0001_nopoll_conn_new6_opts.patch"
+SRC_URI_append = " file://0002_nopoll_conn_new_common_logs.patch"
+SRC_URI_append = " file://0003_nopoll_transport_auto.patch"
+
 inherit autotools pkgconfig
 
 S = "${WORKDIR}/git"
