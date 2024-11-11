@@ -13,6 +13,7 @@ SRC_URI += " \
     file://CVE-2017-18078_230.5_fix.patch \
     file://CVE-2017-9445_230.5_fix.patch \
     file://CVE-2018-16865_230.5_fix.patch \
+    file://CVE-2022-3821_230.5_fix.patch \
 "
 
 ## The below patches are needed to build systemd V230 with glibc V2.31 on dunfell(Yocto 3.1)

@@ -17,6 +17,8 @@ SRC_URI = "${BASE_SRC_URI} \
            file://icu-pkgdata-large-cmd.patch \
            file://fix-install-manx.patch \
            file://0001-i18n-Drop-include-xlocale.h.patch \
+           file://CVE-2020-21913_fix.patch \
+           file://CVE-2020-10531_fix.patch \
            "
 
 SRC_URI_append_class-target = "\

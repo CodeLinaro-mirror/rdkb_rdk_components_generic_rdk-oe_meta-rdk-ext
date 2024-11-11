@@ -14,4 +14,5 @@ SRC_URI += "file://0001-Fix-race-issue-with-tools-directory.patch \
             file://CVE-2022-39177_5.48_fix.patch \
             file://CVE-2023-45866.patch \
             file://0003-Fix-input-hog-connection-with-slow-pairing-devices.patch \
+            file://CVE-2021-3658_5.48_fix.patch \
 "
