@@ -58,6 +58,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-052-bt_uuid_to_uuid128-crash.patch \
     file://bluez-5.48-053-set-ad-flags-and-update-cache-timeout.patch \
     file://bluez-5.48-054-enable_ccc_callback_crash.patch \
+    file://bluez-5.48-055-kernel-dev-node-delete-create.patch \
 	"
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
