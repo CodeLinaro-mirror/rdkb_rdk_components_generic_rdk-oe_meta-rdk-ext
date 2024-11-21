@@ -25,13 +25,6 @@ do_install_append() {
     chmod 0644 ${D}${datadir}/libmanette/gamecontrollerdb
     rm ${D}/usr/bin/manette-test
     rmdir --ignore-fail-on-non-empty ${D}/usr/bin/
-
-# Below mentioned MACHINE has older kernel version. Luna game controller created one input event for these builds. So, we can not use the common libmanette database.
-# To resolve the action key and Home key, we have made this workaround. Once fix the Home key issue with the latest kernel, we have to check check this issue.
-    if [ "${MACHINE}" = "sky-llama-panel" -o "${MACHINE}" = "hisense-v2" -o "${MACHINE}" = "hisense-a6gp" -o "${MACHINE}" = "element-teone" -o "${MACHINE}" = "skyxione" -o "${MACHINE}" = "pioneer-uhd" ]; then
-        sed -i '/05000000710100001904000000010000,Amazon Luna Controller/s/back:b9/back:b10/' ${D}${datadir}/libmanette/gamecontrollerdb
-        sed -i '/05000000710100001904000000010000,Amazon Luna Controller/s/guide:b10/guide:b9/' ${D}${datadir}/libmanette/gamecontrollerdb
-    fi
 }
 
 FILES_${PN} += "${datadir}/libmanette/"
