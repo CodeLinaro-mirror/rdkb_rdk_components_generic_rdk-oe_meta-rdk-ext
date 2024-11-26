@@ -22,6 +22,7 @@ SRC_URI_append_broadband = " file://client-notify.patch \
                              file://dibbler_clear_sysevent_for_null_option23.patch \
                              file://fix_type_casting.patch \
                              ${@bb.utils.contains('DISTRO_FEATURES', 'benchmark_enable','file://oss_dibbler_conf.sh','',d)} \
+                             file://logging_ipv6_timeoffset.patch \
 "
 
 #need to remove this patches one dibbler migrated to 1.0.1+1.0.2RC2
