@@ -28,6 +28,7 @@ SRC_URI_append_morty = " file://enable_ps_wide.cfg "
 SRC_URI_append_broadband = " ${@bb.utils.contains_any('DISTRO_FEATURES', 'dunfell kirkstone', ' file://enable_ps_wide.cfg ','',d)}"
 SRC_URI_append = " file://enable_ar.cfg"
 SRC_URI_remove_morty = " file://devmem.cfg file://enable_ar.cfg "
+SRC_URI_append_broadband = " ${@bb.utils.contains_any('DISTRO_FEATURES', 'WanManagerUnificationEnable', ' file://Udhcpc_Early_Background.patch ','',d)}"
 VERSION_PATCHES ?= ""
 
 PTEST_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'benchmark_enable', '1', '0', d)}"
