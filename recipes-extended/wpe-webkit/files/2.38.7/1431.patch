@@ -1,0 +1,92 @@
+From cb045d2934cd8789081f924f1fed7e172dc40c1b Mon Sep 17 00:00:00 2001
+From: Przemyslaw Gorszkowski <pgorszkowski@igalia.com>
+Date: Tue, 29 Oct 2024 14:20:27 +0100
+Subject: [PATCH] [css-flexbox] incorrect layout with max-height and
+ flex-direction column and justify-content center
+ https://bugs.webkit.org/show_bug.cgi?id=282036
+
+Reviewed by NOBODY (OOPS!).
+
+After calculation of the flex item size and adjusting it to min/max size
+of the flex item we should also check how the calculated size
+corresponds to specified max size of the whole container. In case the
+adjusted flex item size is bigger than the max size of the whole
+container we should use the flex item size calculated before adjusting
+to flex item min/max size.
+
+There is new layout test which tests the problem.
+
+* LayoutTests/css3/flexbox/nested-flexbox-max-height-expected.txt: Added.
+* LayoutTests/css3/flexbox/nested-flexbox-max-height.html: Added.
+* Source/WebCore/rendering/RenderFlexibleBox.cpp:
+(WebCore::RenderFlexibleBox::resolveFlexibleLengths):
+---
+ .../nested-flexbox-max-height-expected.txt       |  5 +++++
+ .../css3/flexbox/nested-flexbox-max-height.html  | 16 ++++++++++++++++
+ Source/WebCore/rendering/RenderFlexibleBox.cpp   | 15 +++++++++++++++
+ 3 files changed, 36 insertions(+)
+ create mode 100644 LayoutTests/css3/flexbox/nested-flexbox-max-height-expected.txt
+ create mode 100644 LayoutTests/css3/flexbox/nested-flexbox-max-height.html
+
+diff --git a/LayoutTests/css3/flexbox/nested-flexbox-max-height-expected.txt b/LayoutTests/css3/flexbox/nested-flexbox-max-height-expected.txt
+new file mode 100644
+index 000000000000..220d3da4f4b6
+--- /dev/null
++++ b/LayoutTests/css3/flexbox/nested-flexbox-max-height-expected.txt
+@@ -0,0 +1,5 @@
++Only red square should be visible
++
++
++PASS #container 1
++A
+diff --git a/LayoutTests/css3/flexbox/nested-flexbox-max-height.html b/LayoutTests/css3/flexbox/nested-flexbox-max-height.html
+new file mode 100644
+index 000000000000..79e808a04b9e
+--- /dev/null
++++ b/LayoutTests/css3/flexbox/nested-flexbox-max-height.html
+@@ -0,0 +1,16 @@
++<!DOCTYPE html>
++<link href="resources/flexbox.css" rel="stylesheet">
++<script src="../../resources/testharness.js"></script>
++<script src="../../resources/testharnessreport.js"></script>
++<script src="../../resources/check-layout-th.js"></script>
++<script>
++function run() {
++  checkLayout('#container');
++}
++</script>
++<body onload="run()">
++<p>Only red square should be visible</p>
++<div id="log"></div>
++<div id="container" class="flexbox column" style="max-height: 100px; height: 100px; width: 100px; background: green">
++    <div class="flexbox column justify-content-center" style="height: 400px; background: red" data-expected-height="100">A</div>
++</div>
+diff --git a/Source/WebCore/rendering/RenderFlexibleBox.cpp b/Source/WebCore/rendering/RenderFlexibleBox.cpp
+index 229cf8acccf5..f75e903c1c6d 100644
+--- a/Source/WebCore/rendering/RenderFlexibleBox.cpp
++++ b/Source/WebCore/rendering/RenderFlexibleBox.cpp
+@@ -1587,6 +1587,21 @@ bool RenderFlexibleBox::resolveFlexibleLengths(FlexSign flexSign, Vector<FlexIte
+             childSize += LayoutUnit::fromFloatRound(extraSpace);
+ 
+         LayoutUnit adjustedChildSize = flexItem.constrainSizeByMinMax(childSize);
++
++        // Adjust flex item size with the specified container max size.
++        auto maximumSize = isHorizontalFlow() ? style().maxWidth() : style().maxHeight();
++        const auto minimumSize = isHorizontalFlow() ? style().minWidth() : style().minHeight();
++        if (maximumSize.isFixed()) {
++            // The fixed min height/width should be considered as maximum size if it is bigger than fixed max height/width.
++            if (minimumSize.isFixed() && minimumSize.value() > maximumSize.value())
++                maximumSize = minimumSize;
++
++            // If the size of flex item adjusted to its min/max size is bigger than the maximum size of the container, then
++            // we use flext item size calculated before adjusting the min/max size of the flex item.
++            if (adjustedChildSize > LayoutUnit { maximumSize.value() })
++                adjustedChildSize = std::max(LayoutUnit { }, childSize);
++        }
++
+         ASSERT(adjustedChildSize >= 0);
+         flexItem.flexedContentSize = adjustedChildSize;
+         usedFreeSpace += adjustedChildSize - flexItem.flexBaseContentSize;
+-- 
+2.25.1
+
