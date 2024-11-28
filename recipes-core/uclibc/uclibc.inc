@@ -58,7 +58,7 @@ export V="2"
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=44860
 #
 CFLAGS_arm := "${@oe.utils.str_filter_out('-fno-omit-frame-pointer', '${CFLAGS}', d)}"
-UCLIBC_EXTRA_CFLAGS  := "${@oe.utils.str_filter_out('(-I\S+|-i\S+)', '${CFLAGS}', d)}"
+UCLIBC_EXTRA_CFLAGS  := "${@oe.utils.str_filter_out(r'(-I\S+|-i\S+)', '${CFLAGS}', d)}"
 
 configmangle = '/^KERNEL_HEADERS/d; \
                 /^RUNTIME_PREFIX/d; \
