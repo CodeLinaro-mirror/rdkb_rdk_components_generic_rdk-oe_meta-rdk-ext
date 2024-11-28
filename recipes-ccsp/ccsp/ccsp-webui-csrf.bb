@@ -12,7 +12,7 @@ LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://licence.md;md5=4713ed2839d834a4ff42c4d742abcb81"
 
 SRCREV = "88cfff18dbdc604d51c653f728da161b4ea1eb02"
-SRC_URI = "git://github.com/mebjas/CSRF-Protector-PHP.git \
+SRC_URI = "git://github.com/mebjas/CSRF-Protector-PHP.git;protocol=https;branch=master \
           file://0001-csrfprotector-php.patch \
 	  file://csrfprotector.patch \
          "

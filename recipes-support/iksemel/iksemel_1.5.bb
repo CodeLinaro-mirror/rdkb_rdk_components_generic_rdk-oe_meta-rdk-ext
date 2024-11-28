@@ -11,7 +11,7 @@ PV = "1.5+git${SRCPV}"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/iksemel:"
 
-SRC_URI = "git://github.com/meduketto/iksemel.git;protocol=https"
+SRC_URI = "git://github.com/meduketto/iksemel.git;protocol=https;branch=master"
 
 S = "${WORKDIR}/git"
 

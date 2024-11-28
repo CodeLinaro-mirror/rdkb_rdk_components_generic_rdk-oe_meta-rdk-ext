@@ -10,7 +10,7 @@ XML2VER = "3.0.0"
 
 PV = "${XML2VER}+git${SRCPV}"
 
-SRC_URI = "git://github.com/leethomason/tinyxml2.git \
+SRC_URI = "git://github.com/leethomason/tinyxml2.git;protocol=https;branch=master \
            file://libtinyxml2.pc \
 	   file://libtinyxml2_change.patch"
 

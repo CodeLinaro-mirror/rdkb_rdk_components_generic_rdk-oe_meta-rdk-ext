@@ -12,7 +12,7 @@ LICENSE = "BSD"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=8c3434c5a9a53c78c7739f0bc9e5adda"
 
 SRC_URI = "\
-    git://github.com/esnet/iperf.git \
+    git://github.com/esnet/iperf.git;protocol=https;branch=master \
     file://automake-foreign.patch \
 "
 

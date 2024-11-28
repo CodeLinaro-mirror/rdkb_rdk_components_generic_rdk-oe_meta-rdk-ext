@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 DEPENDS = "cmake-native cjson cimplog wrp-c trower-base64 nanomsg msgpack-c rdk-logger log4c util-linux"
 
 SRCREV = "470f8d5e9457755028aae6da65d3df9b62a53942"
-SRC_URI = "git://github.com/Comcast/seshat.git"
+SRC_URI = "git://github.com/Comcast/seshat.git;protocol=https;branch=master"
 PV = "git+${SRCPV}"
 
 S = "${WORKDIR}/git"
