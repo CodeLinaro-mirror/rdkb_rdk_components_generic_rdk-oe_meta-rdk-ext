@@ -18,7 +18,7 @@ SRC_URI = "git://github.com/mebjas/CSRF-Protector-PHP.git \
          "
 
 PV = "git+${SRCPV}"
-S = "${WORKDIR}/git/"
+S = "${WORKDIR}/git"
 
 CFLAGS += " \
     -I${STAGING_INCDIR}/dbus-1.0 \
