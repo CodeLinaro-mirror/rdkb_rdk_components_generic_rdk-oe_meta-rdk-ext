@@ -1,7 +1,7 @@
 
 DESCRIPTION = "Recipe to build ipv6calc library"
 HOMEPAGE = "http://pkgs.fedoraproject.org/lookaside/pkgs/ipv6calc"
-LICENSE = "GPL-2.0"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=df7b533e1ebb65cf315510ab93b9313a \
                     file://LICENSE;md5=de494688e1a9c54e923deaf7b47beea7 \
                    "

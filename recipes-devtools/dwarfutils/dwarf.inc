@@ -1,5 +1,5 @@
 DEPENDS = "elfutils"
-LICENSE = "LGPLv2.1 & GPLv2 & BSD-2"
+LICENSE = "LGPL-2.1-only & GPL-2.0-only & BSD-2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=e54ca27c705f651cc9a129197bf989a3"
 
 SRC_URI = "http://www.prevanders.net/libdwarf-${PV}.tar.gz"

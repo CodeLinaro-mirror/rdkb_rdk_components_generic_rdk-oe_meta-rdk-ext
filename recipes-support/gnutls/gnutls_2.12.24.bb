@@ -5,12 +5,12 @@ DEPENDS = "zlib lzo libtasn1 libgcrypt (>= 1.4.2) libcap readline"
 
 PR = "r8.4"
 
-LICENSE = "GPLv3+ & LGPLv2.1+"
-LICENSE_${PN} = "LGPLv2.1+"
-LICENSE_${PN}-xx = "LGPLv2.1+"
-LICENSE_${PN}-bin = "GPLv3+"
-LICENSE_${PN}-extra = "GPLv3+"
-LICENSE_${PN}-openssl = "GPLv3+"
+LICENSE = "GPL-3.0-or-later & LGPL-2.1-or-later"
+LICENSE_${PN} = "LGPL-2.1-or-later"
+LICENSE_${PN}-xx = "LGPL-2.1-or-later"
+LICENSE_${PN}-bin = "GPL-3.0-or-later"
+LICENSE_${PN}-extra = "GPL-3.0-or-later"
+LICENSE_${PN}-OpenSSL = "GPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504 \
                     file://lib/COPYING;md5=a6f89e2100d9b6cdffcea4f398e37343 \
                     file://libextra/COPYING;md5=d32239bcb673463ab874e80d47fae504"

@@ -1,8 +1,8 @@
 SUMMARY = "XFS Filesystem Utilities"
 HOMEPAGE = "http://oss.sgi.com/projects/xfs"
 SECTION = "base"
-LICENSE = "GPLv2 & LGPLv2.1"
-LICENSE_libhandle = "LGPLv2.1"
+LICENSE = "GPL-2.0-only & LGPL-2.1-only"
+LICENSE_libhandle = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://doc/COPYING;md5=dbdb5f4329b7e7145de650e9ecd4ac2a"
 DEPENDS = "util-linux util-linux-native"
 SRC_URI = "https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/${BP}.tar.xz \

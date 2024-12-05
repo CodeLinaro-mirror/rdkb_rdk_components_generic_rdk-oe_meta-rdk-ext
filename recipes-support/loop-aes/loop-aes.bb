@@ -3,7 +3,7 @@ DESCRIPTION = "Fast and transparent file system and swap encryption package for 
                linux. No source code changes to linux kernel. Works with 3.x,\
                2.6, 2.4, 2.2 and 2.0 kernels."
 HOMEPAGE = "http://sourceforge.net/projects/loop-aes/"
-LICENSE = "GPLv2 & BSD-3-Clause"
+LICENSE = "GPL-2.0-only & BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://loop-aes-keygen;beginline=5;endline=16;md5=fea1e40a702b207386cd311896610b12 \
                     file://aes-x86.S;beginline=7;endline=22;md5=ef85da542737e6d1610d12186407ce88 \
 "

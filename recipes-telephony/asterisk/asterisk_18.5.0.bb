@@ -1,6 +1,6 @@
 DESCRIPTION = "Asterisk is an Open Source PBX and telephony toolkit."
 HOMEPAGE = "http://www.asterisk.org/"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3aa955c628d43053f8ba9569d173105a"
 
 DEPENDS += "sqlite3 libedit util-linux libxml2 libxml2-native"

@@ -1,7 +1,7 @@
 SUMMARY = "System and service manager for Linux, replacing SysVinit"
 HOMEPAGE = "http://www.freedesktop.org/wiki/Software/systemd"
 
-LICENSE = "GPLv2 & LGPLv2.1 & MIT"
+LICENSE = "GPL-2.0-only & LGPL-2.1-only & MIT"
 LIC_FILES_CHKSUM = "file://LICENSE.GPL2;md5=751419260aa954499f7abaabaa882bbe \
                     file://LICENSE.LGPL2.1;md5=4fbd65380cdd255951079008b364516c \
                     file://LICENSE.MIT;md5=544799d0b492f119fa04641d1b8868ed"

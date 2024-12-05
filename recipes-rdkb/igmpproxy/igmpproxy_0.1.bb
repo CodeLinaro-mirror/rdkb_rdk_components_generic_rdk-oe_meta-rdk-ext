@@ -1,7 +1,7 @@
 SUMMARY = "simple dynamic multicast routing daemon that only uses IGMP signalling"
 HOMEPAGE = "http://sourceforge.net/projects/igmpproxy/"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=1e995e2799bb0d27d63069b97f805420"
 
 SRC_URI = "http://sourceforge.net/projects/igmpproxy/files/${BPN}/${PV}/${BPN}-${PV}.tar.gz \

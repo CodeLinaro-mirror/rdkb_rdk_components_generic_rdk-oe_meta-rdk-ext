@@ -1,6 +1,6 @@
 require gstreamer1.0-plugins.inc
 
-LICENSE = "GPLv2+ & LGPLv2+"
+LICENSE = "GPL-2.0-or-later & LGPL-2.0-or-later"
 
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'virtual/libx11 libxv', '', d)}"
 DEPENDS += "freetype liboil util-linux glib-2.0-native"

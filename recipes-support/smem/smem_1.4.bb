@@ -6,7 +6,7 @@ libraries and applications in a virtual memory system."
 HOMEPAGE = "http://www.selenic.com/smem/"
 SECTION = "Applications/System"
 
-LICENSE = "GPL-2.0"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 SRC_URI = "http://www.selenic.com/${BPN}/download/${BP}.tar.gz"

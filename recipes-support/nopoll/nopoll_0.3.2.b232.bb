@@ -1,6 +1,6 @@
 DESCRIPTION = "Recipe to build nopoll"
 HOMEPAGE = "http://www.aspl.es/nopoll/"
-LICENSE = "LGPL-2.1"
+LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=f0504124678c1b3158146e0630229298 \
                    "
 DEPENDS = "openssl"

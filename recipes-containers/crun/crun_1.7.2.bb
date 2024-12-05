@@ -5,7 +5,7 @@ crun conforms to the OCI Container Runtime specifications"
 
 HOMEPAGE = "https://github.com/containers/crun"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 SRC_URI = "gitsm://github.com/containers/crun;branch=main"

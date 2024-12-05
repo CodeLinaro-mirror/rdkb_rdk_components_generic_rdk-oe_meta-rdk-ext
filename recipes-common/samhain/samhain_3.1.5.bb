@@ -11,7 +11,7 @@ obtained root privileges."
 
 HOMEPAGE = "http://www.la-samhna.de/samhain"
 
-LICENSE = "GPL-2.0"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=8ca43cbc842c2336e835926c2166c28b"
 
 SRC_URI = "http://la-samhna.de/archive/samhain_signed-${PV}.tar.gz"

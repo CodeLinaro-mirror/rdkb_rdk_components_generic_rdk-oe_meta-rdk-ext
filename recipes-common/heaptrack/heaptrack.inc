@@ -1,6 +1,6 @@
 DESCRIPTION = "Heaptrack"
 HOMEPAGE = "https://phabricator.kde.org/source/heaptrack/"
-LICENSE = "LGPL-2.1"
+LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://LICENSES/LGPL-2.1-or-later.txt;md5=147a320ed8b16b036829a0c71d424153"
 PR = "r0"
 

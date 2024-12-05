@@ -3,7 +3,7 @@ DESCRIPTION = "Network-related giomodule for glib using openssl."
 HOMEPAGE = "http://git.gnome.org/browse/glib-openssl/"
 BUGTRACKER = "http://bugzilla.gnome.org"
 
-LICENSE = "LGPLv2"
+LICENSE = "LGPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=5f30f0716dfdd0d91eb439ebec522ec2"
 
 SECTION = "libs"

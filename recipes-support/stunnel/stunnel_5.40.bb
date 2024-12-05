@@ -4,7 +4,7 @@ DESCRIPTION = "SSL encryption wrapper between remote client and local (inetd-sta
 
 SECTION = "net"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=dee9eec492805215d84978df86514c03"
 
 DEPENDS += "openssl"

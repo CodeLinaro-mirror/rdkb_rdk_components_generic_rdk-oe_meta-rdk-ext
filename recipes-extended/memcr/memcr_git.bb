@@ -1,4 +1,4 @@
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=0ba16794955006770904e8293abcbee5"
 
 HOMEPAGE = "https://github.com/LibertyGlobal/memcr"

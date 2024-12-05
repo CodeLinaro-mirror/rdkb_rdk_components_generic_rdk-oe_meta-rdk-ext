@@ -1,6 +1,6 @@
 SUMMARY = "libdash provides an object-oriented interface to the Dynamic Adaptive Streaming over HTTP (DASH) standard"
 HOMEPAGE = "https://bitmovin.com/libdash/"
-LICENSE = "LGPLv2.1+"
+LICENSE = "LGPL-2.1-or-later"
 LIC_FILES_CHKSUM = "file://libdash/Authors.txt;md5=05b5aea0fa91d5816eb4383707c52b36"
 SECTION = "libs"
 FILESEXTRAPATHS_prepend := "${THISDIR}/libdash:"

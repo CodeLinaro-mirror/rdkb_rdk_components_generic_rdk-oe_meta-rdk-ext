@@ -1,7 +1,7 @@
 DESCRIPTION = "Libav is a complete, cross-platform solution to record, convert and stream audio and video."
 HOMEPAGE = "http://libav.org/"
 SECTION = "libs"
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPL-2.1-only"
 
 # Provides ffmpeg compat, see http://libav.org/about.html
 PROVIDES = "ffmpeg"

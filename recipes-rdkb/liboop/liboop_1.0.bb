@@ -1,6 +1,6 @@
 DESCRIPTION = "Liboop is a low-level event loop management library for POSIX-based operating systems"
 HOMEPAGE = "http://liboop.org/"
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=8b54f38ccbd44feb80ab90e01af8b700"
 
 SRC_URI = "http://ftp.debian.org/debian/pool/main/libo/liboop/liboop_${PV}.orig.tar.gz"

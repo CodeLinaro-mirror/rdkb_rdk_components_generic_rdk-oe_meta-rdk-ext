@@ -3,10 +3,10 @@ DESCRIPTION = "eCryptfs stores cryptographic metadata in the header of each \
 file written, so that encrypted files can be copied between hosts; the file \
 will be decrypted with the proper key in the Linux kernel keyring"
 SECTION = "base"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 DEPENDS = "intltool-native keyutils libgcrypt libpam glib-2.0-native openssl"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=8ca43cbc842c2336e835926c2166c28b"
 
 SRC_URI = "https://launchpad.net/ecryptfs/trunk/${PV}/+download/${BPN}_${PV}.orig.tar.gz \

@@ -1,4 +1,4 @@
-LICENSE = "LGPLv2.1 & LWS-exceptions"
+LICENSE = "LGPL-2.1-only & LWS-exceptions"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=f197d69f6bda1c450e2173a161286269"
 
 SRC_URI = "git://github.com/warmcat/libwebsockets.git;protocol=https;branch=v2.0-stable;tag=v2.0.2"

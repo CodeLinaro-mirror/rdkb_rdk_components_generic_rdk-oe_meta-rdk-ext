@@ -1,6 +1,6 @@
 require gstreamer1.0-plugins.inc
 
-LICENSE = "GPLv2+ & LGPLv2.1+"
+LICENSE = "GPL-2.0-or-later & LGPL-2.1-or-later"
 
 # libid3tag
 DEPENDS += "gstreamer1.0-plugins-base zlib bzip2 cairo"

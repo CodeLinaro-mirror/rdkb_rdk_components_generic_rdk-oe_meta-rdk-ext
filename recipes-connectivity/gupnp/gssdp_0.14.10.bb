@@ -1,5 +1,5 @@
 include recipes-connectivity/gupnp/gssdp.inc
-LICENSE = "LGPLv2"
+LICENSE = "LGPL-2.0-only"
 
 SRC_URI = "http://ftp.gnome.org/pub/GNOME/sources/${BPN}/0.14/${BPN}-${PV}.tar.xz"
 SRC_URI[md5sum] = "bd355c3be1618390172c1f63e5afe58b"

@@ -1,5 +1,5 @@
 DESCRIPTION = "Reference gst external plugin"
-LICENSE = "LGPL-2.0"
+LICENSE = "LGPL-2.0-only"
 LIC_FILES_CHKSUM = "file://../../COPYING;md5=505a896dcb5794959ca509c917a0ca0c"
 
 DEPENDS += "gstreamer1.0 gstreamer1.0-plugins-base westeros-sink"

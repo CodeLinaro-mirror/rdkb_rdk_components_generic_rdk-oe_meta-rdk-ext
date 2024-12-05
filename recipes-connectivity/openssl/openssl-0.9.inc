@@ -1,6 +1,6 @@
 DESCRIPTION = "Secure Socket Layer (SSL) binary and related cryptographic tools."
 HOMEPAGE = "http://www.openssl.org/"
-LICENSE = "openssl"
+LICENSE = "OpenSSL"
 SECTION = "libs/network"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=f9a8f968107345e0b75aa8c2ecaa7ec8"
 

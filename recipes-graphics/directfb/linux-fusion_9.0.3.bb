@@ -9,7 +9,7 @@ SRC_URI = " \
 SRC_URI[md5sum] = "f42a089ea3f649b9ab3a98d812ce1821"
 SRC_URI[sha256sum] = "ce9ce06293ccabb139ff972f7d7e44308bb92e7979f9c56b973da34c4dd3506e"
 
-LICENSE = "GPL-2.0"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://debian/copyright;md5=0ad6a1d63862749c355c08ca3fd0c39a"
 
 inherit module

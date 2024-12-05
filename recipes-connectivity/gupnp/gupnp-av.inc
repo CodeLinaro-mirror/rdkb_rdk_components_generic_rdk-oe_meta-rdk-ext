@@ -1,6 +1,6 @@
 SUMMARY = "Helpers for AV applications using UPnP"
 DESCRIPTION = "GUPnP-AV is a collection of helpers for building AV (audio/video) applications using GUPnP."
-LICENSE = "LGPLv2"
+LICENSE = "LGPL-2.0-only"
 DEPENDS = "gupnp"
 
 inherit autotools pkgconfig gobject-introspection vala

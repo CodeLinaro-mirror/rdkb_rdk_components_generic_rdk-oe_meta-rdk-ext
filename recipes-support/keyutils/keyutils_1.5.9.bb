@@ -4,7 +4,7 @@ facility in the kernel, which can be used by filesystems, block devices and \
 more to gain and retain the authorization and encryption keys required to \
 perform secure operations."
 SECTION = "base"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://LICENCE.GPL;md5=5f6e72824f5da505c1f4a7197f004b45"
 
 PR = "r1"

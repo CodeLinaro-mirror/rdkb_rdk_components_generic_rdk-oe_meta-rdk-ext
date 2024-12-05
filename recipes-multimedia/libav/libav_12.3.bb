@@ -1,6 +1,6 @@
 require libav_12.3.inc
 
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://COPYING.LGPLv2.1;md5=bd7a443320af8c812e4c18d1b79df004"
 
 SRC_URI = "https://github.com/libav/libav/archive/refs/tags/v12.3.tar.gz"

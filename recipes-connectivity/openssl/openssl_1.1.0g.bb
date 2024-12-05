@@ -2,7 +2,7 @@ SUMMARY = "Secure Socket Layer"
 DESCRIPTION = "Secure Socket Layer (SSL) binary and related cryptographic tools."
 HOMEPAGE = "http://www.openssl.org/"
 
-LICENSE = "openssl"
+LICENSE = "OpenSSL"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=cae6da10f4ffd9703214776d2aabce32"
 
 

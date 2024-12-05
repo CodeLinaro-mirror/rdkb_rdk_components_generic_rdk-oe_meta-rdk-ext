@@ -4,7 +4,7 @@ DESCRIPTION = "FFmpeg is the leading multimedia framework, able to decode, encod
                have created. It supports the most obscure ancient formats up to the cutting edge."
 HOMEPAGE = "https://www.ffmpeg.org/"
 
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPL-2.1-only"
 LICENSE_PATH += "${WORKDIR}/FFmpeg-n6.1.1/"
 LIC_FILES_CHKSUM = "file://COPYING.LGPLv2.1;md5=bd7a443320af8c812e4c18d1b79df004"
 
