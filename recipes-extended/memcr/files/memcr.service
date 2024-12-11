@@ -1,11 +1,12 @@
 [Unit]
-Description=Memcr checpoint restore service
+Description=Memcr checkpoint restore service
 
 [Service]
 Environment=DUMPSDIR=/media/apps/memcr
 Environment=WORKDIR=/tmp/memcr
 Environment=LOCATOR=/tmp/memcrcom
 Environment=TIMEOUT=20
+Environment=LD_PRELOAD=/usr/lib/memcr/libencrypt.so
 
 ExecStartPre=/bin/sh -c '/bin/mkdir -p ${WORKDIR}; /bin/chmod -R 777 ${WORKDIR}'
 ExecStartPre=/bin/sh -c '/bin/mkdir -p ${DUMPSDIR}; /bin/chmod -R 777 ${DUMPSDIR}'

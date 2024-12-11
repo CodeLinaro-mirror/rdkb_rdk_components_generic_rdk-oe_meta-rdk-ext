@@ -7,12 +7,13 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = "git://git@github.com/LibertyGlobal/memcr.git;branch=main;protocol=ssh"
 SRC_URI += " file://memcr.service"
+SRC_URI += " file://0001-RDK-54059-retry-ptrace-seize-on-EPERM.patch"
 
 INSANE_SKIP_${PN} += "ldflags"
 
 PV = "1.0+git${SRCPV}"
-# Code base from 07.06.2024
-SRCREV = "dfeaa806a4a95aa5f7fd0cbbe861877eb60d133a"
+# Code base from 30.08.2024
+SRCREV = "b58f2b8e26cab6b67eceaa36fd6ce5a6d04dcd28"
 
 DEPENDS += " util-linux-native lz4 openssl"
 RDEPENDS_${PN} = "libcrypto lz4"
