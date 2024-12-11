@@ -8,6 +8,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = "git://git@github.com/LibertyGlobal/memcr.git;branch=main;protocol=ssh"
 SRC_URI += " file://memcr.service"
 SRC_URI += " file://0001-RDK-54059-retry-ptrace-seize-on-EPERM.patch"
+SRC_URI += " file://0001-RDK-47153-Support-zstd-compression-and-option-to-set-dump-dir-.patch"
 
 INSANE_SKIP_${PN} += "ldflags"
 
@@ -15,8 +16,8 @@ PV = "1.0+git${SRCPV}"
 # Code base from 30.08.2024
 SRCREV = "b58f2b8e26cab6b67eceaa36fd6ce5a6d04dcd28"
 
-DEPENDS += " util-linux-native lz4 openssl"
-RDEPENDS_${PN} = "libcrypto lz4"
+DEPENDS += " util-linux-native lz4 openssl zstd"
+RDEPENDS_${PN} = "libcrypto lz4 zstd"
 
 S = "${WORKDIR}/git"
 
@@ -26,7 +27,7 @@ SYSTEMD_SERVICE_${PN} = "memcr.service"
 SYSTEMD_AUTO_ENABLE = "enable"
 
 do_compile () {
-	oe_runmake COMPRESS_LZ4=1 CHECKSUM_MD5=1 ENCRYPT=1
+	oe_runmake COMPRESS_LZ4=1 COMPRESS_ZSTD=1 CHECKSUM_MD5=1 ENCRYPT=1
 }
 
 do_install () {
