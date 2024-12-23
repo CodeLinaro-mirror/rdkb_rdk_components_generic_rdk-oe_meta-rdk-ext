@@ -1,0 +1,62 @@
+Index: bluez-5.77/src/adapter.c
+===================================================================
+--- bluez-5.77.orig/src/adapter.c
++++ bluez-5.77/src/adapter.c
+@@ -8844,6 +8844,47 @@ static void new_csrk_callback(uint16_t i
+ 	device_set_csrk(device, key->val, 0, key->type, ev->store_hint);
+ }
+ 
++static bool sky_backlist_device_irk(const bdaddr_t *peer, uint8_t bdaddr_type)
++{
++       unsigned i;
++       char device_addr[18];
++       const uint32_t oui = ((uint32_t)(peer->b[5]) << 16) |
++                            ((uint32_t)(peer->b[4]) << 8) |
++                            ((uint32_t)(peer->b[3]) << 0);
++
++       /* [Sky] for SkyQ RCUs we don't want to store the IRK value because if
++        * set in the kernel then it doesn't use the whitelist for fast connections,
++        * instead does passive scanning.
++        * The whitelist is much more efficent and all of the devices listed
++        * use a fixed public address so there is no need to use the IRK.
++        */
++       static const uint32_t blacklisted_device_oui[] = {
++               0x1ca2b1,   /* SkyQ EC05x  (ruwido) */
++               0xd4b8ff,   /* SkyQ EC101  (omni)   */
++               0x7091f3,   /* SkyQ EC102  (uei)    */
++               0x184644,   /* SkyQ EC201  (omni)   */
++               0xE80FC8,   /* SkyQ EC202  (uei)    */
++       };
++       static const unsigned blacklisted_device_oui_n =
++               sizeof(blacklisted_device_oui) / sizeof(blacklisted_device_oui[0]);
++
++
++       /* backlist only applies to fixed public addresses */
++       if (bdaddr_type == BDADDR_LE_PUBLIC) {
++
++               /* check the blacklist */
++               for (i = 0; i < blacklisted_device_oui_n; i++) {
++                       if (oui == blacklisted_device_oui[i]) {
++                               ba2str(peer, device_addr);
++                               DBG("[sky] blacklisted irk for device %s", device_addr);
++                               return true;
++                       }
++               }
++       }
++
++       return false;
++}
++
+ static void store_irk(struct btd_adapter *adapter, const bdaddr_t *peer,
+ 				uint8_t bdaddr_type, const unsigned char *key)
+ {
+@@ -8936,7 +8977,8 @@ static void new_irk_callback(uint16_t in
+ 	if (!persistent)
+ 		return;
+ 
+-	store_irk(adapter, &addr->bdaddr, addr->type, irk->val);
++        if (!sky_backlist_device_irk(&addr->bdaddr, addr->type))
++	    store_irk(adapter, &addr->bdaddr, addr->type, irk->val);
+ 
+ 	btd_device_set_temporary(device, false);
+ }

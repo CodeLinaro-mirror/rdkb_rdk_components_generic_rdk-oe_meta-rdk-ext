@@ -1,0 +1,13 @@
+Index: bluez-5.76/src/device.c
+===================================================================
+--- bluez-5.76.orig/src/device.c
++++ bluez-5.76/src/device.c
+@@ -6062,6 +6062,8 @@ void btd_device_set_temporary(struct btd
+ 	if (temporary) {
+ 		if (device->bredr)
+ 			adapter_accept_list_remove(device->adapter, device);
++                else
++                        adapter_auto_connect_remove(device->adapter, device);
+ 		adapter_connect_list_remove(device->adapter, device);
+ 		if (device->auto_connect) {
+ 			device->disable_auto_connect = TRUE;

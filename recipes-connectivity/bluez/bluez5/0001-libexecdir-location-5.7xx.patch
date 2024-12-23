@@ -1,0 +1,13 @@
+Index: bluez-5.75/Makefile.am
+===================================================================
+--- bluez-5.75.orig/Makefile.am
++++ bluez-5.75/Makefile.am
+@@ -16,7 +16,7 @@ CLEANFILES =
+ 
+ EXTRA_DIST =
+ 
+-pkglibexecdir = @PKGLIBEXECDIR@
++pkglibexecdir = /usr/lib/bluez5/bluetooth
+ 
+ pkglibexec_PROGRAMS =
+ 
