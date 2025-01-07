@@ -55,6 +55,7 @@ PACKAGECONFIG[dataurisrc]      = "--enable-dataurisrc,--disable-dataurisrc"
 #   tta videomeasure videosignal vmnc
 
 EXTRA_OECONF += " \
+    --disable-vulkan \
     --disable-dvb \
     --enable-fbdev \
     --disable-decklink \
