@@ -1,7 +1,7 @@
-Index: dropbear-2019.78/dbutil.c
+Index: dropbear-2020.81/dbutil.c
 ===================================================================
---- dropbear-2019.78.orig/dbutil.c
-+++ dropbear-2019.78/dbutil.c
+--- dropbear-2020.81.orig/dbutil.c
++++ dropbear-2020.81/dbutil.c
 @@ -68,6 +68,7 @@
  #include "atomicio.h"
  
@@ -10,7 +10,7 @@ Index: dropbear-2019.78/dbutil.c
  
  static void generic_dropbear_exit(int exitcode, const char* format, 
  		va_list param) ATTRIB_NORETURN;
-@@ -155,6 +156,31 @@ void dropbear_log(int priority, const ch
+@@ -154,6 +155,42 @@ void dropbear_log(int priority, const ch
  	va_end(param);
  }
  
@@ -29,9 +29,20 @@ Index: dropbear-2019.78/dbutil.c
 +    if (fp != NULL) {
 +        char printbuf[1024];
 +        va_list param;
++        // Get current timestamp
++        char timestamp[64];
++        time_t now = time(NULL);
++        struct tm* t = localtime(&now);
++        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", t);
++        // Get unique session ID (using PID)
++        pid_t session_id = getpid();
++        // Get the username
++        struct passwd *pw = getpwuid(geteuid());
++        char *username = pw ? pw->pw_name : "unknown_user";
 +        va_start(param, format);
 +        vsnprintf(printbuf, sizeof(printbuf), format, param);
-+        fprintf(fp, "%s", printbuf);
++        // Write the formatted log with timestamp, session ID, and username
++        fprintf(fp, "[%s] [Session ID: %d] [User: %s] %s", timestamp, session_id, username, printbuf);
 +        va_end(param);
 +        fclose(fp);
 +    }
@@ -42,18 +53,30 @@ Index: dropbear-2019.78/dbutil.c
  
  #if DEBUG_TRACE
  
-Index: dropbear-2019.78/svr-chansession.c
+Index: dropbear-2020.81/svr-chansession.c
 ===================================================================
---- dropbear-2019.78.orig/svr-chansession.c
-+++ dropbear-2019.78/svr-chansession.c
-@@ -703,6 +703,10 @@ static int sessioncommand(struct Channel
+--- dropbear-2020.81.orig/svr-chansession.c
++++ dropbear-2020.81/svr-chansession.c
+@@ -704,6 +704,10 @@ static int sessioncommand(struct Channel
  		svr_pubkey_set_forced_command(chansess);
  	}
  
-+        /* To record the commands executed from ssh */
-+        if (chansess->cmd) {
-+                ssh_logging("%s\n", chansess->cmd);
++        /* Only log non-interactive exec commands */
++        if (iscmd && chansess->cmd && chansess->term == NULL) {
++            ssh_logging("%s\n", chansess->cmd);
 +        }
  
  #if LOG_COMMANDS
  	if (chansess->cmd) {
+@@ -1002,6 +1006,11 @@ static void execchild(const void *user_d
+ 		addnewvar("SSH_ORIGINAL_COMMAND", chansess->original_command);
+ 	}
+ 
++        if (chansess->term != NULL) { //interactive shell session
++            addnewvar("HISTTIMEFORMAT", "");
++            addnewvar("PROMPT_COMMAND", "CMD=$(history 1 | sed 's/^ *[0-9]* *//'); if [ \"$CMD\" != \"$PREV_CMD\" ]; then echo \"[`date '+%F %T'`] [Session ID: $$] [User: $USER] $CMD\" >> /opt/secure/rdk_shell.log; PREV_CMD=\"$CMD\"; fi; history -a");
++        }
++
+ 	/* change directory */
+ 	if (chdir(ses.authstate.pw_dir) < 0) {
+ 		dropbear_exit("Error changing directory");
