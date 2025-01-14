@@ -1,8 +1,14 @@
 ###################################################################################################
+Date: Dec 20, 2024 13:19 PM
+
 Subject: [PATCH] Disable the read database hash value
 	While read the Platco RCU base hash characteristics, did get the response from the RCU.
 	It causing issue in RCU pairing and connection. Now, disabled the read data base hash value.
 	Need to revert this patch once the issue resolved in RCU firmware.        
+
+Source: Sky
+Upstream-Status: Pending
+Signed-off-by: Ananth Marimuthu <ananth_marimuthu2@comcast.com>
 ###################################################################################################
 
 Index: bluez-5.66/src/shared/gatt-client.c

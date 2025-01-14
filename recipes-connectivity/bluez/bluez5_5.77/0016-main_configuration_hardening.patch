@@ -1,3 +1,13 @@
+###################################################################################################
+Date: Mon, 17 Dec 2018 15:23:36 +0000
+From 06882765a9d556ef683026a84f96d45ac42b5d98 Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+Subject: [PATCH] Update configuration options for SkyQ boxes.
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
 Index: bluez-5.77/src/main.conf
 ===================================================================
 --- bluez-5.77.orig/src/main.conf

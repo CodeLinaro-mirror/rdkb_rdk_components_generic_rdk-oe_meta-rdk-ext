@@ -1,3 +1,19 @@
+###################################################################################################
+Date: Fri, 7 Dec 2018 15:38:27 +0000
+From a98b2e28aed51ad416ed6c4db5bf871f1786e456 Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+
+Subject: [PATCH] Add option to delay GATT client connection till after bonding completes.
+
+This tidies up the bonding process as it allows the SMP / bonding process
+to run without simultaneously retreiving the primary GATT services over
+the ATT / L2CAP connection.
+
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
 Index: bluez-5.77/src/btd.h
 ===================================================================
 --- bluez-5.77.orig/src/btd.h

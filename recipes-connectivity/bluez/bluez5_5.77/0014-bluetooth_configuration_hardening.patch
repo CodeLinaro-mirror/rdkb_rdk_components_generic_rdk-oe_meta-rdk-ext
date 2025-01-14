@@ -1,3 +1,17 @@
+###################################################################################################
+Date: Mon, 17 Dec 2018 15:05:12 +0000
+From 65212b8ef554e9247917ed698349e8be55967dbf Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+Subject: [PATCH] This enables the NDS_U2, NDS_U3 & RCU_USR users to communicate with the bluetoothd
+daemon (nb: only root can own the 'org.bluez' service name)
+
+[SkyRef: NGDEV-133507]
+
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
 Index: bluez-5.77/src/bluetooth.conf
 ===================================================================
 --- bluez-5.77.orig/src/bluetooth.conf

@@ -14,6 +14,8 @@ configuration. See thread:
 
 http://thread.gmane.org/gmane.linux.bluez.kernel/38725/focus=38843
 
+Source: upstream
+
 Signed-off-by: Javier Viguera <javier.viguera@digi.com>
 
 ---

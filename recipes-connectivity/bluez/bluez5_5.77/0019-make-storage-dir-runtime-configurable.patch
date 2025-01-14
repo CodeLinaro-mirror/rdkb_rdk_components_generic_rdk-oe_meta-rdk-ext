@@ -1,3 +1,25 @@
+###################################################################################################
+Date: Fri, 7 Dec 2018 14:30:24 +0000
+From 243682afdd6ca7190b0b228840a38162eb59d626 Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+
+Subject: [PATCH] Add argument to set the storage directory.
+
+        With this patch you can now specify the following on the
+        command line:   --storagedir <PATH>
+
+        This is a hacky way of setting the storage dir by opening the
+        directory with a know file descriptor and then setting the
+        storage dir path in the rest of the code to /proc/self/fd/<FD>.
+
+        This could do with a proper fix but would hit so much code that
+        maintaining the patch might be difficult.
+
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
 Index: bluez-5.77/profiles/input/device.c
 ===================================================================
 --- bluez-5.77.orig/profiles/input/device.c

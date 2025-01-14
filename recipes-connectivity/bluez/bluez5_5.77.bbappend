@@ -23,7 +23,6 @@ SRC_URI += " \
             file://0020-add-configurable-delayed-gatt-connection.patch \
             file://0021-add-hog-service-for-skyq-rcus.patch \
             file://0022-restore-pairing-info-after-kernel-crash.patch \
-            file://0023-hid-privacy-enable-xbox-509.patch \
             file://bluez-from-5.48-disable_sigpipe_signal.patch \
             file://bt_original_path_setup.sh \
            "

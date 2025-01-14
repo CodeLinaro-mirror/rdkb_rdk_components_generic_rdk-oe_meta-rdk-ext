@@ -1,3 +1,16 @@
+###################################################################################################
+Date: Mon, 17 Dec 2018 15:18:25 +0000
+From ce71433af2793ea2c096eddca0a2aa73b7f346d2 Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+Subject: [PATCH] Change the preferred order of write types; such that we favor
+write commands (writes without response) in preference to ordinary writes
+which require an ACK.
+
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
 Index: bluez-5.77/profiles/input/hog-lib.c
 ===================================================================
 --- bluez-5.77.orig/profiles/input/hog-lib.c

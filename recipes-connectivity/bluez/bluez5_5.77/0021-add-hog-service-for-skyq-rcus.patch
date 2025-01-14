@@ -1,3 +1,23 @@
+###################################################################################################
+Date: Mon, 17 Dec 2018 15:46:34 +0000
+From 917b84fcf27a6e2165fa38392f926f1e9220ad7c Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+Subject: [PATCH] NGDEV-128716: BLE RCU losses pairing
+
+It's been found that sometimes the "Services" part of the info file
+for a paired device is removed.  This seems to happen if there was
+an issue resolving the services. The side affect of this is that on
+the next boot bluez won't perform auto-connect as it thinks the
+remote device doesn't have any services that require auto-connect.
+
+This patch forces the HoG profile to be present on SkyQ RCU devices if
+it was not included in the 'Services' section of the info file.
+
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
 Index: bluez-5.77/src/device.c
 ===================================================================
 --- bluez-5.77.orig/src/device.c
