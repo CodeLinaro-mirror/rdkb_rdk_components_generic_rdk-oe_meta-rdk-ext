@@ -36,21 +36,13 @@ Index: git/src/main.c
      if (max_macs <= 0) {
          max_macs = INT_MAX;
      }
-@@ -249,6 +256,33 @@ int main( int argc, char **argv)
+@@ -249,6 +256,24 @@ int main( int argc, char **argv)
      return rv;
  }
  
 +static bool drop_root()
 +{
-+    bool ret = false;
 +    bool retval = false;
-+    ret = isBlocklisted();
-+    if(ret)
-+    {
-+        debug_info("NonRoot feature is disabled\n");
-+    }
-+    else
-+    {
 +    debug_info("NonRoot feature is enabled, dropping root privileges for aker process\n");
 +    appcaps.caps = NULL;
 +    appcaps.user_name = NULL;
@@ -60,8 +52,7 @@ Index: git/src/main.c
 +            if(update_process_caps(&appcaps) != -1) {
 +                read_capability(&appcaps);
 +                retval = true;
-+              }
-+           }
++            }
 +        }
 +    }
 +    return retval;
