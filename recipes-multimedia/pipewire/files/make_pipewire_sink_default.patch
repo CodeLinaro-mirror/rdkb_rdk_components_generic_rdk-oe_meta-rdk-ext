@@ -1,0 +1,13 @@
+diff --git a/src/gst/gstpipewire.c b/src/gst/gstpipewire.c
+index 5761a099d..8c63a349c 100644
+--- a/src/gst/gstpipewire.c
++++ b/src/gst/gstpipewire.c
+@@ -28,7 +28,7 @@ plugin_init (GstPlugin *plugin)
+ 
+   gst_element_register (plugin, "pipewiresrc", GST_RANK_PRIMARY + 1,
+       GST_TYPE_PIPEWIRE_SRC);
+-  gst_element_register (plugin, "pipewiresink", GST_RANK_NONE,
++  gst_element_register (plugin, "pipewiresink", GST_RANK_PRIMARY + 40,
+       GST_TYPE_PIPEWIRE_SINK);
+ 
+ #ifdef HAVE_GSTREAMER_DEVICE_PROVIDER

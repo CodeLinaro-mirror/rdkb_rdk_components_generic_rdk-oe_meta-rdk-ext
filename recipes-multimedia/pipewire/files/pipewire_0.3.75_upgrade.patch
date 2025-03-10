@@ -1,0 +1,30 @@
+diff --git a/meson.build b/meson.build
+index 6ef703f18..0d2c2ae71 100644
+--- a/meson.build
++++ b/meson.build
+@@ -267,10 +267,10 @@ cdata.set('HAVE_DBUS', dbus_dep.found())
+ sdl_dep = dependency('sdl2', required : get_option('sdl2'))
+ summary({'SDL2 (video examples)': sdl_dep.found()}, bool_yn: true, section: 'Misc dependencies')
+ drm_dep = dependency('libdrm', required : false)
+-readline_dep = dependency('readline', required : get_option('readline'))
++readline_dep = dependency('readline', required : false)
+
+ if not readline_dep.found()
+-  readline_dep = cc.find_library('readline', required : get_option('readline'))
++  readline_dep = cc.find_library('readline', required: false)
+ endif
+
+ # Both the FFmpeg SPA plugin and the pw-cat FFmpeg integration use libavcodec.
+diff --git a/src/modules/module-rtp/opus.c b/src/modules/module-rtp/opus.c
+index be31fa576..7c079d3c5 100644
+--- a/src/modules/module-rtp/opus.c
++++ b/src/modules/module-rtp/opus.c
+@@ -166,7 +166,7 @@ static int rtp_opus_receive(struct impl *impl, uint8_t *buffer, ssize_t len)
+ 				write, expected_write);
+ 	}
+
+-	if (filled + plen > BUFFER_SIZE2 / stride) {
++       if (filled + plen > (int)BUFFER_SIZE2 / (int)stride) {
+ 		pw_log_debug("capture overrun %u + %zd > %u", filled, plen,
+ 				BUFFER_SIZE2 / stride);
+ 		impl->have_sync = false;
