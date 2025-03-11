@@ -80,3 +80,9 @@ SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 SRC_URI_append = "${@bb.utils.contains('DISTRO_FEATURES', 'flex2_rdk', ' file://bluez-5.48-040-RDKTV-14757-fix-to-retain-connection-after-reboot.patch','',d)}"
 SRC_URI_append = "${@bb.utils.contains('DISTRO_FEATURES', 'flex2_rdk', ' file://bluez-5.48-041-rename-bluez-adapter-for-xumo.patch','',d)}"
 SRC_URI_append = "${@bb.utils.contains('DISTRO_FEATURES', 'flex2_rdk', ' file://bluez-5.48-042-fix-for-autoenable-policy-main-conf.patch','',d)}"
+
+#Installing the btmgmt tool without considering the readline support.
+do_install_append_client() {
+    install -d ${D}${bindir}
+    install -m 0755 tools/btmgmt ${D}${bindir}/
+}
