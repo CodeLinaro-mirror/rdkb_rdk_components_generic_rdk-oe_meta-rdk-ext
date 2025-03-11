@@ -15,9 +15,9 @@ SRC_URI[fonts.sha256sum] = "fb1462ff6ce8efae58a0c496f0537c5ac16d4895c68f1640c297
 
 S = "${WORKDIR}/reportlab-${PV}"
 
-inherit pypi setuptools3 distutils3
+inherit pypi setuptools3
 
-DEPENDS = "python3-pillow freetype"
+DEPENDS += "python3-pillow freetype"
 
 CFLAGS += "-fno-strict-aliasing -I${STAGING_INCDIR}/freetype2"
 LDFLAGS += "-L${STAGING_LIBDIR}"
@@ -37,11 +37,5 @@ do_unpack_extra() {
                ${S}/src/rl_addons/rl_accel/pyHnjmodule.c
 }
 addtask unpack_extra after do_unpack before do_patch
-
-do_compile() {
-    export STAGING_LIBDIR=${STAGING_LIBDIR}
-    export STAGING_INCDIR=${STAGING_INCDIR}
-    distutils3_do_compile
-}
 
 BBCLASSEXTEND = "native"
