@@ -65,6 +65,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-059-hci-version-update.patch \
     file://bluez-5.48-060-unsupport-device-remove.patch \
     file://bluez-5.48-061-Queue-crash.patch \
+    file://bluez-5.48-061-RDK-56281-BT-SIG-PTS-disable-gatt-server-opcodes.patch \
     "
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
