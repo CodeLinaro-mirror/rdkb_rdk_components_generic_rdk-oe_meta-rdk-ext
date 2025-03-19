@@ -5743,13 +5743,13 @@
                                {
                                   "name": "defaultrfc",
                                   "bitposition": 2,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
                                   "name": "rfc",
                                   "bitposition": 3,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                }
                             ]
@@ -5800,7 +5800,7 @@
                    {
                      "name": "telcovoice",
                      "bitposition": 2,
-                     "support": false,
+                     "support": true,
                      "version": "1.0"
                    }
                  ]
@@ -5811,7 +5811,7 @@
                    {
                      "name": "wanmanager",
                      "bitposition": 1,
-                     "support": false,
+                     "support": true,
                      "version": "1.0"
                    },
                    {
