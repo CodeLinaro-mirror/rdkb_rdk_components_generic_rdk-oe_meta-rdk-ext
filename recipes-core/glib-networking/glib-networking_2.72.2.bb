@@ -23,7 +23,10 @@ EXTRA_OEMESON = "-Dgnome_proxy=disabled"
 GNOMEBASEBUILDCLASS = "meson"
 inherit gnomebase gettext upstream-version-is-even gio-module-cache ptest-gnome
 
-SRC_URI += "file://run-ptest"
+SRC_URI += "\
+            file://run-ptest \
+            file://0001-Add-support-for-PKCS-12-encrypted-files.patch \
+            " 
 
 FILES_${PN} += "\
                 ${libdir}/gio/modules/libgio*.so \
