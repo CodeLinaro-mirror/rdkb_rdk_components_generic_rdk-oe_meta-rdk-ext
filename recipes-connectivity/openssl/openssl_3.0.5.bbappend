@@ -25,6 +25,7 @@ SRC_URI_append = " file://CVE-2022-4304_openssl_3.0.5_fix.patch \
                    file://CVE-2023-3817_openssl_3.0.5_fix.patch \
                    file://CVE-2023-4807_openssl_3.0.5_fix.patch \
                    file://CVE-2024-6119_openssl_3.0.5_fix.patch \
+                   file://CVE-2024-5535_openssl_3.0.5_fix.patch \
                  "
 SRC_URI += " file://openssl-c_rehash.sh \
            "
