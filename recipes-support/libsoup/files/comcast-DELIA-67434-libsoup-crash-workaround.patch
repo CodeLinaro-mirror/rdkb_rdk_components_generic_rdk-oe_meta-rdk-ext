@@ -1,0 +1,23 @@
+diff -Naur libsoup-3.6.4.orig/libsoup/http2/soup-client-message-io-http2.c libsoup-3.6.4/libsoup/http2/soup-client-message-io-http2.c
+--- libsoup-3.6.4.orig/libsoup/http2/soup-client-message-io-http2.c	2025-03-12 12:15:18.254697462 +0000
++++ libsoup-3.6.4/libsoup/http2/soup-client-message-io-http2.c	2025-03-12 14:04:37.496726418 +0000
+@@ -1913,14 +1913,17 @@
+ 
+         soup_client_message_io_http2_set_owner (io, g_thread_self ());
+         if (io->async) {
+-                g_assert (!io->close_task);
++                if (io->close_task)
++                        g_critical ("Expected close_task to have been already cleared");
++
+                 io->close_task = g_task_new (conn, NULL, callback, NULL);
+                 g_task_set_source_tag (io->close_task, soup_client_message_io_http2_close_async);
+         }
+ 
+         soup_client_message_io_http2_terminate_session (io);
+         if (!io->async) {
+-                g_assert (io->goaway_sent || io->error);
++                if (!(io->goaway_sent || io->error))
++                        g_critical ("Expected goaway to have been sent or io error, but neither are true. Pending messages: %u", g_hash_table_size (io->messages));
+                 return FALSE;
+         }
+ 

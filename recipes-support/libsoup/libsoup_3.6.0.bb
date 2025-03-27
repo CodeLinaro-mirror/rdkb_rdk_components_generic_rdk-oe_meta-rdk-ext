@@ -14,6 +14,8 @@ SHRT_VER = "${@d.getVar('PV').split('.')[0]}.${@d.getVar('PV').split('.')[1]}"
 SRC_URI = "${GNOME_MIRROR}/libsoup/${SHRT_VER}/libsoup-${PV}.tar.xz"
 SRC_URI[sha256sum] = "62959f791e8e8442f8c13cedac8c4919d78f9120d5bb5301be67a5e53318b4a3"
 
+SRC_URI += "file://comcast-DELIA-67434-libsoup-crash-workaround.patch"
+
 PROVIDES = "libsoup-3.0"
 CVE_PRODUCT = "libsoup"
 
