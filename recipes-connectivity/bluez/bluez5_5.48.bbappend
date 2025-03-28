@@ -70,6 +70,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-063-stop-gatt-db-reset-on-early-disconnection.patch \
     file://bluez-5.48-064-allow-large-sevices-changed-gatt.patch \
     file://bluez-5.48-065-add-unsupport-device-remove-for-501.patch \
+    file://bluez-5.48-066-ES1-2351-remove-corrupted-hog.patch \
     "
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
