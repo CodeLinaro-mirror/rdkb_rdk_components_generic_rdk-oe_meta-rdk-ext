@@ -67,6 +67,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-061-Queue-crash.patch \
     file://bluez-5.48-061-RDK-56281-BT-SIG-PTS-disable-gatt-server-opcodes.patch \
     file://bluez-5.48-063-stop-gatt-db-reset-on-early-disconnection.patch \
+    file://bluez-5.48-064-allow-large-sevices-changed-gatt.patch \
     "
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
