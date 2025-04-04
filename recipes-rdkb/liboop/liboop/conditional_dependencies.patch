@@ -1,0 +1,122 @@
+From: Magnus Holmgren <holmgren@debian.org>
+Date: Sun, 30 Sep 2018 19:47:03 +0000
+Subject: Use Automake conditionals to construct lib_LTLIBRARIES
+ Otherwise automake doesn't pick up the correct dependencies for test-oop
+
+Bug-Debian: https://bugs.debian.org/909904
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -31,20 +31,20 @@ AC_CHECK_HEADERS(poll.h sys/select.h sys
+ 
+ if test xno != x$with_adns; then
+   AC_CHECK_LIB(adns,adns_init,[
+-    LIBOOP_LIBS="liboop-adns.la $LIBOOP_LIBS"
+     ADNS_LIBS="-ladns"
+     AC_DEFINE(HAVE_ADNS)
+   ])
+ fi
++AM_CONDITIONAL([WANT_ADNS], [test -n "$ADNS_LIBS"])
+ 
+ if test xno != x$with_readline; then
+   AC_CHECK_LIB(readline,rl_callback_handler_install,[
+   AC_CHECK_HEADER(readline/readline.h,[
+-    LIBOOP_LIBS="liboop-rl.la $LIBOOP_LIBS"
+     READLINE_LIBS="-lreadline"
+     AC_DEFINE(HAVE_READLINE)
+   ])])
+ fi
++AM_CONDITIONAL([WANT_READLINE], [test -n "$READLINE_LIBS"])
+ 
+ if test xno != x$with_glib; then
+   save_libs="$LIBS"
+@@ -57,7 +57,7 @@ if test xno != x$with_glib; then
+     CPPFLAGS="$save_cppflags $GLIB_INCLUDES"
+     AC_CHECK_FUNC(g_main_set_poll_func,[
+     AC_CHECK_HEADER(glib.h,[
+-      LIBOOP_LIBS="liboop-glib.la $LIBOOP_LIBS"
++      have_glib="true"
+       AC_DEFINE(HAVE_GLIB)
+     ])])
+   fi
+@@ -65,17 +65,18 @@ if test xno != x$with_glib; then
+   CPPFLAGS="$save_cppflags"
+ 
+   PKG_CHECK_MODULES(GLIB2,glib-2.0 >= 2.0,[
+-    LIBOOP_LIBS="liboop-glib2.la $LIBOOP_LIBS"
++    have_glib2="true"
+     AC_DEFINE(HAVE_GLIB)
+     ],[:])
+ fi
++AM_CONDITIONAL([WANT_GLIB], [test -n "$have_glib"])
++AM_CONDITIONAL([WANT_GLIB2], [test -n "$have_glib2"])
+ 
+ if test xno != x$with_tcl; then
+   for version in 8.4 8.3 8.2 8.1 8.0 ; do
+     CPPFLAGS="$save_cppflags -I/usr/include/tcl$version"
+     AC_CHECK_LIB(tcl$version,Tcl_Main,[
+     AC_CHECK_HEADER(tcl.h,[
+-      LIBOOP_LIBS="liboop-tcl.la $LIBOOP_LIBS"
+       AC_DEFINE(HAVE_TCL)
+       TCL_INCLUDES="-I/usr/include/tcl$version"
+       TCL_LIBS="-ltcl$version"
+@@ -84,6 +85,7 @@ if test xno != x$with_tcl; then
+   done
+   CPPFLAGS="$save_cppflags"
+ fi
++AM_CONDITIONAL([WANT_TCL], [test -n "$TCL_LIBS"])
+ 
+ if test xyes = x$with_libwww; then
+   save_libs="$LIBS"
+@@ -95,13 +97,14 @@ if test xyes = x$with_libwww; then
+     LIBS="$save_libs $WWW_LIBS"
+     CPPFLAGS="$save_cppflags $WWW_INCLUDES"
+     AC_CHECK_FUNC(HTEvent_setRegisterCallback,[
+-      LIBOOP_LIBS="liboop-www.la $LIBOOP_LIBS"
++      have_www="true"
+       AC_DEFINE(HAVE_WWW)
+     ])
+   fi
+   LIBS="$save_libs"
+   CPPFLAGS="$save_cppflags"
+ fi
++AM_CONDITIONAL([WANT_WWW], [test -n "$have_www"])
+ 
+ if test -z "$no_wacky_libs" ; then
+   AC_CHECK_LIB(resolv,res_query)
+@@ -123,5 +126,4 @@ AC_SUBST(ADNS_LIBS)
+ AC_SUBST(WWW_INCLUDES)
+ AC_SUBST(WWW_LIBS)
+ AC_SUBST(READLINE_LIBS)
+-AC_SUBST(LIBOOP_LIBS)
+ AC_OUTPUT([Makefile liboop.pc liboop-glib2.pc])
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -7,8 +7,25 @@
+ # See the file COPYING for details.
+ 
+ AUTOMAKE_OPTIONS = foreign 1.7
+-lib_LTLIBRARIES = liboop.la @LIBOOP_LIBS@
+-EXTRA_LTLIBRARIES = liboop-adns.la liboop-glib2.la liboop-glib.la liboop-tcl.la liboop-www.la liboop-rl.la
++lib_LTLIBRARIES = liboop.la
++if WANT_ADNS
++  lib_LTLIBRARIES += liboop-adns.la
++endif
++if WANT_GLIB
++  lib_LTLIBRARIES += liboop-glib.la
++endif
++if WANT_GLIB2
++  lib_LTLIBRARIES += liboop-glib2.la
++endif
++if WANT_TCL
++  lib_LTLIBRARIES += liboop-tcl.la
++endif
++if WANT_WWW
++  lib_LTLIBRARIES += liboop-www.la
++endif
++if WANT_READLINE
++  lib_LTLIBRARIES += liboop-rl.la
++endif
+ 
+ pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = liboop.pc liboop-glib2.pc
