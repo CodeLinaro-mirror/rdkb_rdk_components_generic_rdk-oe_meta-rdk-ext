@@ -41,7 +41,6 @@ do_install_append() {
     rm  ${D}${bindir}/avinfo
     rm  ${D}${bindir}/avtest
     rm  ${D}${bindir}/scotest
-    rm  ${D}${bindir}/amptest
     rm  ${D}${bindir}/hwdb
     rm  ${D}${bindir}/hcieventmask
     rm  ${D}${bindir}/hcisecfilter

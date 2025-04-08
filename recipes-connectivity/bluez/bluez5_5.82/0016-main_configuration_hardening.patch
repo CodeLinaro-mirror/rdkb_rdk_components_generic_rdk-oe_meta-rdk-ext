@@ -1,0 +1,61 @@
+###################################################################################################
+Date: Mon, 17 Dec 2018 15:23:36 +0000
+From 06882765a9d556ef683026a84f96d45ac42b5d98 Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+Subject: [PATCH] Update configuration options for SkyQ boxes.
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
+Index: bluez-5.77/src/main.conf
+===================================================================
+--- bluez-5.77.orig/src/main.conf
++++ bluez-5.77/src/main.conf
+@@ -2,16 +2,16 @@
+ 
+ # Default adapter name
+ # Defaults to 'BlueZ X.YZ'
+-#Name = BlueZ
++Name = Sky
+ 
+ # Default device class. Only the major and minor device class bits are
+ # considered. Defaults to '0x000000'.
+-#Class = 0x000100
++Class = 0x040414
+ 
+ # How long to stay in discoverable mode before going back to non-discoverable
+ # The value is in seconds. Default is 180, i.e. 3 minutes.
+ # 0 = disable timer, i.e. stay discoverable forever
+-#DiscoverableTimeout = 0
++DiscoverableTimeout = 180
+ 
+ # Always allow pairing even if there are no agent registered
+ # Possible values: true, false
+@@ -21,7 +21,7 @@
+ # How long to stay in pairable mode before going back to non-discoverable
+ # The value is in seconds. Default is 0.
+ # 0 = disable timer, i.e. stay pairable forever
+-#PairableTimeout = 0
++PairableTimeout = 180
+ 
+ # Use vendor id source (assigner), vendor, product and version information for
+ # DID profile support. The values are separated by ":" and assigner, VID, PID
+@@ -35,7 +35,7 @@
+ # this disables the GATT client functionally so it can be used in system which
+ # can only operate as peripheral (see also GATT Client option).
+ # Defaults to 'true'.
+-#ReverseServiceDiscovery = true
++ReverseServiceDiscovery = true
+ 
+ # Enable name resolving after inquiry. Set it to 'false' if you don't need
+ # remote devices name and want shorter discovery cycle. Defaults to 'true'.
+@@ -44,7 +44,7 @@
+ # Enable runtime persistency of debug link keys. Default is false which
+ # makes debug link keys valid only for the duration of the connection
+ # that they were created for.
+-#DebugKeys = false
++DebugKeys = false
+ 
+ # Restricts all controllers to the specified transport. Default value
+ # is "dual", i.e. both BR/EDR and LE enabled (when supported by the HW).

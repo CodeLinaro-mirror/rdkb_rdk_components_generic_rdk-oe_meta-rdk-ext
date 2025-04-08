@@ -1,0 +1,58 @@
+###################################################################################################
+Date: Dec 20, 2024 13:19 PM
+
+Subject: [PATCH] Disable the read database hash value
+	While read the Platco RCU base hash characteristics, did get the response from the RCU.
+	It causing issue in RCU pairing and connection. Now, disabled the read data base hash value.
+	Need to revert this patch once the issue resolved in RCU firmware.        
+
+Source: Sky
+Upstream-Status: Pending
+Signed-off-by: Ananth Marimuthu <ananth_marimuthu2@comcast.com>
+###################################################################################################
+
+Index: bluez-5.66/src/shared/gatt-client.c
+===================================================================
+--- bluez-5.66.orig/src/shared/gatt-client.c
++++ bluez-5.66/src/shared/gatt-client.c
+@@ -377,8 +377,10 @@ static void discovery_op_complete(struct
+ 	op->success = success;
+ 
+ 	/* Read database hash if discovery has been successful */
+-	if (success && read_db_hash(op))
+-		return;
++	//if (success && read_db_hash(op))
++	//	return;
++
++    DBG(op->client, "WARNING: FOR SKY REMOTE ALWAYS FORCING THE DISCOVERY TO FINISH HERE");
+ 
+ 	/*
+ 	 * Unregister remove callback so it is not called when clearing unused
+@@ -1518,10 +1520,11 @@ static void exchange_mtu_cb(bool success
+ discover:
+ 	read_server_feat(op);
+ 
+-	if (read_db_hash(op)) {
++	/*if (read_db_hash(op)) {
+ 		op->success = false;
+ 		return;
+-	}
++	}*/
++    DBG(op->client, "WARNING: FOR SKY REMOTE ALWAYS FORCING THE DISCOVERY TO FINISH HERE");
+ 
+ 	discover_all(op);
+ }
+@@ -2025,10 +2028,11 @@ static bool gatt_client_init(struct bt_g
+ discover:
+ 	read_server_feat(op);
+ 
+-	if (read_db_hash(op)) {
++	/*if (read_db_hash(op)) {
+ 		op->success = false;
+ 		goto done;
+-	}
++	}*/
++    DBG(op->client, "WARNING: FOR SKY REMOTE ALWAYS FORCING THE DISCOVERY TO FINISH HERE");
+ 
+ 	client->discovery_req = bt_gatt_discover_all_primary_services(
+ 							client->att, NULL,

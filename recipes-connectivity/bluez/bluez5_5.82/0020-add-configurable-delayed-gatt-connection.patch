@@ -1,0 +1,107 @@
+###################################################################################################
+Date: Fri, 7 Dec 2018 15:38:27 +0000
+From a98b2e28aed51ad416ed6c4db5bf871f1786e456 Mon Sep 17 00:00:00 2001
+From: Ben Gray <ben.gray@sky.uk>
+
+Subject: [PATCH] Add option to delay GATT client connection till after bonding completes.
+
+This tidies up the bonding process as it allows the SMP / bonding process
+to run without simultaneously retreiving the primary GATT services over
+the ATT / L2CAP connection.
+
+Source: SKY
+Upstream-Status: Pending
+Signed-off-by: Tijo Thomas John <tijo.thomas@sky.uk>
+###################################################################################################
+
+Index: bluez-5.77/src/btd.h
+===================================================================
+--- bluez-5.77.orig/src/btd.h
++++ bluez-5.77/src/btd.h
+@@ -118,6 +118,7 @@ struct btd_opts {
+ 	uint8_t		privacy;
+ 	bool		device_privacy;
+ 	uint32_t	name_request_retry_delay;
++        bool            delay_gatt_until_bonded;
+ 	uint8_t		secure_conn;
+ 
+ 	struct btd_defaults defaults;
+Index: bluez-5.77/src/device.c
+===================================================================
+--- bluez-5.77.orig/src/device.c
++++ bluez-5.77/src/device.c
+@@ -5740,7 +5740,13 @@ bool device_attach_att(struct btd_device
+ 		load_gatt_db(dev, btd_adapter_get_storage_dir(dev->adapter),
+ 								dstaddr);
+ 
+-	gatt_client_init(dev);
++        if (!btd_opts.delay_gatt_until_bonded ||
++                      !dev->bonding ||
++                      dev->le_state.paired || dev->le_state.bonded)
++	     gatt_client_init(dev);
++        else
++            DBG("[Sky] delaying gatt client init until bonding complete");
++
+ 	gatt_server_init(dev, database);
+ 
+ 	/*
+@@ -6477,6 +6483,13 @@ void device_bonding_complete(struct btd_
+ 	if (state->paired)
+ 		return;
+ 
++        /* [Sky] Connect the GATT client now that we've bonded to the
++         * remote device.
++        */
++        if (!device->client) {
++                DBG("[Sky] Creating GATT client interface now bonded");
++                gatt_client_init(device);
++        }
+ 	device_set_paired(device, bdaddr_type);
+ 
+ 	/* If services are already resolved just reply to the pairing
+Index: bluez-5.77/src/main.c
+===================================================================
+--- bluez-5.77.orig/src/main.c
++++ bluez-5.77/src/main.c
+@@ -94,6 +94,7 @@ static const char *supported_options[] =
+ 	"Testing",
+ 	"KernelExperimental",
+ 	"RemoteNameRequestRetryDelay",
++        "DelayGATTUntilBonded",
+ 	NULL
+ };
+ 
+@@ -1048,6 +1049,8 @@ static void parse_general(GKeyFile *conf
+ 	parse_config_u32(config, "General", "RemoteNameRequestRetryDelay",
+ 					&btd_opts.name_request_retry_delay,
+ 					0, UINT32_MAX);
++	parse_config_bool(config, "General", "DelayGATTUntilBonded",
++						&btd_opts.delay_gatt_until_bonded);
+ }
+ 
+ static void parse_gatt_cache(GKeyFile *config)
+@@ -1185,6 +1188,7 @@ static void init_defaults(void)
+ 	btd_opts.debug_keys = FALSE;
+ 	btd_opts.refresh_discovery = TRUE;
+ 	btd_opts.name_request_retry_delay = DEFAULT_NAME_REQUEST_RETRY_DELAY;
++        btd_opts.delay_gatt_until_bonded = FALSE;
+ 	btd_opts.secure_conn = SC_ON;
+ 
+ 	btd_opts.defaults.num_entries = 0;
+Index: bluez-5.77/src/main.conf
+===================================================================
+--- bluez-5.77.orig/src/main.conf
++++ bluez-5.77/src/main.conf
+@@ -346,3 +346,12 @@ AutoEnable = true
+ # 0xFF       Report only one advertisement per device during monitoring period
+ # Default: 0xFF
+ #RSSISamplingPeriod=0xFF
++
++# If true then the GATT client interface is not attached until after the bonding
++# process has completed (successfully).  This doesn't affect non-paired
++# connections, it only takes affect if the remote device connects as pair of
++# bonding / pairing process, in which case the GATT client will only be setup
++# once bonding is complete.  If false then the GATT primary service discovery
++# and MTU negotiation run in parallel to the bonding / SMP handshake.
++# Defaults to 'false'
++DelayGATTUntilBonded = true

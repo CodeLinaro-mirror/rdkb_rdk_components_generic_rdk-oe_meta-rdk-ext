@@ -1,0 +1,32 @@
+###################################################################
+Date: July 21, 2022 12:25
+From:
+Subject: Setting device=privacy and enableing bluez logs.
+Source: SKY
+License: GPLV2
+Upstream-Status: Pending
+Signed-off-by: Sreejith Ravi <sreejith.ravi@sky.uk>
+###################################################################
+
+Index: bluez-5.80/src/main.conf
+===================================================================
+--- bluez-5.80.orig/src/main.conf
++++ bluez-5.80/src/main.conf
+@@ -2,7 +2,7 @@
+ 
+ # Default adapter name
+ # Defaults to 'BlueZ X.YZ'
+-Name = Sky
++# Name = Sky
+ 
+ # Default device class. Only the major and minor device class bits are
+ # considered. Defaults to '0x000000'.
+@@ -95,7 +95,7 @@ DebugKeys = false
+ # discoverable, and Device Privacy Mode for scanning.
+ #
+ # Defaults to "off"
+-#Privacy = off
++Privacy = device
+ 
+ # Specify the policy to the JUST-WORKS repairing initiated by peer
+ # Possible values: "never", "confirm", "always"

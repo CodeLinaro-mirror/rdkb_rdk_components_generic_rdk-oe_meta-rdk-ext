@@ -1,0 +1,27 @@
+#########################################################################
+Date: Feb 26, 2024 13:19 PM
+Source: Comcast
+Upstream-Status: Pending
+Signed-off-by: Srikanth Simgamsetti <Srikanth_Simgamsetti@comcast.com>
+#########################################################################
+
+Index: bluez-5.80/src/device.c
+===================================================================
+--- bluez-5.80.orig/src/device.c
++++ bluez-5.80/src/device.c
+@@ -3552,8 +3552,13 @@ void device_add_connection(struct btd_de
+ 							uint32_t flags)
+ {
+ 	struct bearer_state *state = get_state(dev, bdaddr_type);
+-
+-	device_update_last_seen(dev, bdaddr_type, true);
++        if(g_strcmp0(dev->modalias, "usb:v045Ep0B13d0501") == 0){
++		warn("Unsupport version gamepad Gen4 = %s \n", dev->modalias);
++		device_set_auto_connect(dev, FALSE);
++		btd_adapter_remove_device(dev->adapter, dev);
++		return;
++	}
++		device_update_last_seen(dev, bdaddr_type, true);
+ 
+ 	if (state->connected) {
+ 		char addr[18];

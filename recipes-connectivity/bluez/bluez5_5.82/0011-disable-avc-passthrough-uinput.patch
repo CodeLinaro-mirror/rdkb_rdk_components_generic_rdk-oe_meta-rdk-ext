@@ -1,0 +1,43 @@
+#########################################################################
+Date: Mar 05, 2024 13:19 PM
+Source: Sky
+Upstream-Status: Pending
+Signed-off-by: Jack O'Gorman <jack.ogorman@sky.uk>
+#########################################################################
+
+Index: bluez-5.76/profiles/audio/avctp.c
+===================================================================
+--- bluez-5.76.orig/profiles/audio/avctp.c
++++ bluez-5.76/profiles/audio/avctp.c
+@@ -45,6 +45,8 @@
+ #include "avctp.h"
+ #include "avrcp.h"
+ 
++#define AVC_SUPPRESS_UINPUT_EVENTS 1
++
+ /* AV/C Panel 1.23, page 76:
+  * command with the pressed value is valid for two seconds
+  */
+@@ -315,6 +317,10 @@ static int send_event(int fd, uint16_t t
+ 
+ static void send_key(int fd, uint16_t key, int pressed)
+ {
++#ifdef AVC_SUPPRESS_UINPUT_EVENTS
++        DBG("AV/C keys will not be sent as uinput is not created");
++#endif //AVC_SUPPRESS_UINPUT_EVENTS
++
+ 	if (fd < 0)
+ 		return;
+ 
+@@ -1157,6 +1163,11 @@ failed:
+ static int uinput_create(struct btd_device *device, const char *name,
+ 			 const char *suffix)
+ {
++#ifdef AVC_SUPPRESS_UINPUT_EVENTS
++        DBG("AVC passthrough events will not be supported ");
++        return -1;
++#endif //AVC_SUPPRESS_UINPUT_EVENTS
++
+ 	struct uinput_user_dev dev;
+ 	int fd, err, i;
+ 	char src[18];

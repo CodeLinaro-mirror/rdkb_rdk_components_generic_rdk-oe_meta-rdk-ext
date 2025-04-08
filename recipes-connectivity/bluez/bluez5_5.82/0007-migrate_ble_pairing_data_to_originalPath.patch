@@ -1,0 +1,19 @@
+#########################################################################
+Date: May 24, 2024 13:19 PM
+Source: Comcast
+Upstream-Status: Pending
+Signed-off-by: Srikanth Simgamsetti <srikanth_simgamsetti@comcast.com>
+#########################################################################
+
+Index: bluez-5.76/src/bluetooth.service.in
+===================================================================
+--- bluez-5.76.orig/src/bluetooth.service.in
++++ bluez-5.76/src/bluetooth.service.in
+@@ -8,6 +8,7 @@ ConditionPathIsDirectory=/sys/class/blue
+ [Service]
+ Type=dbus
+ BusName=org.bluez
++ExecStartPre=/bin/sh -c '/etc/bluetooth/bt_original_path_setup.sh'
+ ExecStart=/usr/lib/bluez5/bluetooth/bluetoothd -d
+ NotifyAccess=main
+ #WatchdogSec=10
