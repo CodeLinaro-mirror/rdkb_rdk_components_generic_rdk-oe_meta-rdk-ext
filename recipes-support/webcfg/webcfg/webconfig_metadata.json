@@ -2345,7 +2345,7 @@
                                {
                                   "name": "xmspeedboost",
                                   "bitposition": 8,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
