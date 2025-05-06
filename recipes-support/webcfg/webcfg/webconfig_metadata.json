@@ -1800,6 +1800,12 @@
                                   "bitposition": 7,
                                   "support": true,
                                   "version": "1.0"
+                               },
+                               {
+                                 "name": "channelplan",
+                                 "bitposition": 8,
+                                 "support": true,
+                                 "version": "1.1"
                                }
                             ]
                },
@@ -2795,9 +2801,8 @@
                                  "name": "channelplan",
                                  "bitposition": 8,
                                  "support": true,
-                                 "version": "1.0"
+                                 "version": "1.1"
                                }
-
                             ]
                },
                {
