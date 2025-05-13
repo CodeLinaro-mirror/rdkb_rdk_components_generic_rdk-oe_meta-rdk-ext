@@ -1684,7 +1684,7 @@
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
                                   "support": true,
-                                  "version": "1.0"
+                                  "version": "2.0"
                                },
                                {
                                   "name": "xmspeedboost",
@@ -2346,7 +2346,7 @@
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
                                   "support": true,
-                                  "version": "1.0"
+                                  "version": "2.0"
                                },
                                {
                                   "name": "xmspeedboost",
@@ -2680,7 +2680,7 @@
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
                                   "support": true,
-                                  "version": "1.0"
+                                  "version": "2.0"
                                },
                                {
                                   "name": "xmspeedboost",
@@ -3015,7 +3015,7 @@
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
                                   "support": true,
-                                  "version": "1.0"
+                                  "version": "2.0"
                                },
                                {
                                   "name": "xmspeedboost",
@@ -3344,7 +3344,7 @@
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
                                   "support": true,
-                                  "version": "1.0"
+                                  "version": "2.0"
                                },
                                {
                                   "name": "xmspeedboost",
@@ -3671,7 +3671,7 @@
                        {
                           "name": "connectedbuilding",
                           "bitposition": 7,
-                          "support": true,
+                          "support": false,
                           "version": "1.0"
                        },
                        {
@@ -5611,7 +5611,7 @@
                                   "name": "connectedbuilding",
                                   "bitposition": 7,
                                   "support": true,
-                                  "version": "1.0"
+                                  "version": "2.0"
                                },
                                {
                                   "name": "xmspeedboost",
