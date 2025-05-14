@@ -30,6 +30,8 @@ RCONFLICTS_${PN} += "${PN}-systemd"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
+CFLAGS_append = "${@bb.utils.contains('DISTRO_FEATURES', 'disable_unsupported_gamepad', '', ' -DBT_UNSUPPORTED_GAMEPAD_ENABLED',d)}"
+
 do_install_append() {
     mkdir -p ${D}${includedir}/bluetooth/audio/
     install -m 0644 ${S}/profiles/audio/a2dp-codecs.h ${D}${includedir}/bluetooth/audio/
