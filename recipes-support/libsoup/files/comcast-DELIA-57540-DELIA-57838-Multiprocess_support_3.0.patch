@@ -1,0 +1,296 @@
+From 2fae3211bf6342e73d802c91bef0540c32bbb6d3 Mon Sep 17 00:00:00 2001
+From: Andrzej Surdej <Andrzej_Surdej@comcast.com>
+Date: Tue, 4 Feb 2025 14:37:09 +0100
+Subject: [PATCH] comcast - DELIA-57540: Refresh cookies from database in
+ runtime
+
+Add 'refresh_from_storage' method to SoupCookieJar class
+that will update cookies from backing storage if needed.
+
+Implement it for Cookie Jar DB (sqlite3) based on 'data_version'
+sqlite PRAGMA cmd.
+
+See:
+https://gitlab.gnome.org/GNOME/libsoup/-/merge_requests/304
+
+--------------------------------------------------------------------
+
+DELIA-57838: cookie-jar-db - Fix DB access BUSY failure
+
+Running an SQL command on a database that is currently locked
+by another process may result with BUSY failure
+(depending on locking type required). As a result the command
+may no be executed.
+This usually happens when two or more processes are performing
+cookie write operations (INSERT) on database. One of them will
+fail with BUSY error code so the cookie wont be saved.
+
+Add default handler for such case with max 250ms timeout
+(should be sufficient for most cases and still allowing to catch
+any performance degradation (blocking))
+
+Signed-off-by: Andrzej Surdej <Andrzej_Surdej@comcast.com>
+---
+ libsoup/cookies/soup-cookie-jar-db.c | 97 ++++++++++++++++++++++++++++
+ libsoup/cookies/soup-cookie-jar.c    | 39 +++++++++++
+ libsoup/cookies/soup-cookie-jar.h    |  2 +
+ 3 files changed, 138 insertions(+)
+
+diff --git a/libsoup/cookies/soup-cookie-jar-db.c b/libsoup/cookies/soup-cookie-jar-db.c
+index 780dad92..55b39d46 100644
+--- a/libsoup/cookies/soup-cookie-jar-db.c
++++ b/libsoup/cookies/soup-cookie-jar-db.c
+@@ -49,6 +49,8 @@ struct _SoupCookieJarDB {
+ typedef struct {
+ 	char *filename;
+ 	sqlite3 *db;
++	gulong db_version;
++	gboolean updating;
+ } SoupCookieJarDBPrivate;
+ 
+ G_DEFINE_FINAL_TYPE_WITH_PRIVATE (SoupCookieJarDB, soup_cookie_jar_db, SOUP_TYPE_COOKIE_JAR)
+@@ -251,6 +253,12 @@ open_db (SoupCookieJar *jar)
+ 		return TRUE;
+ 	}
+ 
++	/* Set default "BUSY" handler with maximum timeout of 250ms.
++	 * When database is locked by other process it will keep retrying
++	 * with increasing timeout until 250ms is reached.
++	 */
++	sqlite3_busy_timeout(priv->db, 250);
++
+ 	if (sqlite3_exec (priv->db, "PRAGMA synchronous = OFF; PRAGMA secure_delete = 1;", NULL, NULL, &error)) {
+ 		g_warning ("Failed to execute query: %s", error);
+ 		sqlite3_free (error);
+@@ -263,6 +271,37 @@ open_db (SoupCookieJar *jar)
+ 	return FALSE;
+ }
+ 
++static int
++read_version_callback (void *data, int argc, char **argv, char **colname)
++{
++	SoupCookieJarDBPrivate *priv = (SoupCookieJarDBPrivate*)data;
++
++	if (argc != 1 || argv[0] == NULL) {
++		g_warning("cookie-jar-db: Data version value is missing");
++		return -1;
++	}
++
++	priv->db_version = strtoul(argv[0], NULL, 10);
++	return 0;
++}
++
++static gboolean
++soup_cookie_jar_db_update_version (SoupCookieJar *jar)
++{
++	SoupCookieJarDBPrivate *priv =
++		soup_cookie_jar_db_get_instance_private (SOUP_COOKIE_JAR_DB (jar));
++
++	int ret = 0;
++	char* error = NULL;
++
++	ret = sqlite3_exec(priv->db, "PRAGMA data_version;", read_version_callback, priv, &error);
++	if (ret) {
++		g_warning("Failed to execute query: 'data version' [%d -> %s]", ret, error);
++		return FALSE;
++	}
++	return TRUE;
++}
++
+ static void
+ load (SoupCookieJar *jar)
+ {
+@@ -274,6 +313,9 @@ load (SoupCookieJar *jar)
+ 			return;
+ 	}
+ 
++	/* Get initial database file versoin -> needed for tracking changes */
++	soup_cookie_jar_db_update_version (jar);
++
+ 	exec_query_with_try_create_table (priv->db, QUERY_ALL, callback, jar);
+ }
+ 
+@@ -286,6 +328,12 @@ soup_cookie_jar_db_changed (SoupCookieJar *jar,
+ 		soup_cookie_jar_db_get_instance_private (SOUP_COOKIE_JAR_DB (jar));
+ 	char *query;
+ 
++	if (priv->updating) {
++		/* Cookies are being refreshed from DB so ignore it here */
++		g_warning("Changed event emmited during database fetch -> ignore");
++		return;
++	}
++
+ 	if (priv->db == NULL) {
+ 		if (open_db (jar))
+ 			return;
+@@ -323,6 +371,54 @@ soup_cookie_jar_db_is_persistent (SoupCookieJar *jar)
+ 	return TRUE;
+ }
+ 
++static gboolean
++soup_cookie_jar_db_refresh_from_storage (SoupCookieJar *jar)
++{
++	SoupCookieJarDBPrivate *priv =
++		soup_cookie_jar_db_get_instance_private (SOUP_COOKIE_JAR_DB (jar));
++
++	gulong prev_version = priv->db_version;
++	GSList *all_cookies, *current;
++	SoupCookie *cookie;
++
++	if (priv->db == NULL) {
++		return FALSE;
++	}
++
++	if (priv->updating) {
++		/* recursive update call -> ignore */
++		return FALSE;
++	}
++
++	soup_cookie_jar_db_update_version(jar);
++
++	if (prev_version == priv->db_version) {
++		return FALSE;
++	}
++
++	priv->updating = TRUE;
++
++	/* To handle cookies removal correctly we need to drop all persistent
++	 * cookies and reload them from DB (as some of them may have been removed) */
++	all_cookies = soup_cookie_jar_all_cookies (jar);
++	for (current = all_cookies; current != NULL; current = g_slist_next(current)) {
++		cookie = (SoupCookie*)current->data;
++		if (soup_cookie_get_expires(cookie)) {
++			/* Persistent (non session) cookies have expiry data set */
++			soup_cookie_jar_delete_cookie(jar, cookie);
++		}
++		soup_cookie_free(cookie);
++	}
++	g_slist_free(all_cookies);
++
++	/* Querry all cookies from DB and build memory representation again */
++	exec_query_with_try_create_table (priv->db, QUERY_ALL, callback, jar);
++
++	priv->updating = FALSE;
++
++	return TRUE;
++}
++
+ static void
+ soup_cookie_jar_db_class_init (SoupCookieJarDBClass *db_class)
+ {
+@@ -331,6 +427,7 @@ soup_cookie_jar_db_class_init (SoupCookieJarDBClass *db_class)
+ 	GObjectClass *object_class = G_OBJECT_CLASS (db_class);
+ 
+ 	cookie_jar_class->is_persistent = soup_cookie_jar_db_is_persistent;
++	cookie_jar_class->refresh_from_storage = soup_cookie_jar_db_refresh_from_storage;
+ 	cookie_jar_class->changed       = soup_cookie_jar_db_changed;
+ 
+ 	object_class->finalize     = soup_cookie_jar_db_finalize;
+diff --git a/libsoup/cookies/soup-cookie-jar.c b/libsoup/cookies/soup-cookie-jar.c
+index 4fe207b4..25ffb37b 100644
+--- a/libsoup/cookies/soup-cookie-jar.c
++++ b/libsoup/cookies/soup-cookie-jar.c
+@@ -153,6 +153,13 @@ soup_cookie_jar_real_is_persistent (SoupCookieJar *jar)
+ 	return FALSE;
+ }
+ 
++static gboolean
++soup_cookie_jar_real_refresh_from_storage (SoupCookieJar *jar)
++{
++	/* No storage by default, nothing to refresh */
++	return FALSE;
++}
++
+ static void
+ soup_cookie_jar_class_init (SoupCookieJarClass *jar_class)
+ {
+@@ -164,6 +171,8 @@ soup_cookie_jar_class_init (SoupCookieJarClass *jar_class)
+ 	object_class->get_property = soup_cookie_jar_get_property;
+ 
+ 	jar_class->is_persistent = soup_cookie_jar_real_is_persistent;
++	jar_class->refresh_from_storage = soup_cookie_jar_real_refresh_from_storage;
++
+ 
+ 	/**
+ 	 * SoupCookieJar::changed:
+@@ -283,6 +292,28 @@ compare_cookies (gconstpointer a, gconstpointer b, gpointer jar)
+ 	return aserial - bserial;
+ }
+ 
++/* private */
++static void
++refresh_from_storage_internal (SoupCookieJar *jar)
++{
++	SoupCookieJarPrivate *priv;
++	gboolean changed = FALSE;
++	priv = soup_cookie_jar_get_instance_private (jar);
++
++	/* Fetching data from storage is in progress */
++	if (!priv->constructed)
++		return;
++
++	/* block the "changed" signal emission for the time of update */
++	priv->constructed = FALSE;
++	changed = SOUP_COOKIE_JAR_GET_CLASS (jar)->refresh_from_storage (jar);
++	priv->constructed = TRUE;
++	if (changed) {
++		/* Trigger single notification if data was changed */
++		soup_cookie_jar_changed(jar, NULL, NULL);
++	}
++}
++
+ static gboolean
+ cookie_is_valid_for_same_site_policy (SoupCookie *cookie,
+                                       gboolean    is_safe_method,
+@@ -331,6 +362,8 @@ get_cookies (SoupCookieJar *jar,
+ 	if (!host)
+ 		return NULL;
+ 
++	refresh_from_storage_internal(jar);
++
+ 	/* The logic here is a little weird, but the plan is that if
+ 	 * host is "www.foo.com", we will end up looking up
+ 	 * cookies for ".www.foo.com", "www.foo.com", ".foo.com", and
+@@ -682,6 +715,8 @@ soup_cookie_jar_add_cookie_full (SoupCookieJar *jar, SoupCookie *cookie, GUri *u
+ 		return;
+ 	}
+ 	
++	refresh_from_storage_internal(jar);
++
+         g_mutex_lock (&priv->mutex);
+ 
+ 	old_cookies = g_hash_table_lookup (priv->domains, soup_cookie_get_domain (cookie));
+@@ -965,6 +1000,8 @@ soup_cookie_jar_all_cookies (SoupCookieJar *jar)
+ 
+ 	g_return_val_if_fail (SOUP_IS_COOKIE_JAR (jar), NULL);
+ 
++	refresh_from_storage_internal(jar);
++
+ 	priv = soup_cookie_jar_get_instance_private (jar);
+ 
+         g_mutex_lock (&priv->mutex);
+@@ -1001,6 +1038,8 @@ soup_cookie_jar_delete_cookie (SoupCookieJar *jar,
+ 	g_return_if_fail (SOUP_IS_COOKIE_JAR (jar));
+ 	g_return_if_fail (cookie != NULL);
+ 
++	refresh_from_storage_internal(jar);
++
+ 	priv = soup_cookie_jar_get_instance_private (jar);
+ 
+         g_mutex_lock (&priv->mutex);
+diff --git a/libsoup/cookies/soup-cookie-jar.h b/libsoup/cookies/soup-cookie-jar.h
+index aee83244..d8050803 100644
+--- a/libsoup/cookies/soup-cookie-jar.h
++++ b/libsoup/cookies/soup-cookie-jar.h
+@@ -19,6 +19,8 @@ struct _SoupCookieJarClass {
+ 	void     (*save)          (SoupCookieJar *jar);
+ 	gboolean (*is_persistent) (SoupCookieJar *jar);
+ 
++	gboolean (*refresh_from_storage) (SoupCookieJar *jar);
++
+ 	/* signals */
+ 	void (*changed) (SoupCookieJar *jar,
+ 			 SoupCookie    *old_cookie,
+-- 
+2.45.2
+

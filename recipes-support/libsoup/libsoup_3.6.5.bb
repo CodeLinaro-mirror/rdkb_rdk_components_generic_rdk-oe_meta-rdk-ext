@@ -12,9 +12,10 @@ DEPENDS = "glib-2.0 glib-2.0-native libxml2 sqlite3 libpsl nghttp2"
 SHRT_VER = "${@d.getVar('PV').split('.')[0]}.${@d.getVar('PV').split('.')[1]}"
 
 SRC_URI = "${GNOME_MIRROR}/libsoup/${SHRT_VER}/libsoup-${PV}.tar.xz"
-SRC_URI[sha256sum] = "62959f791e8e8442f8c13cedac8c4919d78f9120d5bb5301be67a5e53318b4a3"
+SRC_URI[sha256sum] = "6891765aac3e949017945c3eaebd8cc8216df772456dc9f460976fbdb7ada234"
 
-SRC_URI += "file://comcast-DELIA-67434-libsoup-crash-workaround.patch"
+SRC_URI += "file://comcast-RDK-56000-Cookie-size-limit-log_3.0.patch"
+SRC_URI += "file://comcast-DELIA-57540-DELIA-57838-Multiprocess_support_3.0.patch"
 
 PROVIDES = "libsoup-3.0"
 CVE_PRODUCT = "libsoup"
