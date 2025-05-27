@@ -3,7 +3,11 @@ HOMEPAGE = "http://www.fastcgi.com"
 LICENSE = "OML"
 LIC_FILES_CHKSUM = "file://LICENSE.TERMS;md5=e3aacac3a647af6e7e31f181cda0a06a"
 
-SRC_URI = "http://fossies.org/linux/www/old/${BP}.tar.gz \
+#SRC_URI = "http://fossies.org/linux/www/old/${BP}.tar.gz \
+#           file://Fix_EOF_not_declared_issue.patch \
+#           file://add_foreign_to_AM_INIT_AUTOMAKE.patch \
+#"
+SRC_URI = "https://www.dragino.com/downloads/downloads/cc-source/fcgi-2.4.0.tar.gz \
            file://Fix_EOF_not_declared_issue.patch \
            file://add_foreign_to_AM_INIT_AUTOMAKE.patch \
 "
