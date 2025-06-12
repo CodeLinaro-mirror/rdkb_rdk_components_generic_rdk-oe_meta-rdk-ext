@@ -1,0 +1,83 @@
+Index: sed-4.1.2/lib/utils.c
+===================================================================
+--- sed-4.1.2.orig/lib/utils.c
++++ sed-4.1.2/lib/utils.c
+@@ -35,6 +35,8 @@
+ # include <stdlib.h>
+ #endif /* HAVE_STDLIB_H */
+ 
++#include <unistd.h>
++
+ #include "utils.h"
+ 
+ const char *myname;
+@@ -64,6 +66,7 @@ panic(str, va_alist)
+   va_dcl
+ #else /*__STDC__*/
+ # include <stdarg.h>
++#include <string.h>
+ # define VSTART(l,a)	va_start(l, a)
+ void
+ panic(const char *str, ...)
+Index: sed-4.1.2/lib/regexec.c
+===================================================================
+--- sed-4.1.2.orig/lib/regexec.c
++++ sed-4.1.2/lib/regexec.c
+@@ -2263,7 +2263,7 @@ merge_state_with_log (err, mctx, next_st
+ 	  *err = re_node_set_init_union (&next_nodes, table_nodes,
+ 					 log_nodes);
+ 	  if (BE (*err != REG_NOERROR, 0))
+-	    return;
++	    return NULL;
+ 	}
+       else
+ 	next_nodes = *log_nodes;
+Index: sed-4.1.2/sed/sed.c
+===================================================================
+--- sed-4.1.2.orig/sed/sed.c
++++ sed-4.1.2/sed/sed.c
+@@ -49,6 +49,7 @@
+ # include <locale.h>
+ #endif
+ #include "getopt.h"
++#include <string.h>
+ 
+ #ifndef BOOTSTRAP
+ #ifndef HAVE_STDLIB_H
+Index: sed-4.1.2/sed/execute.c
+===================================================================
+--- sed-4.1.2.orig/sed/execute.c
++++ sed-4.1.2/sed/execute.c
+@@ -71,6 +71,7 @@ extern int errno;
+ #endif
+ 
+ #include <sys/stat.h>
++#include <string.h>
+ 
+ 
+ /* Sed operates a line at a time. */
+Index: sed-4.1.2/sed/fmt.c
+===================================================================
+--- sed-4.1.2.orig/sed/fmt.c
++++ sed-4.1.2/sed/fmt.c
+@@ -27,6 +27,8 @@
+ # include <limits.h>
+ #endif
+ 
++#include <string.h>
++
+ #ifndef UINT_MAX
+ # define UINT_MAX ((unsigned int) ~(unsigned int) 0)
+ #endif
+Index: sed-4.1.2/sed/mbcs.c
+===================================================================
+--- sed-4.1.2.orig/sed/mbcs.c
++++ sed-4.1.2/sed/mbcs.c
+@@ -17,6 +17,7 @@
+ 
+ #include "sed.h"
+ #include <stdlib.h>
++#include <string.h>
+ 
+ int mb_cur_max;
+ 
