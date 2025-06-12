@@ -1,7 +1,7 @@
 [Unit]
 Description=Samhain IDS
 Wants=network-online.target
-After=network-online.target rfc-config.service
+After=network-online.target 
 ConditionPathExists=/tmp/samhain-enabled
 
 [Service]
