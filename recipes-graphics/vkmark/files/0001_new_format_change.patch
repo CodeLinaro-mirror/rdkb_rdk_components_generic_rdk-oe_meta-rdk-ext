@@ -1,0 +1,215 @@
+Upstream-Status: Pending
+diff --git a/src/gen_format_map.py b/src/gen_format_map.py
+index 6e0ff1c..3a889b8 100644
+--- a/src/gen_format_map.py
++++ b/src/gen_format_map.py
+@@ -19,25 +19,23 @@
+ #   Alexandros Frantzis <alexandros.frantzis@collabora.com>
+ 
+ import sys
+-import xml.etree.ElementTree as ET
+ 
+ infile = sys.argv[1]
+ outfile = sys.argv[2]
+ 
+-def vk_fmt_to_hpp(fmt):
+-    fmt = fmt.replace("VK_FORMAT_", "")
+-    ret = ""
+-    last_was_alpha = False
+-    for c in fmt:
+-        ret += c.lower() if last_was_alpha else c
+-        last_was_alpha = c.isalpha()
+-    return ret.replace("_", "")
++in_formats = False
+ 
+ with open(infile, 'r') as inf, open(outfile, 'w') as outf:
+     print("#include <unordered_map>", file=outf);
+     print("static std::unordered_map<std::string, vk::Format> format_map = {", file=outf)
+-    vk_xml = ET.fromstring(inf.read())
+-    for enum in vk_xml.findall(".//enums[@name='VkFormat']/enum"):
+-        fmt = vk_fmt_to_hpp(enum.get("name"))
+-        print('    {"%s", vk::Format::e%s},' % (fmt.upper(), fmt), file=outf)
+-    print("};", file=outf);
++    for line in inf:
++        line = line.strip()
++        if in_formats:
++            if line.startswith('e'):
++                enum = line.split('=')[0].strip()
++                print('    {"%s", vk::Format::%s},' % (enum[1:].upper(), enum), file=outf)
++            if line.endswith('};'):
++                break
++        elif line.startswith('enum class Format'):
++            in_formats = True
++    print("};", file=outf)
+diff --git a/src/meson.build b/src/meson.build
+index 5c543d6..355f176 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -1,15 +1,17 @@
+ prog_python = find_program('python3')
+ 
+-vk_xml = join_paths([
+-    vulkan_dep.get_pkgconfig_variable('prefix'),
+-    'share', 'vulkan', 'registry',
+-    'vk.xml'
++vulkan_headers_path_prefix = meson.get_cross_property('sys_root', '/') + vulkan_dep.get_pkgconfig_variable('includedir')
++
++vulkan_hpp = join_paths([
++    vulkan_headers_path_prefix,
++    'vulkan',
++    'vulkan.hpp'
+     ])
+ 
+ format_map_gen_h = custom_target(
+     'format_map_gen.h',
+     output: 'format_map_gen.h',
+-    input: vk_xml,
++    input: vulkan_hpp,
+     command: [prog_python, files('gen_format_map.py'), '@INPUT@', '@OUTPUT@']
+     )
+ 
+diff --git a/src/vulkan_state.cpp b/src/vulkan_state.cpp
+index a36b299..4b95c03 100644
+--- a/src/vulkan_state.cpp
++++ b/src/vulkan_state.cpp
+@@ -47,10 +47,10 @@ public:
+     DebugUtilsDispatcher(vk::Instance& instance) :
+         vkCreateDebugUtilsMessengerEXT(
+             PFN_vkCreateDebugUtilsMessengerEXT(
+-                vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"))),
++                vkGetInstanceProcAddr(static_cast<VkInstance>(instance), "vkCreateDebugUtilsMessengerEXT"))),
+         vkDestroyDebugUtilsMessengerEXT(
+             PFN_vkDestroyDebugUtilsMessengerEXT(
+-                vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT")))
++                vkGetInstanceProcAddr(static_cast<VkInstance>(instance), "vkDestroyDebugUtilsMessengerEXT")))
+     {
+     }
+ 
+diff --git a/src/ws/kms_window_system.cpp b/src/ws/kms_window_system.cpp
+index 4bf7838..66ef3a5 100644
+--- a/src/ws/kms_window_system.cpp
++++ b/src/ws/kms_window_system.cpp
+@@ -811,7 +811,7 @@ void KMSWindowSystem::create_vk_images()
+         vk::SubresourceLayout layouts[4] = {0};
+         uint32_t num_planes = gbm_bo_get_plane_count(gbm_bo);
+         auto const fd = ManagedResource<int>{gbm_bo_get_fd(gbm_bo), close};
+-        uint64_t modifier = gbm_bo_get_modifier(gbm_bo);
++       uint64_t modifier = DRM_FORMAT_MOD_LINEAR;
+ 
+         if (modifier == DRM_FORMAT_MOD_INVALID && !warned_mod_invalid)
+         {
+diff --git a/src/ws/swapchain_window_system.cpp b/src/ws/swapchain_window_system.cpp
+index 0c70e8d..3569b8f 100644
+--- a/src/ws/swapchain_window_system.cpp
++++ b/src/ws/swapchain_window_system.cpp
+@@ -206,11 +206,6 @@ bool SwapchainWindowSystem::should_quit()
+ ManagedResource<vk::SwapchainKHR> SwapchainWindowSystem::create_vk_swapchain()
+ {
+     auto const surface_caps = vulkan->physical_device().getSurfaceCapabilitiesKHR(vk_surface);
+-    if (!(surface_caps.supportedCompositeAlpha &
+-          vk::CompositeAlphaFlagBitsKHR::eOpaque))
+-    {
+-        throw std::runtime_error("Opaque not supported");
+-    }
+
+     if (!vulkan->physical_device().getSurfaceSupportKHR(
+             vk_present_queue_family_index,
+@@ -249,21 +244,24 @@ ManagedResource<vk::SwapchainKHR> SwapchainWindowSystem::create_vk_swapchain()
+     if (surface_caps.maxImageCount > 0)
+         min_image_count = std::min(min_image_count, surface_caps.maxImageCount);
+
+-    auto const swapchain_create_info = vk::SwapchainCreateInfoKHR{}
++    //auto const swapchain_create_info = vk::SwapchainCreateInfoKHR{}
++    vk_image_format = vk::Format::eR8G8B8A8Unorm;
++    auto const swapchainCreateInfo = vk::SwapchainCreateInfoKHR{}
+         .setSurface(vk_surface)
+         .setMinImageCount(min_image_count)
+         .setImageFormat(vk_image_format)
+         .setImageExtent(vk_extent)
+         .setImageArrayLayers(1)
+-        .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
+-                       vk::ImageUsageFlagBits::eTransferDst)
++        //.setImageUsage(vk::ImageUsageFlagBits::eColorAttachment |
++        //               vk::ImageUsageFlagBits::eTransferDst)
++       .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
+         .setImageSharingMode(vk::SharingMode::eExclusive)
+         .setQueueFamilyIndexCount(1)
+         .setPQueueFamilyIndices(&vk_present_queue_family_index)
+         .setPresentMode(vk_present_mode);
+
+     return ManagedResource<vk::SwapchainKHR>{
+-        vulkan->device().createSwapchainKHR(swapchain_create_info),
++        vulkan->device().createSwapchainKHR(swapchainCreateInfo),
+         [this] (auto& s) { vulkan->device().destroySwapchainKHR(s); }};
+ }
+
+diff --git a/src/ws/wayland_native_system.cpp b/src/ws/wayland_native_system.cpp
+index 1b9809c..7136944 100644
+--- a/src/ws/wayland_native_system.cpp
++++ b/src/ws/wayland_native_system.cpp
+@@ -159,7 +159,8 @@ uint32_t WaylandNativeSystem::get_presentation_queue_family_index(vk::PhysicalDe
+     for (auto i = 0u; i < queue_families.size(); ++i)
+     {
+         if (queue_families[i].queueCount > 0 &&
+-            pd.getWaylandPresentationSupportKHR(i, display))
++            //pd.getWaylandPresentationSupportKHR(i, display))
++           (pd.getWaylandPresentationSupportKHR(i, display) || queue_families[i].queueFlags & vk::QueueFlagBits::eGraphics))
+         {
+             return i;
+         }
+@@ -205,9 +206,14 @@ ManagedResource<vk::SurfaceKHR> WaylandNativeSystem::create_vk_surface(VulkanSta
+         .setDisplay(display)
+         .setSurface(surface);
+
+-    return ManagedResource<vk::SurfaceKHR>{
+-        vulkan.instance().createWaylandSurfaceKHR(wayland_surface_create_info),
+-        [vptr=&vulkan] (vk::SurfaceKHR& s) { vptr->instance().destroySurfaceKHR(s); }};
++    //return ManagedResource<vk::SurfaceKHR>{
++    ManagedResource<vk::SurfaceKHR> ret = ManagedResource<vk::SurfaceKHR>{
++           vulkan.instance().createWaylandSurfaceKHR(wayland_surface_create_info),
++    //    [vptr=&vulkan] (vk::SurfaceKHR& s) { vptr->instance().destroySurfaceKHR(s); }};
++            [vptr=&vulkan] (vk::SurfaceKHR& s) {
++                   vptr->instance().destroySurfaceKHR(s);
++           }};
++return ret;
+ }
+
+ void WaylandNativeSystem::create_native_window()
+@@ -236,12 +242,8 @@ void WaylandNativeSystem::create_native_window()
+     if (!surface)
+         throw std::runtime_error("Failed to create Wayland surface");
+
+-    if (!xdg_wm_base)
++    if (xdg_wm_base)
+     {
+-        throw std::runtime_error(
+-            "Failed to create Wayland xdg_surface, xdg_wm_base not supported");
+-    }
+-
+     xdg_surface = ManagedResource<struct xdg_surface*>{
+         xdg_wm_base_get_xdg_surface(xdg_wm_base, surface),
+         xdg_surface_destroy};
+@@ -260,10 +262,12 @@ void WaylandNativeSystem::create_native_window()
+
+     xdg_toplevel_set_app_id(xdg_toplevel, "com.github.vkmark.vkmark");
+     xdg_toplevel_set_title(xdg_toplevel, "vkmark " VKMARK_VERSION_STR);
+-
++    }
++
+     if (fullscreen_requested())
+     {
+-        xdg_toplevel_set_fullscreen(xdg_toplevel, output);
++        if (xdg_wm_base)
++            xdg_toplevel_set_fullscreen(xdg_toplevel, output);
+         vk_extent = vk::Extent2D{
+             static_cast<uint32_t>(output_width),
+             static_cast<uint32_t>(output_height)};
+@@ -281,6 +285,8 @@ void WaylandNativeSystem::create_native_window()
+         wl_surface_set_buffer_scale(surface, output_scale);
+     }
+
++    vk_extent = vk::Extent2D{ 1920, 1080};
++
+     auto const opaque_region = ManagedResource<wl_region*>{
+         wl_compositor_create_region(compositor), wl_region_destroy};
+     wl_region_add(opaque_region, 0, 0, vk_extent.width, vk_extent.height);
