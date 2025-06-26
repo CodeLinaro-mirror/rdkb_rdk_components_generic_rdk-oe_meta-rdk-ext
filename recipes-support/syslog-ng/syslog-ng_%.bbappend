@@ -10,6 +10,10 @@ RDEPENDS_${PN}_append = "${@bb.utils.contains_any('DISTRO_FEATURES','dunfell kir
 RREPLACES_${PN}  += "busybox-syslog sysklogd rsyslog"
 
 python () {
+    # When syslog-ng DISTRO_FEATURE is not enabled, alternatives should not be set also
+    if not bb.utils.contains('DISTRO_FEATURES', 'syslog-ng', True, False, d):
+        return
+
     if bb.utils.contains('DISTRO_FEATURES', 'sysvinit', True, False, d):
         pn = d.getVar('PN', True)
         sysconfdir = d.getVar('sysconfdir', True)
