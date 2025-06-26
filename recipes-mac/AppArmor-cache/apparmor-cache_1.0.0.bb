@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://${S}/LICENSE;md5=fd57a4b0bc782d7b80fd431f10bbf9d0"
 DEPENDS = "bison-native apr-native gettext-native coreutils-native python3-native" 
 DEPENDS_append_class-target = " apparmor-cache-native" 
 
-inherit pkgconfig autotools autotools-brokensep python3native perlnative cpan features_check python3native
+inherit pkgconfig autotools autotools-brokensep python3native perlnative cpan python3native
 
 SRC_URI = " \
     git://gitlab.com/apparmor/apparmor.git;protocol=https;branch=apparmor-2.13 \
