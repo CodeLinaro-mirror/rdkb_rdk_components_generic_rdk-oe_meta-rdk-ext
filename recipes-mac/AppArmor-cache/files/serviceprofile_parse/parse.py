@@ -97,7 +97,7 @@ class ConfigLine:
         self.exempt_list = line.strip().split(":")[1].strip().split(",")
 
     def generateProfile(self):
-        prof_str = "profile " + self.name + " flags=(complain, attach_disconnected, mediate_deleted) {\n"
+        prof_str = "profile " + self.name + " flags=(attach_disconnected, mediate_deleted) {\n"
 
         # Insert missing defaults
         self.defaults.findDefaults(self.exempt_list)
