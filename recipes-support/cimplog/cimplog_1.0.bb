@@ -14,7 +14,6 @@ S = "${WORKDIR}/git"
 CFLAGS_append += " ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '', '-DFEATURE_SUPPORT_ONBOARD_LOGGING',d)}"
 inherit pkgconfig cmake
 EXTRA_OECMAKE += "-DRDK_LOGGER=ON -DBUILD_TESTING=OFF -DBUILD_YOCTO=true"
-EXTRA_OECMAKE_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '', ' -DFEATURE_SUPPORT_ONBOARD_LOGGING=true',d)}"
 
 ASNEEDED_hybrid = ""
 ASNEEDED_client = ""
