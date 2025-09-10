@@ -1,3 +1,9 @@
+##########################################
+From: chirag_biccodenandeesh@comcast.com
+Date: 25-Aug-25 14:35:00 +01:00
+Source: Comcast
+##########################################
+
 Upstream-Status: Pending
 diff --git a/layers/generated/vk_extension_helper.h b/layers/generated/vk_extension_helper.h
 index beaa710e5..18123a9cb 100644
