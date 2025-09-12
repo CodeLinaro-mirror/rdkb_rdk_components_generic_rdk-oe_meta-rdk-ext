@@ -221,3 +221,8 @@ PRIVATE_LIBS_${PN}-ptest = "libapparmor.so*"
 LDFLAGS_remove = "-flto"
 CFLAGS_remove = "-flto"
 CXXFLAGS_remove = "-flto"
+
+FILES_${PN}_append_skysr213 += " \
+     /lib/* \
+     /lib64/* \
+ "
