@@ -63,7 +63,7 @@ do_compile_class-native () {
     oe_runmake -C ${B}/libraries/libapparmor
     oe_runmake -C ${B}/binutils
     oe_runmake -C ${B}/parser cap_names.h
-    echo "#include \"${STAGING_DIR_NATIVE}/usr/include/linux/capability.h\"" | cpp -dM -E | LC_ALL=C sed -r -n -e "/CAP_EMPTY_SET/d" -e "${_CAP_HDR_REGEX}" | LC_ALL=C sed -n -e "${_CAP_PP_REGEX}" > ${B}/parser/cap_names.h
+    #echo "#include \"${STAGING_DIR_NATIVE}/usr/include/linux/capability.h\"" | cpp -dM -E | LC_ALL=C sed -r -n -e "/CAP_EMPTY_SET/d" -e "${_CAP_HDR_REGEX}" | LC_ALL=C sed -n -e "${_CAP_PP_REGEX}" > ${B}/parser/cap_names.h
     oe_runmake -C ${B}/parser
     oe_runmake -C ${B}/profiles
 }
