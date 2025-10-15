@@ -10,7 +10,7 @@ Index: dropbear-2020.81/dbutil.c
  
  static void generic_dropbear_exit(int exitcode, const char* format, 
  		va_list param) ATTRIB_NORETURN;
-@@ -154,6 +155,42 @@ void dropbear_log(int priority, const ch
+@@ -154,6 +155,70 @@ void dropbear_log(int priority, const ch
  	va_end(param);
  }
  
@@ -24,6 +24,34 @@ Index: dropbear-2020.81/dbutil.c
 +        symlink("/opt/secure/rdk_shell.log","/opt/logs/rdk_shell.log");
 +    }
 +#endif
++    struct stat st;
++    if (stat(SSH_SHELL_LOG, &st) == 0 && st.st_size > 524288) { /* 512 KB */
++        /* Truncate to last 256 KB to free space */
++        FILE *bak_log = fopen(SSH_SHELL_LOG, "r");
++        if (bak_log) {
++            if (fseek(bak_log, -262144, SEEK_END) == 0) { /* Move to last 256 KB */
++                char *buf = malloc(262144);
++                if (buf) {
++                    size_t bytes = fread(buf, 1, 262144, bak_log);
++                    fclose(bak_log);
++
++                    FILE *cur_log = fopen(SSH_SHELL_LOG, "w");
++                    if (cur_log && bytes > 0) {
++                        fwrite(buf, 1, bytes, cur_log);
++                        fclose(cur_log);
++                    } else if (cur_log) {
++                        fclose(cur_log);
++                    }
++                    free(buf);
++                } else {
++                    fclose(bak_log);
++                }
++            } else {
++                fclose(bak_log);
++            }
++        }
++    }
++
 +    FILE* fp = NULL;
 +    fp = fopen(SSH_SHELL_LOG, "a+");
 +    if (fp != NULL) {
