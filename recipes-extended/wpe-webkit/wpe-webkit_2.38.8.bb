@@ -6,7 +6,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r7"
+PR  = "r9"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -32,6 +32,7 @@ SRC_URI += "file://2.38.8/0001-GStreamer-Crash-in-CachedResourceStreamingClient.
 
 # Drop after tip of branch has been revised
 SRC_URI += "file://2.38.8/1423-revert.patch"
+SRC_URI += "file://2.38.8/cmake-Fix-recompilation-on-rebuild-without-changes.patch"
 
 # Comcast specific changes
 SRC_URI += "file://2.38.7/comcast-DELIA-60920-Malloc-Heap-Breakdown.patch"
@@ -76,6 +77,7 @@ SRC_URI += "file://2.38.8/comcast-LLAMA-15112-sleep-150-microsecs-instead-of-s.p
 SRC_URI += "file://2.38.8/comcast-DELIA-67128-GCHeap-snapshot.patch"
 SRC_URI += "file://2.38.8/comcast-LLAMA-16805-Include-HW-secure-decrypt-decode-in-robu.patch"
 SRC_URI += "file://2.38.8/comcast-RDKEMW-2744-BitmapTextureGL-Check-EGL-context.patch"
+SRC_URI += "file://2.38.8/comcast-DELIA-68848-webrtc-improvements.patch"
 
 PACKAGECONFIG[wpeqtapi]          = "-DENABLE_WPE_QT_API=ON,-DENABLE_WPE_QT_API=OFF"
 PACKAGECONFIG[westeros]          = "-DUSE_WPEWEBKIT_PLATFORM_WESTEROS=ON -DUSE_GSTREAMER_HOLEPUNCH=ON -DUSE_EXTERNAL_HOLEPUNCH=ON -DUSE_WESTEROS_SINK=ON,,westeros westeros-sink"
@@ -151,6 +153,10 @@ SELECTED_OPTIMIZATION_append = " -g1 "
 
 TUNE_CCARGS_remove = "-fno-omit-frame-pointer -fno-optimize-sibling-calls"
 TUNE_CCARGS_append = " -fno-delete-null-pointer-checks"
+
+WPE_WEBKIT_LTO ??= "-flto=auto -fno-fat-lto-objects"
+TARGET_CFLAGS += "${WPE_WEBKIT_LTO}"
+TARGET_LDFLAGS += "${WPE_WEBKIT_LTO}"
 
 RDEPS_VIDEO += " \
     gstreamer1.0-plugins-bad-opusparse \
