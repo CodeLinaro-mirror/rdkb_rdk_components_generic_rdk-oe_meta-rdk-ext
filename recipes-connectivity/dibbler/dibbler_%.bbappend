@@ -14,6 +14,7 @@ SRC_URI_append_client = " file://client_back_client.conf \
                         "
 
 SRC_URI_append_broadband = " file://client-notify.patch \
+                             ${@bb.utils.contains('DISTRO_FEATURES', 'no_mta_support','file://mta_removal_client-notify.patch', '', d)} \
                              file://dibbler-init.sh \
                              file://prepare_dhcpv6_config.sh \
                              file://udhcpc.vendor_specific \

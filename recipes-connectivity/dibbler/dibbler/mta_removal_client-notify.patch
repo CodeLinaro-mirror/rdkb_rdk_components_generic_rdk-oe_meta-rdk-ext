@@ -1,0 +1,77 @@
+Index: git/scripts/notify-scripts/client-notify-bsd.sh
+===================================================================
+--- git.orig/scripts/notify-scripts/client-notify-bsd.sh
++++ git/scripts/notify-scripts/client-notify-bsd.sh
+@@ -14,7 +14,9 @@ RESOLV_CONF_TMP="/tmp/resolv_tmp.conf"
+ SYSEVENT_CLEAR_TMP="/tmp/sysevent_clear_tmp.txt"
+ R=""
+ 
++if [ "$VOICE_SUPPORTED" != "false" ]; then
+ mta_dhcp_option_received=0
++fi
+ echo "-----------" >> $LOGFILE
+ 
+ convertval()
+@@ -185,6 +187,7 @@ if [ "$SRV_OPTION17" != "" ]; then
+         "39")
+          echo "Suboption IP Mode Preference is  $suboption_data in option $SRV_OPTION17" 
+          sysevent set wan6_ippref "$suboption_data"
++if [ "$VOICE_SUPPORTED" != "false" ]; then
+             Mta_Ip_Pref=`sysevent get MTA_IP_PREF`
+             if [ "$Mta_Ip_Pref" = "" ];then
+                 echo "Setting MTA_IP_PREF value to $suboption_data" 
+@@ -193,6 +196,7 @@ if [ "$SRV_OPTION17" != "" ]; then
+             else
+                 echo "Mta_Ip_Pref value is already set to $Mta_Ip_Pref"
+             fi
++fi	    
+         ;;
+         "2")
+         echo "Suboption Device Type is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
+@@ -207,7 +211,7 @@ if [ "$SRV_OPTION17" != "" ]; then
+                   parsed_value=""
+                   parsed_value=`parse_dhcp_option $suboption_data v6`
+                   echo "SUBOPT2170 parsed value is $parsed_value"
+-
++        if [ "$VOICE_SUPPORTED" != "false" ]; then
+                   suboption=""
+                   suboption_data=""
+                   for val in $parsed_value; do
+@@ -238,13 +242,15 @@ if [ "$SRV_OPTION17" != "" ]; then
+                         esac
+ 
+                    done
++	fi
+                    ;;
++        		   
+         "2171")
+         echo "Suboption List of Embedded Components in eDOCSIS Device is $suboption_data in option $SRV_OPTION17" 
+                  parsed_value=""
+                  parsed_value=`parse_dhcp_option $suboption_data v6`
+                  echo "SUBOPT2171 parsed value is $parsed_value"
+-
++        if [ "$VOICE_SUPPORTED" != "false" ]; then
+                   suboption=""
+                   suboption_data=""
+                   for val in $parsed_value; do
+@@ -275,17 +281,19 @@ if [ "$SRV_OPTION17" != "" ]; then
+                        esac
+ 
+                    done
++	fi 
+         ;;
+-
+      esac
+   done
+ fi
+ 
++if [ "$VOICE_SUPPORTED" != "false" ]; then
+ if [ "$mta_dhcp_option_received" -eq 1 ];then
+         echo "Setting dhcp_mta_option event as received"
+         sysevent set dhcp_mta_option received
+         mta_dhcp_option_received=0
+ fi
++fi
+ 
+ if [ "$SRV_OPTION23" != "" ] && [ "$SRV_OPTION23" != ":: " ]; then
+ if [ "$WanUnificationEnable" != "true" ];then #DNS is handled in Wanmanager in WanUnification builds. Don't set here
