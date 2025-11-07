@@ -6,7 +6,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r10"
+PR  = "r11"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -25,6 +25,7 @@ SRC_URI = "${BASE_URI}"
 SRC_URI += "file://2.38.2/1196.patch"
 SRC_URI += "file://2.38.6/1384.patch"
 SRC_URI += "file://2.38.7/1410.patch"
+SRC_URI += "file://2.38.8/1467.patch"
 
 # Drop after issue is addressed and a corresponding PR is merged
 SRC_URI += "file://2.38.8/1456-RDKTV-35082-Workaround-premature-finishSeek.patch"
