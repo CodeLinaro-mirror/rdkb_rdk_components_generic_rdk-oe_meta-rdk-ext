@@ -6,7 +6,7 @@ PATCHTOOL = "git"
 require wpe-webkit.inc
 
 # Advance PR with every change in the recipe
-PR  = "r11"
+PR  = "r12"
 PV .= "+git${SRCPV}"
 
 DEPENDS_append = " libepoxy libgcrypt"
@@ -35,6 +35,7 @@ SRC_URI += "file://2.38.8/0001-GStreamer-Crash-in-CachedResourceStreamingClient.
 SRC_URI += "file://2.38.8/1423-revert.patch"
 SRC_URI += "file://2.38.8/cmake-Fix-recompilation-on-rebuild-without-changes.patch"
 SRC_URI += "file://2.38.8/1488_GST_Quirks_auto.patch"
+SRC_URI += "file://2.38.8/1583_GstQuirks_gst_init.patch"
 SRC_URI += "file://2.38.8/1448_Added-API-to-get-and-set-screen-supports-HDR-setting.patch"
 SRC_URI += "file://2.38.8/1463_GStreamer-support-the-eotf-additional-MIME-type.patch"
 
