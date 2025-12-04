@@ -72,6 +72,7 @@ SRC_URI += "file://breakpad.patch \
     file://bluez-5.48-065-add-unsupport-device-remove-for-501.patch \
     file://bluez-5.48-066-ES1-2351-remove-corrupted-hog.patch \
     file://bluez-5.48-067-unregister-batt_io_ccc_written_cb-check-session.patch \
+    file://bluez-5.48-068-RDKEMW-8673-stream-use-after-free.patch \
     "
 SRC_URI_append_kirkstone = " file://bluez-5.48-kirkstone_compile_errors.patch "
 
