@@ -31,11 +31,24 @@ do_install() {
   install -d ${D}${libdir}
   #install -d ${D}${includedir}
   #install -d ${D}${datadir}
+  install -d ${D}${includedir}/libavcodec
+  install -d ${D}${includedir}/libavformat
+  install -d ${D}${includedir}/libavutil
+  install -d ${D}${includedir}/libswscale
+
   cd ${S}/
   # libraries install
   cp -rvf ./libavcodec/libavcodec.so.60 ${D}${libdir}
   cp -rvf ./libavformat/libavformat.so.60 ${D}${libdir}
   cp -rvf ./libavutil/libavutil.so.58 ${D}${libdir}
+  cp -rvf ./libswscale/libswscale.so.7 ${D}${libdir}
+
+  # Headers
+  cp -rvf ${S}/libavcodec/*.h ${D}${includedir}/libavcodec/
+  cp -rvf ${S}/libavformat/*.h ${D}${includedir}/libavformat/
+  cp -rvf ${S}/libavutil/*.h ${D}${includedir}/libavutil/
+  cp -rvf ${S}/libswscale/*.h ${D}${includedir}/libswscale/
+
   # binaries install
   #cp -rvf ./ffmpeg ${D}${bindir}
   #cp -rvf ./ffprobe ${D}${bindir}
@@ -43,6 +56,7 @@ do_install() {
   ln -s ${D}${libdir}/libavcodec.so.60 ${D}${libdir}/libavcodec.so
   ln -s ${D}${libdir}/libavformat.so.60 ${D}${libdir}/libavformat.so
   ln -s ${D}${libdir}/libavutil.so.58 ${D}${libdir}/libavutil.so
+  ln -s ${D}${libdir}/libswscale.so.7 ${D}${libdir}/libswscale.so
 }
 
 ERROR_QA_remove_morty = "pkgconfig"
