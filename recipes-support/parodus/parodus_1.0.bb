@@ -10,7 +10,7 @@ DEPENDS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " rbu
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 
-SRCREV= "0b6c359ee47638487afed6193cd98ca5b442534e"
+SRCREV= "8b6d52115b4d6e487f6ac82805bcbb0d0134da09"
 SRC_URI = " \
     git://github.com/xmidt-org/parodus.git \
     "
