@@ -79,6 +79,12 @@
                                   "bitposition": 3,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -412,6 +418,12 @@
                                {
                                   "name": "radio",
                                   "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -748,6 +760,12 @@
                                   "bitposition": 3,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -1080,6 +1098,12 @@
                                {
                                   "name": "radio",
                                   "bitposition": 3,
+                                  "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
                                   "support": false,
                                   "version": "1.0"
                                }
@@ -1416,6 +1440,12 @@
                                   "bitposition": 3,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -1749,6 +1779,12 @@
                                   "name": "radio",
                                   "bitposition": 3,
                                   "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": true,
                                   "version": "1.0"
                                }
                             ]
@@ -2090,6 +2126,12 @@
                                   "bitposition": 3,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": false,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -2423,6 +2465,12 @@
                                   "name": "radio",
                                   "bitposition": 3,
                                   "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": true,
                                   "version": "1.0"
                                }
                             ]
@@ -2763,6 +2811,12 @@
                                   "name": "radio",
                                   "bitposition": 3,
                                   "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": true,
                                   "version": "1.0"
                                }
                             ]
@@ -3105,6 +3159,12 @@
                                   "bitposition": 3,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": true,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -3440,6 +3500,12 @@
                                   "bitposition": 3,
                                   "support": false,
                                   "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": true,
+                                  "version": "1.0"
                                }
                             ]
                },
@@ -3768,6 +3834,12 @@
                           "bitposition": 3,
                           "support": false,
                           "version": "1.0"
+                       },
+                       {
+                          "name": "ignitewifi",
+                          "bitposition": 4,
+                          "support": false,
+                          "version": "1.0"
                        }
                     ]
        },
@@ -4094,6 +4166,12 @@
                        {
                           "name": "radio",
                           "bitposition": 3,
+                          "support": false,
+                          "version": "1.0"
+                       },
+                       {
+                          "name": "ignitewifi",
+                          "bitposition": 4,
                           "support": false,
                           "version": "1.0"
                        }
@@ -4430,6 +4508,12 @@
                           "bitposition": 3,
                           "support": false,
                           "version": "1.0"
+                       },
+                       {
+                          "name": "ignitewifi",
+                          "bitposition": 4,
+                          "support": false,
+                          "version": "1.0"
                        }
                     ]
        },
@@ -4762,6 +4846,12 @@
                               {
                                  "name": "radio",
                                  "bitposition": 3,
+                                 "support": false,
+                                 "version": "1.0"
+                              },
+                              {
+                                 "name": "ignitewifi",
+                                 "bitposition": 4,
                                  "support": false,
                                  "version": "1.0"
                               }
@@ -5098,6 +5188,12 @@
                                       "bitposition": 3,
                                       "support": false,
                                       "version": "1.0"
+                                   },
+                                   {
+                                      "name": "ignitewifi",
+                                      "bitposition": 4,
+                                      "support": false,
+                                      "version": "1.0"
                                    }
                                 ]
                    },
@@ -5432,6 +5528,12 @@
                           "bitposition": 3,
                           "support": false,
                           "version": "1.0"
+                       },
+                       {
+                          "name": "ignitewifi",
+                          "bitposition": 4,
+                          "support": false,
+                          "version": "1.0"
                        }
                     ]
        },
@@ -5748,6 +5850,12 @@
                                   "name": "radio",
                                   "bitposition": 3,
                                   "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": true,
                                   "version": "1.0"
                                }
                             ]
@@ -6089,6 +6197,12 @@
         "bitposition": 3,
         "support": false,
         "version": "1.0"
+      },
+      {
+        "name": "ignitewifi",
+        "bitposition": 4,
+        "support": true,
+        "version": "1.0"
       }
     ]
   },
@@ -6428,6 +6542,12 @@
                                   "name": "radio",
                                   "bitposition": 3,
                                   "support": false,
+                                  "version": "1.0"
+                               },
+                               {
+                                  "name": "ignitewifi",
+                                  "bitposition": 4,
+                                  "support": true,
                                   "version": "1.0"
                                }
                             ]
