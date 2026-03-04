@@ -32,7 +32,6 @@ SRC_URI_remove_skyhub4-l07 = "file://fix_type_casting.patch"
 SRC_URI_append_tchcbr = "file://RDKB_40826_Dibbler_Vendor_Info_Crash_Fix.patch"
 
 SRC_URI_append_broadband = " ${@bb.utils.contains('DISTRO_FEATURES', 'nat46','file://client-notify-option95.patch', bb.utils.contains('DISTRO_FEATURES', 'unified_mapt', 'file://client-notify-option95.patch', '', d) , d)}"
-
 inherit logrotate
 
 LOGROTATE_NAME = "dibbler"
@@ -73,6 +72,10 @@ do_install_append_broadband() {
     install -m 755 ${WORKDIR}/udhcpc.vendor_specific ${D}${sysconfdir}/udhcpc.vendor_specific
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'bci', 'true', 'false', d)}; then
+        install -m 755 ${WORKDIR}/dibbler-server-init.sh ${D}${base_libdir}/rdk/dibbler-server-init.sh
+        install -m 755 ${WORKDIR}/server-notify.sh ${D}${base_libdir}/rdk/server-notify.sh
+    fi
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'OneStack', 'true', 'false', d)}; then
         install -m 755 ${WORKDIR}/dibbler-server-init.sh ${D}${base_libdir}/rdk/dibbler-server-init.sh
         install -m 755 ${WORKDIR}/server-notify.sh ${D}${base_libdir}/rdk/server-notify.sh
     fi

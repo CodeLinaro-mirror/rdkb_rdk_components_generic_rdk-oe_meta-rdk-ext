@@ -15,8 +15,8 @@ SRC_URI_append_broadband = "  file://RDKCENTRAL_XDNS_core.patch \
                               file://RDKCENTRAL_XDNS_Refactor.patch \
                               file://RDKCENTRAL_XDNS_Enable_IPV6.patch "
 
-SRC_URI_append_broadband += " ${@bb.utils.contains('DISTRO_FEATURES', 'bci', 'file://RDKCENTRAL_MultiProfile_XDNS.patch', '', d)}"
-SRC_URI_append_broadband += " ${@bb.utils.contains('DISTRO_FEATURES', 'bci', 'file://udp_secondary_dns_ip_server_backup_failover.patch', '', d)}"
+SRC_URI_append_broadband += " ${@bb.utils.contains_any('DISTRO_FEATURES', 'bci OneStack', 'file://RDKCENTRAL_MultiProfile_XDNS.patch', '', d)}"
+SRC_URI_append_broadband += " ${@bb.utils.contains_any('DISTRO_FEATURES', 'bci OneStack', 'file://udp_secondary_dns_ip_server_backup_failover.patch', '', d)}"
 
 SRC_URI_append_broadband += " ${@bb.utils.contains('DISTRO_FEATURES', 'device_gateway_association', 'file://ManageableDevice.patch', '', d)}"
 
@@ -29,7 +29,7 @@ SRC_URI += " file://130-fingerprint-dhcp-lease-file-V2.83.patch \
 SRC_URI += " file://CVE-2022-0934_fix.patch  \
              file://CVE-2023-28450_fix.patch \
              file://CVE-2021-3448.patch "
-             
+
 SRC_URI_remove_broadband += "file://CVE-2021-3448.patch"
 
 

@@ -8,7 +8,7 @@ DEPENDS = "cjson trower-base64 msgpack-c cimplog wdmp-c curl wrp-c"
 DEPENDS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " rbus cpeabs", " ", d)}"
 DEPENDS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'aker', ' nanomsg libparodus ', '', d)}"
 
-SRCREV = "28de495c072641f071f7db7b1fc4913ca48247a5"
+SRCREV = "e50f0bca386a7728b37271b05dcf207a3adde77a"
 SRC_URI = "git://github.com/xmidt-org/webcfg.git"
 
 RDEPENDS_${PN} += "util-linux-uuidgen"
@@ -41,6 +41,8 @@ CFLAGS_append = " ${@bb.utils.contains("DISTRO_FEATURES", "WanFailOverSupportEna
 
 CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'webconfig_bin mqttCM', '-DFEATURE_SUPPORT_MQTTCM', '', d)}"
 
+CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'OneStack', ' -D_ONESTACK_PRODUCT_REQ_', '', d)}"
+
 CFLAGS_append = " \
         -DBUILD_YOCTO \
         -I${STAGING_INCDIR}/wdmp-c \
@@ -72,7 +74,14 @@ do_install_append_broadband() {
       install -d ${D}/usr/ccsp/webconfig
       install -d ${D}/etc
       touch ${D}/etc/WEBCONFIG_ENABLE
-      (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties ${MACHINE})
+        # OneStack: generate commercial & residential properties
+        if ${@bb.utils.contains("DISTRO_FEATURES", "OneStack", "true", "false", d)}
+        then
+            (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties.commercial ${MACHINE}_bci --one_stack)
+            (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties.residential ${MACHINE} --one_stack)
+        else
+            (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties ${MACHINE})
+        fi
     fi
 
     if ${@bb.utils.contains("DISTRO_FEATURES", "WanFailOverSupportEnable", "true", "false", d)}

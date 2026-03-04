@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSES/Apache-2.0.txt;md5=c846ebb396f8b174b10ded477
 
 DEPENDS = "cjson msgpack-c rbus wdmp-c cimplog"
 
-SRCREV = "13357f707ec57a78d38d571c1468a5a71a92595a"
+SRCREV = "d65eeed35dbdacefc6c07b0360038a8148d89d39"
 
 SRC_URI = "git://github.com/xmidt-org/cpeabs.git"
 
@@ -25,6 +25,8 @@ LDFLAGS += "-lcjson -lmsgpackc -lwdmp-c -lcimplog -lrbus"
 CFLAGS_append = " ${@bb.utils.contains("DISTRO_FEATURES", "WanFailOverSupportEnable", " -DWAN_FAILOVER_SUPPORTED ", " ", d)} "
 
 CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'mqttCM', '-DFEATURE_SUPPORT_MQTTCM', '', d)}"
+
+CFLAGS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'OneStack', ' -D_ONESTACK_PRODUCT_REQ_', '', d)}"
 
 CFLAGS_append = " \
         -DBUILD_YOCTO \

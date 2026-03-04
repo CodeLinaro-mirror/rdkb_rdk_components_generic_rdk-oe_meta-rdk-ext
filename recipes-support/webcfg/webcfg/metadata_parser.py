@@ -155,14 +155,14 @@ def append_bit(group_id, value):
 
 
 # Used to load the input json file
-def local_main(src, dest, device_name):
+def local_main(src, dest, device_name, one_stack):
     with open(src, "r") as json_file:
         data = json.load(json_file)
-    json_read(data, dest, device_name)
+    json_read(data, dest, device_name, one_stack)
 
 
 # Used to parse the json file got from reading
-def json_read(data, dest, device_name):
+def json_read(data, dest, device_name, one_stack):
     global max_group_size
     global supported_bits
     group_id = None
@@ -171,8 +171,20 @@ def json_read(data, dest, device_name):
 
     for (dev, subdoc) in list(data.items()):
         # Filtering based on device name from Json
-        if dev in device_name:
-            # print dev
+        # If --one_stack flag is provided:
+        #     Use exact match (dev == device_name)
+        #     This avoids substring matching issues
+        #     Example: 'xb10' should NOT match 'xb10_bci'
+        # Logic:
+        #   one_stack = True  -> exact match
+        #   one_stack = False -> substring match
+        if one_stack:
+            condition = dev == device_name
+        else:
+            condition = dev in device_name
+
+        if condition:
+            #print dev
             max_group_size = len(subdoc)
             supported_bits = [0 for i in range(0, max_group_size)]
             for count in range(0, len(subdoc)):
@@ -261,10 +273,13 @@ def json_read(data, dest, device_name):
         print("Either the device is not listed or it has no supported docs\n")
 
 
-'''Start of the program which requires 3 arguments input_json output_file_location device_name'''
+'''Start of the program which requires 3 or 4 arguments input_json output_file_location device_name one_stack'''
 
-if len(sys.argv) != 4:
+if len(sys.argv) not in (4, 5):
     print("usage: python input.json_file output_file_location device_name")
 else:
-    local_main(sys.argv[1], sys.argv[2], sys.argv[3])
+    one_stack = False
+    if len(sys.argv) == 5 and sys.argv[4] == "--one_stack":
+        one_stack = True
+    local_main(sys.argv[1], sys.argv[2], sys.argv[3], one_stack)
 

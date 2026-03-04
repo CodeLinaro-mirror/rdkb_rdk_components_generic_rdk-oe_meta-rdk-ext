@@ -17,7 +17,7 @@ SRC_URI_append_broadband = "  file://RDKCENTRAL_XDNS_core.patch \
                               file://RDKCENTRAL_XDNS_Refactor.patch \
                               file://RDKCENTRAL_XDNS_Enable_IPV6.patch  "
 
-SRC_URI_append_broadband += " ${@bb.utils.contains('DISTRO_FEATURES', 'bci', 'file://RDKCENTRAL_MultiProfile_XDNS.patch', '', d)}"
+SRC_URI_append_broadband += " ${@bb.utils.contains_any('DISTRO_FEATURES', 'bci OneStack', 'file://RDKCENTRAL_MultiProfile_XDNS.patch', '', d)}"
 
 SRC_URI_append_broadband += " ${@bb.utils.contains('DISTRO_FEATURES', 'device_gateway_association', 'file://ManageableDevice.patch', '', d)}"
 
