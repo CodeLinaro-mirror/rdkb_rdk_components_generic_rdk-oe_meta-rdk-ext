@@ -2460,7 +2460,7 @@
                                {
                                   "name": "wifimotionsettings",
                                   "bitposition": 7,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
