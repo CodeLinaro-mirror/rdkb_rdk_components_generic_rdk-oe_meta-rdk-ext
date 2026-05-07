@@ -1,0 +1,22 @@
+RDKBDEV-3438: CDRouter - CM doesn't send a DHCPv6 request after NoBinding error is received in a Reply of Renew message
+
+Reason for change: The fix in the patch is to append the IA_NA option also to the Request message that is sent when a NoBinding status is received in the reply of renew msg.
+Risks: Low
+Signed-off-by: Aiswarya Prasad <aprasad@maxlinear.com>
+Change-Id: I7458f4513cfb4b865b888aa966c239ebd078044e
+
+Index: git/ClntMessages/ClntMsgRequest.cpp
+===================================================================
+--- git.orig/ClntMessages/ClntMsgRequest.cpp
++++ git/ClntMessages/ClntMsgRequest.cpp
+@@ -50,6 +50,10 @@ TClntMsgRequest::TClntMsgRequest(TOptLis
+ 		    Options.push_back( ptr );
+ 	    }
+ 	    Options.push_back( new TOptDUID(OPTION_SERVERID,srvDUID->getDUID(),this));
++	    SPtr<TAddrIA> ia;
++	    ClntAddrMgr().firstIA();
++	    while (ia = ClntAddrMgr().getIA())
++		    Options.push_back(new TClntOptIA_NA(ia, this));
+ 	    SPtr<TAddrIA> pd;
+ 	    ClntAddrMgr().firstPD();
+ 	    while (pd = ClntAddrMgr().getPD())
