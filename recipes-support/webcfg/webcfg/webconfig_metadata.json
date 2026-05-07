@@ -3554,31 +3554,31 @@
                                {
                                   "name": "clienttosteeringprofile",
                                   "bitposition": 2,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
                                   "name": "meshsteeringprofiles",
                                   "bitposition": 3,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
                                   "name": "wifistatsconfig",
                                   "bitposition": 4,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
                                   "name": "mwoconfigs",
                                   "bitposition": 5,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
                                   "name": "interference",
                                   "bitposition": 6,
-                                  "support": false,
+                                  "support": true,
                                   "version": "1.0"
                                },
                                {
