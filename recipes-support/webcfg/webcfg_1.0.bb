@@ -8,7 +8,7 @@ DEPENDS = "cjson trower-base64 msgpack-c cimplog wdmp-c curl wrp-c"
 DEPENDS_append = "${@bb.utils.contains("DISTRO_FEATURES", "webconfig_bin", " rbus cpeabs", " ", d)}"
 DEPENDS_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'aker', ' nanomsg libparodus ', '', d)}"
 
-SRCREV = "e50f0bca386a7728b37271b05dcf207a3adde77a"
+SRCREV = "f94f8b3e2ab933f5621afc67cccc39891ecd846f"
 SRC_URI = "git://github.com/xmidt-org/webcfg.git"
 
 RDEPENDS_${PN} += "util-linux-uuidgen"
@@ -74,14 +74,7 @@ do_install_append_broadband() {
       install -d ${D}/usr/ccsp/webconfig
       install -d ${D}/etc
       touch ${D}/etc/WEBCONFIG_ENABLE
-        # OneStack: generate commercial & residential properties
-        if ${@bb.utils.contains("DISTRO_FEATURES", "OneStack", "true", "false", d)}
-        then
-            (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties.commercial ${MACHINE}_bci --one_stack)
-            (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties.residential ${MACHINE} --one_stack)
-        else
-            (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties ${MACHINE})
-        fi
+      (${PYTHON} ${WORKDIR}/metadata_parser.py ${WORKDIR}/webconfig_metadata.json ${D}/etc/webconfig.properties ${MACHINE})
     fi
 
     if ${@bb.utils.contains("DISTRO_FEATURES", "WanFailOverSupportEnable", "true", "false", d)}
