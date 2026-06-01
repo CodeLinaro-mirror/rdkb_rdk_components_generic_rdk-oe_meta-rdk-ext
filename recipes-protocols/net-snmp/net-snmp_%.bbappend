@@ -41,6 +41,12 @@ SRC_URI_append_broadband = " \
             file://CiscoXB3-2774.patch \
 "
 
+SRC_URI_remove_kirkstone = " \
+            file://double_free.patch  \
+            file://snmp-crash.patch \
+            file://CiscoXB3-2774.patch \
+"
+
 do_install_prepend() {
     rm -f ${D}/snmp/snmp_perl_trapd.pl
 }

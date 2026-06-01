@@ -1,0 +1,167 @@
+From 6d99a585a3e84989c7d00a612d0c935983f18486 Mon Sep 17 00:00:00 2001
+From: Chandrakant Sharpa <chandrakant_sharpa@comcast.com>
+Date: Tue, 31 Mar 2026 10:40:01 +0000
+Subject: [PATCH] Fix safe handling of malloc/realloc failures
+
+---
+ agent/mibgroup/host/hr_swrun.c         |  8 ++++-
+ agent/mibgroup/ucd-snmp/vmstat_linux.c | 41 ++++++++++++++++++++++++--
+ snmplib/opendir.c                      |  7 +++--
+ snmplib/parse.c                        |  8 ++++-
+ 4 files changed, 57 insertions(+), 7 deletions(-)
+
+diff --git a/agent/mibgroup/host/hr_swrun.c b/agent/mibgroup/host/hr_swrun.c
+index dddd3ea..730b58f 100644
+--- a/agent/mibgroup/host/hr_swrun.c
++++ b/agent/mibgroup/host/hr_swrun.c
+@@ -1526,6 +1526,7 @@ Init_HR_SWRun(void)
+ 		proc_table = malloc(sizeof(proc_table[0]) * avail);
+ 		for (;;) {
+ 			int got;
++			void *new_proc_table;
+ 			if (!proc_table) {
+ 				nproc = 0;
+ 				snmp_log_perror("Init_HR_SWRun-malloc");
+@@ -1539,7 +1540,12 @@ Init_HR_SWRun(void)
+ 				break;
+ 			}
+ 			avail += 1024;
+-			proc_table = realloc(proc_table, avail * sizeof(proc_table[0]));
++			new_proc_table = realloc(proc_table, avail * sizeof(proc_table[0]));
++			if (!new_proc_table) {
++			    snmp_log_perror("Init_HR_SWRun-realloc");
++			    break;
++			}
++			proc_table = new_proc_table;
+ 		}
+     }
+ #elif HAVE_KVM_GETPROC2
+diff --git a/agent/mibgroup/ucd-snmp/vmstat_linux.c b/agent/mibgroup/ucd-snmp/vmstat_linux.c
+index fa7032e..ebe06af 100644
+--- a/agent/mibgroup/ucd-snmp/vmstat_linux.c
++++ b/agent/mibgroup/ucd-snmp/vmstat_linux.c
+@@ -219,6 +219,7 @@ getstat(unsigned long *cuse, unsigned long *cice, unsigned long *csys,
+     static char    *buff = NULL, *vmbuff = NULL;
+     static int      bsize = 0, vmbsize = 0;
+     char           *b, *c;
++    char           *newbuf;
+     time_t          now;
+     unsigned long long cpunum;
+     unsigned long long cusell = 0, cicell = 0, csysll = 0, cidell = 0,
+@@ -233,13 +234,29 @@ getstat(unsigned long *cuse, unsigned long *cice, unsigned long *csys,
+         if (bsize == 0) {
+             bsize = 256;
+             buff = malloc(bsize);
++	     if (!buff) {
++		 close(statfd);
++		 snmp_log_perror("vmstat malloc");
++		 return;
++	     }
+         }
+         while (read(statfd, buff, bsize) == bsize) {
+             bsize += 256;
+-            buff = realloc(buff, bsize);
++            newbuf = realloc(buff, bsize);
++	     if (!newbuf) {
++		 bsize -= 256;
++		 close(statfd);
++		 snmp_log_perror("vmstat realloc");
++		 return;
++	     }
++	     buff = newbuf;
+             DEBUGMSGTL(("vmstat", "/proc/stat buffer increased to %d\n", bsize));
+             close(statfd);
+             statfd = open(STAT_FILE, O_RDONLY, 0);
++	     if (statfd == -1) {
++		 snmp_log_perror(STAT_FILE);
++		 return;
++	     }
+         }
+         close(statfd);
+ 
+@@ -252,14 +269,32 @@ getstat(unsigned long *cuse, unsigned long *cice, unsigned long *csys,
+ 	    if (vmbsize == 0) {
+ 		vmbsize = 256;
+ 		vmbuff = malloc(vmbsize);
++		if (!vmbuff) {
++		    close(vmstatfd);
++		    snmp_log_perror("vmstat malloc");
++		    return;
++		}
+ 	    }
+ 	    while (read(vmstatfd, vmbuff, vmbsize) == vmbsize) {
+ 		vmbsize += 256;
+-		vmbuff = realloc(vmbuff, vmbsize);
++		newbuf = realloc(vmbuff, vmbsize);
++		if (!newbuf) {
++		    vmbsize -= 256;
++		    close(vmstatfd);
++		    snmp_log_perror("vmstat realloc");
++		    return;
++		}
++		vmbuff = newbuf;
+ 		close(vmstatfd);
+ 		vmstatfd = open(VMSTAT_FILE, O_RDONLY, 0);
++		if (vmstatfd == -1) {
++		    snmp_log(LOG_ERR, "cannot open %s\n", VMSTAT_FILE);
++		    has_vmstat = 0;
++		    break;
++		}
+ 	    }
+-	    close(vmstatfd);
++	    if (vmstatfd != -1)
++		close(vmstatfd);
+           }
+ 	}
+ 	cache_time = now;
+diff --git a/snmplib/opendir.c b/snmplib/opendir.c
+index 6a6b518..f13a5b9 100644
+--- a/snmplib/opendir.c
++++ b/snmplib/opendir.c
+@@ -112,19 +112,22 @@ opendir(const char *filename)
+      * * of the previous string found.
+      */
+     while (FindNextFile(fh, &FindData)) {
++	 char *new_start;
+         len = strlen(FindData.cFileName);
+         /*
+          * bump the string table size by enough for the
+          * * new name and it's null terminator
+          */
+-        p->start = (char *) realloc((void *) p->start, idx + len + 1);
++        new_start = (char *) realloc((void *) p->start, idx + len + 1);
+         /*
+          * Renew(p->start, idx+len+1, char);
+          */
+-        if (p->start == NULL) {
++        if (new_start == NULL) {
++	    free(p->start);
+             free(p);
+             return NULL;
+         }
++	 p->start = new_start;
+         strcpy(&p->start[idx], FindData.cFileName);
+         /*
+          * if (downcase) 
+diff --git a/snmplib/parse.c b/snmplib/parse.c
+index e1609cc..9c71e77 100644
+--- a/snmplib/parse.c
++++ b/snmplib/parse.c
+@@ -2441,7 +2441,13 @@ parse_asntype(FILE * fp, char *name, int *ntype, char *ntoken)
+         }
+ 
+         if (i == tc_alloc) {
+-            tclist = realloc(tclist, (tc_alloc + TC_INCR)*sizeof(struct tc));
++	     struct tc *new_tclist = realloc(tclist, (tc_alloc + TC_INCR)*sizeof(struct tc));
++	     if (new_tclist == NULL) {
++		 print_error("Out of memory growing textual convention list",
++			     token, type);
++		 goto err;
++	     }
++	     tclist = new_tclist;
+             memset(tclist+tc_alloc, 0, TC_INCR*sizeof(struct tc));
+             tc_alloc += TC_INCR;
+         }
+-- 
+2.44.4
+
